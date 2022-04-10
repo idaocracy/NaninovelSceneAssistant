@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEditor;
 using Naninovel;
 using Naninovel.UI;
@@ -12,19 +11,19 @@ using System.Reflection;
 
 public class NaninovelSceneAssistant : EditorWindow
 {
-
     private struct SceneObject
     {
+        public string ObjId;
+        public string ObjType;
         public GameObject SceneGameObject;
-        public SceneObjectType SceneObjectType;
 
-        public SceneObject(SceneObjectType sceneObjectType, GameObject sceneGameObject)
+        public SceneObject(string objId, string objType, GameObject gameObject)
         {
-            SceneObjectType = sceneObjectType;
-            SceneGameObject = sceneGameObject;
+            ObjId = objId;
+            ObjType = objType;
+            SceneGameObject = gameObject;
         }
     }
-
 
     private ICharacterManager characterManager;
     private IBackgroundManager backgroundManager;
@@ -35,51 +34,37 @@ public class NaninovelSceneAssistant : EditorWindow
     private IStateManager stateManager;
     private IScriptPlayer scriptPlayer;
 
-    public enum SceneObjectType { Character, Background, Spawn, Camera, Printer, ChoiceHandler };
-    private GUIStyle _textFieldStyle;
-    private string _clipboardString = string.Empty;
-    private bool _usePosOverPosition = true;
-    private string _objectId = string.Empty;
-    private int _objectIndex = 0;
+    private GUIStyle textFieldStyle;
+    private string clipboardString = string.Empty;
+    private bool usePosOverPosition = true;
+    private int objIndex = 0;
+    private SceneObject objId;
 
-    private Vector2 _scrollPos = Vector2.zero;
+    private Vector2 scrollPos = Vector2.zero;
 
-    private bool _copyAppearance = true;
-    private bool _copyLookDirection = true;
-    private bool _copyTintColor = true;
-    private bool _copyZoom = true;
-    private bool _copyOrthographic = true;
-    private bool _copyCameraComponents = true;
-    private bool _copySpawnParams = true;
-    private bool _copyPosition = true;
-    private bool _copyRotation = true;
-    private bool _copyScale = true;
+    private bool copyAppearance = true;
+    private bool copyLookDirection = true;
+    private bool copyTintColor = true;
+    private bool copyZoom = true;
+    private bool copyOrthographic = true;
+    private bool copyCameraComponents = true;
+    private bool copySpawnParams = true;
+    private bool[] copyPosition = new bool[] { true, true, true, true };
+    private bool[] copyRotation = new bool[] { true, true, true, true };
+    private bool[] copyScale = new bool[] { true, true, true, true };
 
-    private bool _copyPosX = true;
-    private bool _copyPosY = true;
-    private bool _copyPosZ = true;
-    private bool _copyRotX = true;
-    private bool _copyRotY = true;
-    private bool _copyRotZ = true;
-    private bool _copyScaleX = true;
-    private bool _copyScaleY = true;
-    private bool _copyScaleZ = true;
+    private bool copyCharacters = true;
+    private bool copyBackgrounds = true;
+    private bool copySpawns = true;
+    private bool copyCamera = true;
+    private bool copyPrinters = true;
+    private bool copyChoices = true;
 
-    private bool _copyCharacters = true;
-    private bool _copyBackgrounds = true;
-    private bool _copySpawns = true;
-    private bool _copyCamera = true;
-    private bool _copyPrinters = true;
-    private bool _copyChoices = true;
-
-    private List<MonoBehaviour> _cameraComponentList = new List<MonoBehaviour>();
-    private Dictionary<string, SceneObject> _sceneObjectList = new Dictionary<string, SceneObject>();
+    private List<MonoBehaviour> cameraComponentList = new List<MonoBehaviour>();
+    private List<SceneObject> objList = new List<SceneObject>();
 
     [MenuItem("Naninovel/Scene Assistant", false, 350)]
-    public static void ShowWindow()
-    {
-        EditorWindow.GetWindow<NaninovelSceneAssistant>("Naninovel Scene Assistant");
-    }
+    public static void ShowWindow() => EditorWindow.GetWindow<NaninovelSceneAssistant>("Naninovel Scene Assistant");
 
     public void OnHierarchyChange()
     {
@@ -95,7 +80,8 @@ public class NaninovelSceneAssistant : EditorWindow
 
     private void RefreshList()
     {
-        if (_sceneObjectList.Count.Equals(0)) _objectIndex = 0;
+
+        if (objList.Count.Equals(0)) objIndex = 0;
         if (Engine.Initialized)
         {
             characterManager = Engine.GetService<ICharacterManager>();
@@ -107,53 +93,38 @@ public class NaninovelSceneAssistant : EditorWindow
             stateManager = Engine.GetService<IStateManager>();
             scriptPlayer = Engine.GetService<IScriptPlayer>();
 
-            _sceneObjectList.Clear();
+            objList.Clear();
 
-            if (characterManager != null)
+            foreach (ICharacterActor actor in characterManager.GetAllActors())
             {
-                foreach (ICharacterActor actor in characterManager.GetAllActors())
-                {
-                    var actorObject = actor as MonoBehaviourActor<CharacterMetadata>;
-                    _sceneObjectList.Add(actor.Id, new SceneObject(SceneObjectType.Character, actorObject.GameObject));
-                }
+                var actorObject = actor as MonoBehaviourActor<CharacterMetadata>;
+                objList.Add(new SceneObject(actor.Id, "char", actorObject.GameObject));
             }
-            if (backgroundManager != null)
+
+            foreach (IBackgroundActor actor in backgroundManager.GetAllActors())
             {
-                foreach (IBackgroundActor actor in backgroundManager.GetAllActors())
-                {
-                    var actorObject = actor as MonoBehaviourActor<BackgroundMetadata>;
-                    _sceneObjectList.Add(actor.Id, new SceneObject(SceneObjectType.Background, actorObject.GameObject));
-                }
+                var actorObject = actor as MonoBehaviourActor<BackgroundMetadata>;
+                objList.Add(new SceneObject(actor.Id, "back id:", actorObject.GameObject));
             }
-            if (spawnManager != null)
+
+            foreach (SpawnedObject spawn in spawnManager.GetAllSpawned()) objList.Add(new SceneObject(spawn.Path, "spawn", spawn.GameObject));
+
+            cameraComponentList.Clear();
+            objList.Add(new SceneObject("Camera", "camera", cameraManager.Camera.gameObject));
+            foreach (MonoBehaviour cameraComponent in cameraManager.Camera.GetComponents<MonoBehaviour>()) cameraComponentList.Add(cameraComponent);
+
+            foreach (ITextPrinterActor printer in printerManager.GetAllActors())
             {
-                foreach (SpawnedObject spawn in spawnManager.GetAllSpawned())
-                {
-                    _sceneObjectList.Add(spawn.Path, new SceneObject(SceneObjectType.Spawn, spawn.GameObject));
-                }
+                var printerObject = printer as MonoBehaviourActor<TextPrinterMetadata>;
+                objList.Add(new SceneObject(printer.Id, "printer", printerObject.GameObject));
             }
-            if (cameraManager != null)
+            
+            foreach (IChoiceHandlerActor choiceHandler in choiceHandlerManager.GetAllActors())
             {
-                _cameraComponentList.Clear();
-                _sceneObjectList.Add("Camera", new SceneObject(SceneObjectType.Camera, cameraManager.Camera.gameObject));
-                foreach (MonoBehaviour cameraComponent in cameraManager.Camera.GetComponents<MonoBehaviour>()) _cameraComponentList.Add(cameraComponent);
+                var choiceHandlerObject = choiceHandler as MonoBehaviourActor<ChoiceHandlerMetadata>;
+                objList.Add(new SceneObject(choiceHandler.Id, "choice", choiceHandlerObject.GameObject));
             }
-            if (printerManager != null)
-            {
-                foreach (ITextPrinterActor printer in printerManager.GetAllActors())
-                {
-                    var printerObject = printer as MonoBehaviourActor<TextPrinterMetadata>;
-                    _sceneObjectList.Add(printer.Id, new SceneObject(SceneObjectType.Printer, printerObject.GameObject));
-                }
-            }
-            if (choiceHandlerManager != null)
-            {
-                foreach (IChoiceHandlerActor choiceHandler in choiceHandlerManager.GetAllActors())
-                {
-                    var choiceHandlerObject = choiceHandler as MonoBehaviourActor<ChoiceHandlerMetadata>;
-                    _sceneObjectList.Add(choiceHandler.Id, new SceneObject(SceneObjectType.ChoiceHandler, choiceHandlerObject.GameObject));
-                }
-            }
+            
         }
     }
 
@@ -162,44 +133,44 @@ public class NaninovelSceneAssistant : EditorWindow
         GUILayout.Space(20);
         if (Engine.Initialized)
         {
-            _textFieldStyle = new GUIStyle(GUI.skin.textField);
-            _textFieldStyle.alignment = TextAnchor.MiddleCenter;
+            textFieldStyle = new GUIStyle(GUI.skin.textField);
+            textFieldStyle.alignment = TextAnchor.MiddleCenter;
 
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
             GUILayout.BeginVertical();
-            if (GUILayout.Button("Copy command (@)", GUILayout.Height(20), GUILayout.Width(150))) GUIUtility.systemCopyBuffer = _clipboardString = CopyCommand(_objectId, false);
-            if (GUILayout.Button("Copy command ([])", GUILayout.Height(20), GUILayout.Width(150))) GUIUtility.systemCopyBuffer = _clipboardString = CopyCommand(_objectId, true);
-            if (GUILayout.Button("Copy all", GUILayout.Height(20), GUILayout.Width(150))) GUIUtility.systemCopyBuffer = _clipboardString = CopyAllOrSelected(true);
-            if (GUILayout.Button("Copy selected", GUILayout.Height(20), GUILayout.Width(150))) GUIUtility.systemCopyBuffer = _clipboardString = CopyAllOrSelected(false);
+            if (GUILayout.Button("Copy command (@)", GUILayout.Height(20), GUILayout.Width(150))) GUIUtility.systemCopyBuffer = clipboardString = CopyCommand(objId, false);
+            if (GUILayout.Button("Copy command ([])", GUILayout.Height(20), GUILayout.Width(150))) GUIUtility.systemCopyBuffer = clipboardString = CopyCommand(objId, true);
+            if (GUILayout.Button("Copy all", GUILayout.Height(20), GUILayout.Width(150))) GUIUtility.systemCopyBuffer = clipboardString = CopyAllOrSelected(true);
+            if (GUILayout.Button("Copy selected", GUILayout.Height(20), GUILayout.Width(150))) GUIUtility.systemCopyBuffer = clipboardString = CopyAllOrSelected(false);
             GUILayout.EndVertical();
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
-            _copyCharacters = GUILayout.Toggle(_copyCharacters, "Characters", GUILayout.Height(20));
+            copyCharacters = GUILayout.Toggle(copyCharacters, "Characters", GUILayout.Height(20));
             GUILayout.Space(5);
-            _copyBackgrounds = GUILayout.Toggle(_copyBackgrounds, "Backgrounds", GUILayout.Height(20));
+            copyBackgrounds = GUILayout.Toggle(copyBackgrounds, "Backgrounds", GUILayout.Height(20));
             GUILayout.Space(5);
-            _copySpawns = GUILayout.Toggle(_copySpawns, "Spawns", GUILayout.Height(20));
+            copySpawns = GUILayout.Toggle(copySpawns, "Spawns", GUILayout.Height(20));
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
-            _copyCamera = GUILayout.Toggle(_copyCamera, "Camera", GUILayout.Height(20));
+            copyCamera = GUILayout.Toggle(copyCamera, "Camera", GUILayout.Height(20));
             GUILayout.Space(5);
-            _copyPrinters = GUILayout.Toggle(_copyPrinters, "Printers", GUILayout.Height(20));
+            copyPrinters = GUILayout.Toggle(copyPrinters, "Printers", GUILayout.Height(20));
             GUILayout.Space(5);
-            _copyChoices = GUILayout.Toggle(_copyChoices, "Choices", GUILayout.Height(20));
+            copyChoices = GUILayout.Toggle(copyChoices, "Choices", GUILayout.Height(20));
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Select all", GUILayout.Height(20), GUILayout.Width(70))) _copyCharacters = _copyBackgrounds = _copySpawns = _copyCamera = _copyPrinters = _copyChoices = true;
-            if (GUILayout.Button("Deselect All", GUILayout.Height(20), GUILayout.Width(80))) _copyCharacters = _copyBackgrounds = _copySpawns = _copyCamera = _copyPrinters = _copyChoices = false;
+            if (GUILayout.Button("Select all", GUILayout.Height(20), GUILayout.Width(70))) copyCharacters = copyBackgrounds = copySpawns = copyCamera = copyPrinters = copyChoices = true;
+            if (GUILayout.Button("Deselect All", GUILayout.Height(20), GUILayout.Width(80))) copyCharacters = copyBackgrounds = copySpawns = copyCamera = copyPrinters = copyChoices = false;
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
@@ -219,48 +190,47 @@ public class NaninovelSceneAssistant : EditorWindow
             }
             if (GUILayout.Button("Nullify Transforms", GUILayout.Height(20), GUILayout.Width(120)))
             {
-                switch (_sceneObjectList[_objectId].SceneObjectType)
+                switch (objId.ObjType)
                 {
-
-                    case (SceneObjectType.Character):
-                        characterManager.GetActor(_objectId).Position = _usePosOverPosition ?
+                    case ("char"):
+                        characterManager.GetActor(objId.ObjId).Position = usePosOverPosition ?
                             Engine.GetConfiguration<CameraConfiguration>().SceneToWorldSpace(new Vector3(0.5f, 0.5f, Engine.GetConfiguration<CharactersConfiguration>().ZOffset))
                             : new Vector3(0, 0, Engine.GetConfiguration<CharactersConfiguration>().ZOffset);
-                        characterManager.GetActor(_objectId).Rotation = new Quaternion(0, 0, 0, 0);
-                        characterManager.GetActor(_objectId).Scale = new Vector3(1, 1, 1);
+                        characterManager.GetActor(objId.ObjId).Rotation = new Quaternion(0, 0, 0, 0);
+                        characterManager.GetActor(objId.ObjId).Scale = new Vector3(1, 1, 1);
                         break;
 
-                    case (SceneObjectType.Background):
-                        backgroundManager.GetActor(_objectId).Position = _usePosOverPosition ?
+                    case ("back id:"):
+                        backgroundManager.GetActor(objId.ObjId).Position = usePosOverPosition ?
                             Engine.GetConfiguration<CameraConfiguration>().SceneToWorldSpace(new Vector3(0.5f, 0.5f, Engine.GetConfiguration<BackgroundsConfiguration>().ZOffset))
                             : new Vector3(0, 0, Engine.GetConfiguration<BackgroundsConfiguration>().ZOffset);
-                        backgroundManager.GetActor(_objectId).Rotation = new Quaternion(0, 0, 0, 0);
-                        backgroundManager.GetActor(_objectId).Scale = new Vector3(1, 1, 1);
+                        backgroundManager.GetActor(objId.ObjId).Rotation = new Quaternion(0, 0, 0, 0);
+                        backgroundManager.GetActor(objId.ObjId).Scale = new Vector3(1, 1, 1);
                         break;
 
-                    case (SceneObjectType.Spawn):
-                        spawnManager.GetSpawned(_objectId).Transform.position = _usePosOverPosition ?
+                    case ("spawn"):
+                        spawnManager.GetSpawned(objId.ObjId).Transform.position = usePosOverPosition ?
                             Engine.GetConfiguration<CameraConfiguration>().SceneToWorldSpace(new Vector3(0.5f, 0.5f, 99))
                             : new Vector3(0, 0, 99);
-                        spawnManager.GetSpawned(_objectId).Transform.rotation = new Quaternion(0, 0, 0, 0);
-                        spawnManager.GetSpawned(_objectId).Transform.localScale = new Vector3(1, 1, 1);
+                        spawnManager.GetSpawned(objId.ObjId).Transform.rotation = new Quaternion(0, 0, 0, 0);
+                        spawnManager.GetSpawned(objId.ObjId).Transform.localScale = new Vector3(1, 1, 1);
                         break;
 
-                    case (SceneObjectType.Camera):
+                    case ("camera"):
                         cameraManager.Offset = Engine.GetConfiguration<CameraConfiguration>().InitialPosition;
                         cameraManager.Rotation = new Quaternion(0, 0, 0, 0);
                         break;
 
-                    case (SceneObjectType.Printer):
-                        printerManager.GetActor(_objectId).Position = _usePosOverPosition ?
+                    case ("printer"):
+                        printerManager.GetActor(objId.ObjId).Position = usePosOverPosition ?
                             Engine.GetConfiguration<CameraConfiguration>().SceneToWorldSpace(new Vector3(0.5f, 0.5f, Engine.GetConfiguration<TextPrintersConfiguration>().ZOffset))
                             : new Vector3(0, 0, Engine.GetConfiguration<TextPrintersConfiguration>().ZOffset);
-                        printerManager.GetActor(_objectId).Rotation = new Quaternion(0, 0, 0, 0);
-                        printerManager.GetActor(_objectId).Scale = new Vector3(1, 1, 1);
+                        printerManager.GetActor(objId.ObjId).Rotation = new Quaternion(0, 0, 0, 0);
+                        printerManager.GetActor(objId.ObjId).Scale = new Vector3(1, 1, 1);
                         break;
 
-                    case (SceneObjectType.ChoiceHandler):
-                        foreach (ChoiceHandlerButton choice in _sceneObjectList[_objectId].SceneGameObject.GetComponentsInChildren<ChoiceHandlerButton>()) choice.transform.localPosition = Vector2.zero;
+                    case ("choice"):
+                        foreach (ChoiceHandlerButton choice in objId.SceneGameObject.GetComponentsInChildren<ChoiceHandlerButton>()) choice.transform.localPosition = Vector2.zero;
                         break;
 
                 }
@@ -269,14 +239,21 @@ public class NaninovelSceneAssistant : EditorWindow
 
             if (GUILayout.Button("Select all", GUILayout.Height(20), GUILayout.Width(70)))
             {
-                _copyAppearance = _copyLookDirection = _copyTintColor = _copyZoom = _copyOrthographic = _copyCameraComponents = _copyPosition = _copyRotation = _copyScale
-                    = _copyPosX = _copyPosY = _copyPosZ = _copyRotX = _copyRotY = _copyRotZ = _copyScaleX = _copyScaleY = _copyScaleZ = true;
-            }
+                copyAppearance = copyLookDirection = copyTintColor = copyZoom = copyOrthographic = copyCameraComponents = true;
 
+                for (int i = 0; i < copyPosition.Length; i++) copyPosition[i] = true;
+                for (int i = 0; i < copyRotation.Length; i++) copyRotation[i] = true;
+                for (int i = 0; i < copyScale.Length; i++) copyScale[i] = true;
+            }
+                
+            //todo deselect
             if (GUILayout.Button("Deselect All", GUILayout.Height(20), GUILayout.Width(80)))
             {
-                _copyAppearance = _copyLookDirection = _copyTintColor = _copyZoom = _copyOrthographic = _copyCameraComponents = _copyPosition = _copyRotation = _copyScale
-                    = _copyPosX = _copyPosY = _copyPosZ = _copyRotX = _copyRotY = _copyRotZ = _copyScaleX = _copyScaleY = _copyScaleZ = false;
+                copyAppearance = copyLookDirection = copyTintColor = copyZoom = copyOrthographic = copyCameraComponents = false;
+
+                for (int i = 0; i < copyPosition.Length; i++) copyPosition[i] = false;
+                for (int i = 0; i < copyRotation.Length; i++) copyRotation[i] = false;
+                for (int i = 0; i < copyScale.Length; i++) copyScale[i] = false;
             }
 
             GUILayout.FlexibleSpace();
@@ -291,11 +268,11 @@ public class NaninovelSceneAssistant : EditorWindow
             GUILayout.Space(5);
 
             GUILayout.BeginVertical();
-            _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos, GUILayout.ExpandWidth(true));
-            _clipboardString = EditorGUILayout.TextArea(_clipboardString, GUILayout.ExpandHeight(true));
+            scrollPos = EditorGUILayout.BeginScrollView(scrollPos, GUILayout.ExpandWidth(true));
+            clipboardString = EditorGUILayout.TextArea(clipboardString, GUILayout.ExpandHeight(true));
             EditorGUILayout.EndScrollView();
 
-            _usePosOverPosition = GUILayout.Toggle(_usePosOverPosition, "Copy Pos instead of Position");
+            usePosOverPosition = GUILayout.Toggle(usePosOverPosition, "Copy Pos instead of Position");
             GUILayout.EndVertical();
             GUILayout.Space(30);
         }
@@ -310,14 +287,14 @@ public class NaninovelSceneAssistant : EditorWindow
     private void IdField()
     {
 
-        if (_sceneObjectList.Count > 0)
+        if (objList.Count > 0)
         {
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
             GUILayout.BeginVertical();
-            if (GUILayout.Button("Id", GUILayout.Width(140), GUILayout.Height(20))) _clipboardString = _objectId;
-            _objectIndex = EditorGUILayout.Popup(_objectIndex, _sceneObjectList.Keys.ToArray(), _textFieldStyle, GUILayout.Height(20), GUILayout.Width(140));
-            _objectId = _sceneObjectList.Keys.ToArray()[_objectIndex];
+            if (GUILayout.Button("Id", GUILayout.Width(140), GUILayout.Height(20))) clipboardString = objId.ObjId;
+            objIndex = EditorGUILayout.Popup(objIndex, objList.Select(p => p.ObjId.ToString()).ToArray(), textFieldStyle, GUILayout.Height(20), GUILayout.Width(140));
+            objId = objList[objIndex];
             GUILayout.EndVertical();
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
@@ -325,51 +302,50 @@ public class NaninovelSceneAssistant : EditorWindow
             GUILayout.Space(10);
 
             // CHARACTER TYPE
-            if (_sceneObjectList[_objectId].SceneObjectType.Equals(SceneObjectType.Character))
+            if (objId.ObjType.Equals("char"))
             {
                 GUILayout.BeginVertical();
-                AppearanceField(characterManager.GetActor(_objectId).Appearance);
-                characterManager.GetActor(_objectId).LookDirection = LookDirectionField(characterManager.GetActor(_objectId).LookDirection);
-                characterManager.GetActor(_objectId).TintColor = TintColorField(characterManager.GetActor(_objectId).TintColor);
+                AppearanceField(characterManager.GetActor(objId.ObjId).Appearance);
+                characterManager.GetActor(objId.ObjId).LookDirection = LookDirectionField(characterManager.GetActor(objId.ObjId).LookDirection);
+                characterManager.GetActor(objId.ObjId).TintColor = TintColorField(characterManager.GetActor(objId.ObjId).TintColor);
                 GUILayout.Space(10);
-                if (_usePosOverPosition) characterManager.GetActor(_objectId).Position = PosField(Engine.GetConfiguration<CameraConfiguration>().WorldToSceneSpace(characterManager.GetActor(_objectId).Position));
-                else characterManager.GetActor(_objectId).Position = PositionField(characterManager.GetActor(_objectId).Position);
-                characterManager.GetActor(_objectId).Rotation = RotationField(characterManager.GetActor(_objectId).Rotation);
-                characterManager.GetActor(_objectId).Scale = ScaleField(characterManager.GetActor(_objectId).Scale);
+                if (usePosOverPosition) characterManager.GetActor(objId.ObjId).Position = PosField(Engine.GetConfiguration<CameraConfiguration>().WorldToSceneSpace(characterManager.GetActor(objId.ObjId).Position));
+                else characterManager.GetActor(objId.ObjId).Position = PositionField(characterManager.GetActor(objId.ObjId).Position);
+                characterManager.GetActor(objId.ObjId).Rotation = RotationField(characterManager.GetActor(objId.ObjId).Rotation);
+                characterManager.GetActor(objId.ObjId).Scale = ScaleField(characterManager.GetActor(objId.ObjId).Scale);
                 GUILayout.EndVertical();
             }
 
             // BACKGROUND TYPE
-            if (_sceneObjectList[_objectId].SceneObjectType.Equals(SceneObjectType.Background))
+            if (objId.ObjType.Equals("back id:"))
             {
                 GUILayout.BeginVertical();
-                AppearanceField(backgroundManager.GetActor(_objectId).Appearance);
-                backgroundManager.GetActor(_objectId).TintColor = TintColorField(backgroundManager.GetActor(_objectId).TintColor);
+                AppearanceField(backgroundManager.GetActor(objId.ObjId).Appearance);
+                backgroundManager.GetActor(objId.ObjId).TintColor = TintColorField(backgroundManager.GetActor(objId.ObjId).TintColor);
                 GUILayout.Space(10);
-                if (_usePosOverPosition) backgroundManager.GetActor(_objectId).Position = PosField(Engine.GetConfiguration<CameraConfiguration>().WorldToSceneSpace(backgroundManager.GetActor(_objectId).Position));
-                else backgroundManager.GetActor(_objectId).Position = PositionField(backgroundManager.GetActor(_objectId).Position);
-                backgroundManager.GetActor(_objectId).Rotation = RotationField(backgroundManager.GetActor(_objectId).Rotation);
-                backgroundManager.GetActor(_objectId).Scale = ScaleField(backgroundManager.GetActor(_objectId).Scale);
+                if (usePosOverPosition) backgroundManager.GetActor(objId.ObjId).Position = PosField(Engine.GetConfiguration<CameraConfiguration>().WorldToSceneSpace(backgroundManager.GetActor(objId.ObjId).Position));
+                else backgroundManager.GetActor(objId.ObjId).Position = PositionField(backgroundManager.GetActor(objId.ObjId).Position);
+                backgroundManager.GetActor(objId.ObjId).Rotation = RotationField(backgroundManager.GetActor(objId.ObjId).Rotation);
+                backgroundManager.GetActor(objId.ObjId).Scale = ScaleField(backgroundManager.GetActor(objId.ObjId).Scale);
                 GUILayout.EndVertical();
             }
 
             // SPAWN TYPE
-            if (_sceneObjectList[_objectId].SceneObjectType.Equals(SceneObjectType.Spawn))
+            if (objId.ObjType.Equals("spawn"))
             {
                 GUILayout.BeginVertical();
-                if (_usePosOverPosition) spawnManager.GetSpawned(_objectId).Transform.position = PosField(Engine.GetConfiguration<CameraConfiguration>().WorldToSceneSpace(spawnManager.GetSpawned(_objectId).Transform.position));
-                else spawnManager.GetSpawned(_objectId).Transform.position = PositionField(spawnManager.GetSpawned(_objectId).Transform.position);
-                spawnManager.GetSpawned(_objectId).Transform.rotation = RotationField(spawnManager.GetSpawned(_objectId).Transform.rotation);
-                spawnManager.GetSpawned(_objectId).Transform.localScale = ScaleField(spawnManager.GetSpawned(_objectId).Transform.localScale);
+                if (usePosOverPosition) spawnManager.GetSpawned(objId.ObjId).Transform.position = PosField(Engine.GetConfiguration<CameraConfiguration>().WorldToSceneSpace(spawnManager.GetSpawned(objId.ObjId).Transform.position));
+                else spawnManager.GetSpawned(objId.ObjId).Transform.position = PositionField(spawnManager.GetSpawned(objId.ObjId).Transform.position);
+                spawnManager.GetSpawned(objId.ObjId).Transform.rotation = RotationField(spawnManager.GetSpawned(objId.ObjId).Transform.rotation);
+                spawnManager.GetSpawned(objId.ObjId).Transform.localScale = ScaleField(spawnManager.GetSpawned(objId.ObjId).Transform.localScale);
 
-                if (!CheckSpawnParamMethodIsNull(_objectId)) SpawnParamsField();
+                if (!CheckSpawnParamMethodIsNull(objId)) SpawnParamsField();
 
                 GUILayout.EndVertical();
-
             }
 
             // CAMERA TYPE
-            if (_sceneObjectList[_objectId].SceneObjectType.Equals(SceneObjectType.Camera))
+            if (objId.ObjType.Equals("camera"))
             {
                 GUILayout.BeginVertical();
                 cameraManager.Zoom = ZoomField(cameraManager.Zoom);
@@ -380,14 +356,14 @@ public class NaninovelSceneAssistant : EditorWindow
                 GUILayout.Space(10);
 
 
-                if (_cameraComponentList.Count > 0)
+                if (cameraComponentList.Count > 0)
                 {
                     GUILayout.BeginHorizontal();
-                    _copyCameraComponents = GUILayout.Toggle(_copyCameraComponents, "", GUILayout.Width(20), GUILayout.Height(20));
-                    if (GUILayout.Button("Camera Components", GUILayout.Width(150), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = _clipboardString = string.Join(",", _cameraComponentList.Select(x => x.GetType().Name + "." + x.enabled.ToString().ToLower()).ToArray());
+                    copyCameraComponents = GUILayout.Toggle(copyCameraComponents, "", GUILayout.Width(20), GUILayout.Height(20));
+                    if (GUILayout.Button("Camera Components", GUILayout.Width(150), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = clipboardString = string.Join(",", cameraComponentList.Select(x => x.GetType().Name + "." + x.enabled.ToString().ToLower()).ToArray());
                     GUILayout.EndHorizontal();
 
-                    foreach (var cameraComponent in _cameraComponentList)
+                    foreach (var cameraComponent in cameraComponentList)
                     {
                         GUILayout.BeginHorizontal();
                         GUILayout.Space(25);
@@ -400,24 +376,24 @@ public class NaninovelSceneAssistant : EditorWindow
             }
 
             // PRINTER TYPE
-            if (_sceneObjectList[_objectId].SceneObjectType.Equals(SceneObjectType.Printer))
+            if (objId.ObjType.Equals("printer"))
             {
                 GUILayout.BeginVertical();
-                AppearanceField(printerManager.GetActor(_objectId).Appearance);
-                printerManager.GetActor(_objectId).TintColor = TintColorField(printerManager.GetActor(_objectId).TintColor);
+                AppearanceField(printerManager.GetActor(objId.ObjId).Appearance);
+                printerManager.GetActor(objId.ObjId).TintColor = TintColorField(printerManager.GetActor(objId.ObjId).TintColor);
                 GUILayout.Space(10);
-                if (_usePosOverPosition) printerManager.GetActor(_objectId).Position = PosField(Engine.GetConfiguration<CameraConfiguration>().WorldToSceneSpace(printerManager.GetActor(_objectId).Position));
-                else printerManager.GetActor(_objectId).Position = PositionField(printerManager.GetActor(_objectId).Position);
-                printerManager.GetActor(_objectId).Rotation = RotationField(printerManager.GetActor(_objectId).Rotation);
-                printerManager.GetActor(_objectId).Scale = ScaleField(printerManager.GetActor(_objectId).Scale);
+                if (usePosOverPosition) printerManager.GetActor(objId.ObjId).Position = PosField(Engine.GetConfiguration<CameraConfiguration>().WorldToSceneSpace(printerManager.GetActor(objId.ObjId).Position));
+                else printerManager.GetActor(objId.ObjId).Position = PositionField(printerManager.GetActor(objId.ObjId).Position);
+                printerManager.GetActor(objId.ObjId).Rotation = RotationField(printerManager.GetActor(objId.ObjId).Rotation);
+                printerManager.GetActor(objId.ObjId).Scale = ScaleField(printerManager.GetActor(objId.ObjId).Scale);
                 GUILayout.EndVertical();
             }
 
             // CHOICE HANDLER TYPE
-            if (_sceneObjectList[_objectId].SceneObjectType.Equals(SceneObjectType.ChoiceHandler))
+            if (objId.ObjType.Equals("choice"))
             {
                 GUILayout.BeginVertical();
-                foreach (ChoiceHandlerButton choice in _sceneObjectList[_objectId].SceneGameObject.GetComponentsInChildren<ChoiceHandlerButton>())
+                foreach (ChoiceHandlerButton choice in objList[objIndex].SceneGameObject.GetComponentsInChildren<ChoiceHandlerButton>())
                 {
                     choice.transform.localPosition = ChoicePosField(choice.transform.localPosition, choice.ChoiceState.Summary);
                 }
@@ -430,14 +406,14 @@ public class NaninovelSceneAssistant : EditorWindow
     private void AppearanceField(string appearance)
     {
         GUILayout.BeginHorizontal();
-        _copyAppearance = GUILayout.Toggle(_copyAppearance, "", GUILayout.Width(20), GUILayout.Height(20));
-        if (GUILayout.Button("Appearance", GUILayout.Width(150), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = _clipboardString = appearance;
-        appearance = EditorGUILayout.DelayedTextField(appearance, _textFieldStyle, GUILayout.Height(20), GUILayout.Width(180));
+        copyAppearance = GUILayout.Toggle(copyAppearance, "", GUILayout.Width(20), GUILayout.Height(20));
+        if (GUILayout.Button("Appearance", GUILayout.Width(150), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = clipboardString = appearance;
+        appearance = EditorGUILayout.DelayedTextField(appearance, textFieldStyle, GUILayout.Height(20), GUILayout.Width(180));
         GUILayout.EndHorizontal();
 
-        if (_sceneObjectList[_objectId].SceneObjectType.Equals(SceneObjectType.Character) && appearance != characterManager.GetActor(_objectId).Appearance) characterManager.GetActor(_objectId).Appearance = appearance;
-        if (_sceneObjectList[_objectId].SceneObjectType.Equals(SceneObjectType.Background) && appearance != backgroundManager.GetActor(_objectId).Appearance) backgroundManager.GetActor(_objectId).Appearance = appearance;
-        if (_sceneObjectList[_objectId].SceneObjectType.Equals(SceneObjectType.Printer) && appearance != printerManager.GetActor(_objectId).Appearance) printerManager.GetActor(_objectId).Appearance = appearance;
+        if (objId.ObjType.Equals("char") && appearance != characterManager.GetActor(objId.ObjId).Appearance) characterManager.GetActor(objId.ObjId).Appearance = appearance;
+        if (objId.ObjType.Equals("back id:") && appearance != backgroundManager.GetActor(objId.ObjId).Appearance) backgroundManager.GetActor(objId.ObjId).Appearance = appearance;
+        if (objId.ObjType.Equals("printer") && appearance != printerManager.GetActor(objId.ObjId).Appearance) printerManager.GetActor(objId.ObjId).Appearance = appearance;
 
     }
 
@@ -448,9 +424,9 @@ public class NaninovelSceneAssistant : EditorWindow
         var lookIndex = Array.IndexOf(options, characterLookDirection.ToString());
 
 
-        _copyLookDirection = GUILayout.Toggle(_copyLookDirection, "", GUILayout.Width(20), GUILayout.Height(20));
-        if (GUILayout.Button("Look Direction", GUILayout.Width(150), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = _clipboardString = options[lookIndex];
-        lookIndex = EditorGUILayout.Popup(lookIndex, options, _textFieldStyle, GUILayout.Height(20), GUILayout.Width(180));
+        copyLookDirection = GUILayout.Toggle(copyLookDirection, "", GUILayout.Width(20), GUILayout.Height(20));
+        if (GUILayout.Button("Look Direction", GUILayout.Width(150), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = clipboardString = options[lookIndex];
+        lookIndex = EditorGUILayout.Popup(lookIndex, options, textFieldStyle, GUILayout.Height(20), GUILayout.Width(180));
         GUILayout.EndHorizontal();
 
         return (CharacterLookDirection)lookIndex;
@@ -459,8 +435,8 @@ public class NaninovelSceneAssistant : EditorWindow
     private Color TintColorField(Color tintColor)
     {
         GUILayout.BeginHorizontal();
-        _copyTintColor = GUILayout.Toggle(_copyTintColor, "", GUILayout.Width(20), GUILayout.Height(20));
-        if (GUILayout.Button("Tint Color", GUILayout.Width(150), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = _clipboardString = "#" + ColorUtility.ToHtmlStringRGBA(tintColor);
+        copyTintColor = GUILayout.Toggle(copyTintColor, "", GUILayout.Width(20), GUILayout.Height(20));
+        if (GUILayout.Button("Tint Color", GUILayout.Width(150), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = clipboardString = "#" + ColorUtility.ToHtmlStringRGBA(tintColor);
         tintColor = EditorGUILayout.ColorField(tintColor, GUILayout.Height(20), GUILayout.Width(180));
         GUILayout.EndHorizontal();
 
@@ -473,20 +449,19 @@ public class NaninovelSceneAssistant : EditorWindow
         var orthoIndex = Array.IndexOf(options, orthographic.ToString());
 
         GUILayout.BeginHorizontal();
-        _copyOrthographic = GUILayout.Toggle(_copyOrthographic, "", GUILayout.Width(20), GUILayout.Height(20));
-        if (GUILayout.Button("Orthographic", GUILayout.Width(150), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = _clipboardString = options[orthoIndex].ToLower();
-        orthoIndex = EditorGUILayout.Popup(orthoIndex, options, _textFieldStyle, GUILayout.Height(20), GUILayout.Width(180));
+        copyOrthographic = GUILayout.Toggle(copyOrthographic, "", GUILayout.Width(20), GUILayout.Height(20));
+        if (GUILayout.Button("Orthographic", GUILayout.Width(150), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = clipboardString = options[orthoIndex].ToLower();
+        orthoIndex = EditorGUILayout.Popup(orthoIndex, options, textFieldStyle, GUILayout.Height(20), GUILayout.Width(180));
         GUILayout.EndHorizontal();
 
         return bool.Parse(options[orthoIndex]);
     }
 
-
     private float ZoomField(float zoom)
     {
         GUILayout.BeginHorizontal();
-        _copyZoom = GUILayout.Toggle(_copyZoom, "", GUILayout.Width(20), GUILayout.Height(20));
-        if (GUILayout.Button("Zoom", GUILayout.Width(150), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = _clipboardString = zoom.ToString("0.##");
+        copyZoom = GUILayout.Toggle(copyZoom, "", GUILayout.Width(20), GUILayout.Height(20));
+        if (GUILayout.Button("Zoom", GUILayout.Width(150), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = clipboardString = zoom.ToString("0.##");
         zoom = EditorGUILayout.Slider(zoom, 0f, 1f, GUILayout.Width(180), GUILayout.Height(20));
         GUILayout.EndHorizontal();
 
@@ -497,12 +472,12 @@ public class NaninovelSceneAssistant : EditorWindow
     {
         GUILayout.BeginHorizontal();
         GUILayout.Label(label, GUILayout.Width(130));
-        if (GUILayout.Button("Pos", GUILayout.Width(50), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = _clipboardString = position.x + "," + position.y;
+        if (GUILayout.Button("Pos", GUILayout.Width(50), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = clipboardString = position.x + "," + position.y;
 
         position = EditorGUILayout.Vector2Field("", position, GUILayout.Width(130), GUILayout.Height(20));
 
-        _copyPosX = GUILayout.Toggle(_copyPosX, "", GUILayout.Width(20), GUILayout.Height(20));
-        _copyPosY = GUILayout.Toggle(_copyPosY, "", GUILayout.Width(20), GUILayout.Height(20));
+        copyPosition[1] = GUILayout.Toggle(copyPosition[1], "", GUILayout.Width(20), GUILayout.Height(20));
+        copyPosition[2] = GUILayout.Toggle(copyPosition[2], "", GUILayout.Width(20), GUILayout.Height(20));
 
         GUILayout.EndHorizontal();
 
@@ -514,42 +489,42 @@ public class NaninovelSceneAssistant : EditorWindow
         string[] options = new string[] { "True", "False" };
         var boolIndex = Array.IndexOf(options, enabled.ToString());
 
-        if (GUILayout.Button(cameraComponent.GetType().Name, GUILayout.Width(150), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = _clipboardString = cameraComponent.GetType().Name + "." + options[boolIndex].ToLower();
+        if (GUILayout.Button(cameraComponent.GetType().Name, GUILayout.Width(150), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = clipboardString = cameraComponent.GetType().Name + "." + options[boolIndex].ToLower();
 
-        boolIndex = EditorGUILayout.Popup(boolIndex, options, _textFieldStyle, GUILayout.Height(20), GUILayout.Width(180));
+        boolIndex = EditorGUILayout.Popup(boolIndex, options, textFieldStyle, GUILayout.Height(20), GUILayout.Width(180));
         return bool.Parse(options[boolIndex]);
 
     }
 
     private string SpawnParamsField()
     {
-        if (CheckSpawnParamMethodIsNull(_objectId)) return string.Empty;
+        if (CheckSpawnParamMethodIsNull(objId)) return string.Empty;
 
-        MethodInfo methodInfo = _sceneObjectList[_objectId].SceneGameObject.GetComponent<Naninovel.Commands.Spawn.IParameterized>().GetType().GetMethod("SceneAssistantParameters");
+        MethodInfo methodInfo = objId.SceneGameObject.GetComponent<Naninovel.Commands.Spawn.IParameterized>().GetType().GetMethod("SceneAssistantParameters");
 
         GUILayout.Space(5);
         GUILayout.BeginHorizontal();
-        _copySpawnParams = GUILayout.Toggle(_copySpawnParams, "", GUILayout.Width(20), GUILayout.Height(20));
-        if (GUILayout.Button("Spawn Parameters", GUILayout.Width(150), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = _clipboardString =
-        (string)methodInfo.Invoke(_sceneObjectList[_objectId].SceneGameObject.GetComponent<Naninovel.Commands.Spawn.IParameterized>(), new object[] { });
+        copySpawnParams = GUILayout.Toggle(copySpawnParams, "", GUILayout.Width(20), GUILayout.Height(20));
+        if (GUILayout.Button("Spawn Parameters", GUILayout.Width(150), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = clipboardString =
+        (string)methodInfo.Invoke(objId.SceneGameObject.GetComponent<Naninovel.Commands.Spawn.IParameterized>(), new object[] { });
         GUILayout.EndHorizontal();
 
-        return (string)methodInfo.Invoke(_sceneObjectList[_objectId].SceneGameObject.GetComponent<Naninovel.Commands.Spawn.IParameterized>(), new object[] { });
+        return (string)methodInfo.Invoke(objId.SceneGameObject.GetComponent<Naninovel.Commands.Spawn.IParameterized>(), new object[] { });
     }
 
-    private bool CheckSpawnParamMethodIsNull(string objectId) => _sceneObjectList[objectId].SceneGameObject.GetComponent<Naninovel.Commands.Spawn.IParameterized>()?.GetType().GetMethod("SceneAssistantParameters") == null;
+    private bool CheckSpawnParamMethodIsNull(SceneObject objId) => objId.SceneGameObject.GetComponent<Naninovel.Commands.Spawn.IParameterized>()?.GetType().GetMethod("SceneAssistantParameters") == null;
 
     private Vector3 PositionField(Vector3 position)
     {
         GUILayout.BeginHorizontal();
-        _copyPosition = GUILayout.Toggle(_copyPosition, "", GUILayout.Width(20), GUILayout.Height(20));
-        if (GUILayout.Button(_sceneObjectList[_objectId].SceneObjectType.Equals(SceneObjectType.Camera) ? "Offset" : "Position", GUILayout.Width(150), GUILayout.Height(20)))
-            GUIUtility.systemCopyBuffer = _clipboardString = CopyVector(position, _copyPosX, _copyPosY, _copyPosZ);
+        copyPosition[0] = GUILayout.Toggle(copyPosition[0], "", GUILayout.Width(20), GUILayout.Height(20));
+        if (GUILayout.Button(objList[objIndex].ObjType.Equals("camera") ? "Offset" : "Position", GUILayout.Width(150), GUILayout.Height(20)))
+            GUIUtility.systemCopyBuffer = clipboardString = CopyVector(position, copyPosition);
         position = EditorGUILayout.Vector3Field("", position, GUILayout.Width(180), GUILayout.Height(20));
 
-        _copyPosX = GUILayout.Toggle(_copyPosX, "", GUILayout.Width(20), GUILayout.Height(20));
-        _copyPosY = GUILayout.Toggle(_copyPosY, "", GUILayout.Width(20), GUILayout.Height(20));
-        _copyPosZ = GUILayout.Toggle(_copyPosZ, "", GUILayout.Width(20), GUILayout.Height(20));
+        copyPosition[1] = GUILayout.Toggle(copyPosition[1], "", GUILayout.Width(20), GUILayout.Height(20));
+        copyPosition[2] = GUILayout.Toggle(copyPosition[2], "", GUILayout.Width(20), GUILayout.Height(20));
+        copyPosition[3] = GUILayout.Toggle(copyPosition[3], "", GUILayout.Width(20), GUILayout.Height(20));
         GUILayout.EndHorizontal();
 
         return position;
@@ -559,17 +534,15 @@ public class NaninovelSceneAssistant : EditorWindow
     {
         GUILayout.BeginHorizontal();
 
-        _copyPosition = GUILayout.Toggle(_copyPosition, "", GUILayout.Width(20), GUILayout.Height(20));
-        if (GUILayout.Button("Pos", GUILayout.Width(150), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = _clipboardString = CopyVector(new Vector3(pos.x * 100, pos.y * 100, pos.z), _copyPosX, _copyPosY, _copyPosZ);
+        copyPosition[0] = GUILayout.Toggle(copyPosition[0], "", GUILayout.Width(20), GUILayout.Height(20));
+        if (GUILayout.Button("Pos", GUILayout.Width(150), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = clipboardString = CopyVector(new Vector3(pos.x * 100, pos.y * 100, pos.z), copyPosition);
 
         pos.x = pos.x * 100;
         pos.y = pos.y * 100;
 
         pos = EditorGUILayout.Vector3Field("", pos, GUILayout.Width(180), GUILayout.Height(20));
 
-        _copyPosX = GUILayout.Toggle(_copyPosX, "", GUILayout.Width(20), GUILayout.Height(20));
-        _copyPosY = GUILayout.Toggle(_copyPosY, "", GUILayout.Width(20), GUILayout.Height(20));
-        _copyPosZ = GUILayout.Toggle(_copyPosZ, "", GUILayout.Width(20), GUILayout.Height(20));
+        for (int i = 1; i < copyPosition.Length; i++) copyPosition[i] = GUILayout.Toggle(copyPosition[i], "", GUILayout.Width(20), GUILayout.Height(20));
 
         pos.x = pos.x / 100;
         pos.y = pos.y / 100;
@@ -584,14 +557,13 @@ public class NaninovelSceneAssistant : EditorWindow
     {
         GUILayout.BeginHorizontal();
 
-        _copyRotation = GUILayout.Toggle(_copyRotation, "", GUILayout.Width(20), GUILayout.Height(20));
-        if (GUILayout.Button("Rotation", GUILayout.Width(150), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = _clipboardString = CopyVector(rotation.eulerAngles, _copyRotX, _copyRotY, _copyRotZ);
+        copyRotation[0] = GUILayout.Toggle(copyRotation[0], "", GUILayout.Width(20), GUILayout.Height(20));
+        if (GUILayout.Button("Rotation", GUILayout.Width(150), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = clipboardString = CopyVector(rotation.eulerAngles, copyRotation);
 
         rotation.eulerAngles = EditorGUILayout.Vector3Field("", rotation.eulerAngles, GUILayout.Width(180), GUILayout.Height(20));
 
-        _copyRotX = GUILayout.Toggle(_copyRotX, "", GUILayout.Width(20), GUILayout.Height(20));
-        _copyRotY = GUILayout.Toggle(_copyRotY, "", GUILayout.Width(20), GUILayout.Height(20));
-        _copyRotZ = GUILayout.Toggle(_copyRotZ, "", GUILayout.Width(20), GUILayout.Height(20));
+        for (int i = 1; i < copyRotation.Length; i++) copyRotation[i] = GUILayout.Toggle(copyRotation[i], "", GUILayout.Width(20), GUILayout.Height(20));
+
         GUILayout.EndHorizontal();
 
         return rotation;
@@ -601,78 +573,76 @@ public class NaninovelSceneAssistant : EditorWindow
     {
         GUILayout.BeginHorizontal();
 
-        _copyScale = GUILayout.Toggle(_copyScale, "", GUILayout.Width(20), GUILayout.Height(20));
-        if (GUILayout.Button("Scale", GUILayout.Width(150), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = _clipboardString = CopyVector(scale, _copyScaleX, _copyScaleY, _copyScaleZ);
+        copyScale[0] = GUILayout.Toggle(copyScale[0], "", GUILayout.Width(20), GUILayout.Height(20));
+        if (GUILayout.Button("Scale", GUILayout.Width(150), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = clipboardString = CopyVector(scale, copyScale);
 
         scale = EditorGUILayout.Vector3Field("", scale, GUILayout.Width(180), GUILayout.Height(20));
 
-        _copyScaleX = GUILayout.Toggle(_copyScaleX, "", GUILayout.Width(20), GUILayout.Height(20));
-        _copyScaleY = GUILayout.Toggle(_copyScaleY, "", GUILayout.Width(20), GUILayout.Height(20));
-        _copyScaleZ = GUILayout.Toggle(_copyScaleZ, "", GUILayout.Width(20), GUILayout.Height(20));
+        for (int i = 1; i < copyScale.Length; i++) copyScale[i] = GUILayout.Toggle(copyScale[i], "", GUILayout.Width(20), GUILayout.Height(20));
 
         GUILayout.EndHorizontal();
 
         return scale;
     }
 
-    private string CopyCommand(string objectId, bool inlined)
+    private string CopyCommand(SceneObject obj, bool inlined)
     {
-        var commandString = string.Empty;
+        var commandString = obj.ObjType + " " + obj.ObjId;
 
-        if (_sceneObjectList[objectId].SceneObjectType.Equals(SceneObjectType.Character))
+        if (obj.ObjType.Equals("char"))
         {
-            commandString = "char " + objectId +
-            (_copyAppearance && characterManager.GetActor(objectId).Appearance != null ? "." + characterManager.GetActor(objectId).Appearance : string.Empty) +
-            (_copyLookDirection ? " look:" + characterManager.GetActor(objectId).LookDirection.ToString().ToLower() : string.Empty) +
-            (_copyTintColor ? " tint:#" + ColorUtility.ToHtmlStringRGBA(characterManager.GetActor(objectId).TintColor) : string.Empty) +
-            (_copyPosition && _usePosOverPosition ? " pos:" + CopyVector(ParsePos(characterManager.GetActor(objectId).Position), _copyPosX, _copyPosY, _copyPosZ) : string.Empty) +
-            (_copyPosition && !_usePosOverPosition ? " position:" + CopyVector(characterManager.GetActor(objectId).Position, _copyPosX, _copyPosY, _copyPosZ) : string.Empty) +
-            (_copyRotation ? " rotation:" + CopyVector(characterManager.GetActor(objectId).Rotation.eulerAngles, _copyRotX, _copyRotY, _copyRotZ) : string.Empty) +
-            (_copyScale ? " scale:" + CopyVector(characterManager.GetActor(objectId).Scale, _copyScaleX, _copyScaleY, _copyScaleZ) : string.Empty);
+            commandString = commandString +
+            (copyAppearance && characterManager.GetActor(obj.ObjId).Appearance != null ? "." + characterManager.GetActor(obj.ObjId).Appearance : string.Empty) +
+            (copyLookDirection ? " look:" + characterManager.GetActor(obj.ObjId).LookDirection.ToString().ToLower() : string.Empty) +
+            (copyTintColor ? " tint:#" + ColorUtility.ToHtmlStringRGBA(characterManager.GetActor(obj.ObjId).TintColor) : string.Empty) +
+            (copyPosition[0] && usePosOverPosition ? " pos:" + CopyVector(ParsePos(characterManager.GetActor(obj.ObjId).Position), copyPosition) : string.Empty) +
+            (copyPosition[0] && !usePosOverPosition ? " position:" + CopyVector(characterManager.GetActor(obj.ObjId).Position, copyPosition) : string.Empty) +
+            (copyRotation[0] ? " rotation:" + CopyVector(characterManager.GetActor(obj.ObjId).Rotation.eulerAngles, copyRotation) : string.Empty) +
+            (copyScale[0] ? " scale:" + CopyVector(characterManager.GetActor(obj.ObjId).Scale, copyScale) : string.Empty);
         }
-        else if (_sceneObjectList[objectId].SceneObjectType.Equals(SceneObjectType.Background))
+        else if (obj.ObjType.Equals("back id:"))
         {
-            commandString = "back id:" + objectId +
-            (_copyAppearance && backgroundManager.GetActor(objectId).Appearance != null ? " appearance:" + backgroundManager.GetActor(objectId).Appearance : string.Empty) +
-            (_copyTintColor ? " tint:#" + ColorUtility.ToHtmlStringRGBA(backgroundManager.GetActor(objectId).TintColor) : string.Empty) +
-            (_copyPosition && _usePosOverPosition ? " pos:" + CopyVector(ParsePos(backgroundManager.GetActor(objectId).Position), _copyPosX, _copyPosY, _copyPosZ) : string.Empty) +
-            (_copyPosition && !_usePosOverPosition ? " position:" + CopyVector(backgroundManager.GetActor(objectId).Position, _copyPosX, _copyPosY, _copyPosZ) : string.Empty) +
-            (_copyRotation ? " rotation:" + CopyVector(backgroundManager.GetActor(objectId).Rotation.eulerAngles, _copyRotX, _copyRotY, _copyRotZ) : string.Empty) +
-            (_copyScale ? " scale:" + CopyVector(backgroundManager.GetActor(objectId).Scale, _copyScaleX, _copyScaleY, _copyScaleZ) : string.Empty);
+            commandString = commandString +
+            (copyAppearance && backgroundManager.GetActor(obj.ObjId).Appearance != null ? " appearance:" + backgroundManager.GetActor(obj.ObjId).Appearance : string.Empty) +
+            (copyTintColor ? " tint:#" + ColorUtility.ToHtmlStringRGBA(backgroundManager.GetActor(obj.ObjId).TintColor) : string.Empty) +
+            (copyPosition[0] && usePosOverPosition ? " pos:" + CopyVector(ParsePos(backgroundManager.GetActor(obj.ObjId).Position), copyPosition) : string.Empty) +
+            (copyPosition[0] && !usePosOverPosition ? " position:" + CopyVector(backgroundManager.GetActor(obj.ObjId).Position, copyPosition) : string.Empty) +
+            (copyRotation[0] ? " rotation:" + CopyVector(backgroundManager.GetActor(obj.ObjId).Rotation.eulerAngles, copyRotation) : string.Empty) +
+            (copyScale[0] ? " scale:" + CopyVector(backgroundManager.GetActor(obj.ObjId).Scale, copyScale) : string.Empty);
         }
-        else if (_sceneObjectList[objectId].SceneObjectType.Equals(SceneObjectType.Spawn))
+        else if (obj.ObjType.Equals("spawn"))
         {
-            commandString = "spawn " + objectId +
-            (_copyPosition && _usePosOverPosition ? " pos:" + CopyVector(ParsePos(spawnManager.GetSpawned(objectId).Transform.position), _copyPosX, _copyPosY, _copyPosZ) : string.Empty) +
-            (_copyPosition && !_usePosOverPosition ? " position:" + CopyVector(spawnManager.GetSpawned(objectId).Transform.position, _copyPosX, _copyPosY, _copyPosZ) : string.Empty) +
-            (_copyRotation ? " rotation:" + CopyVector(spawnManager.GetSpawned(objectId).Transform.eulerAngles, _copyRotX, _copyRotY, _copyRotZ) : string.Empty) +
-            (_copyScale ? " scale:" + CopyVector(spawnManager.GetSpawned(objectId).Transform.localScale, _copyScaleX, _copyScaleY, _copyScaleZ) : string.Empty) +
-            (_copySpawnParams && !CheckSpawnParamMethodIsNull(objectId) ? " params:" + SpawnParamsField() : string.Empty);
+            commandString = commandString +
+            (copyPosition[0] && usePosOverPosition ? " pos:" + CopyVector(ParsePos(spawnManager.GetSpawned(obj.ObjId).Transform.position), copyPosition) : string.Empty) +
+            (copyPosition[0] && !usePosOverPosition ? " position:" + CopyVector(spawnManager.GetSpawned(obj.ObjId).Transform.position, copyPosition) : string.Empty) +
+            (copyRotation[0] ? " rotation:" + CopyVector(spawnManager.GetSpawned(obj.ObjId).Transform.eulerAngles, copyRotation) : string.Empty) +
+            (copyScale[0] ? " scale:" + CopyVector(spawnManager.GetSpawned(obj.ObjId).Transform.localScale, copyScale) : string.Empty) +
+            (copySpawnParams && !CheckSpawnParamMethodIsNull(obj) ? " params:" + SpawnParamsField() : string.Empty);
         }
-        else if (_sceneObjectList[objectId].SceneObjectType.Equals(SceneObjectType.Camera))
+        else if (obj.ObjType.Equals("camera"))
         {
-            commandString = "camera" +
-            (_copyZoom ? " zoom:" + cameraManager.Zoom : string.Empty) +
-            (_copyOrthographic ? " orthographic:" + cameraManager.Orthographic.ToString().ToLower() : string.Empty) +
-            (_copyPosition ? " offset:" + CopyVector(cameraManager.Offset, _copyPosX, _copyPosY, _copyPosZ) : string.Empty) +
-            (_copyRotation ? " rotation:" + CopyVector(cameraManager.Rotation.eulerAngles, _copyRotX, _copyRotY, _copyRotZ) : string.Empty) +
-            (_copyCameraComponents && _cameraComponentList.Count > 0 ? " set:" + string.Join(",", _cameraComponentList.Select(x => x.GetType().Name + "." + x.enabled.ToString().ToLower()).ToArray()) : string.Empty);
+            commandString = "camera" + 
+            (copyZoom ? " zoom:" + cameraManager.Zoom : string.Empty) +
+            (copyOrthographic ? " orthographic:" + cameraManager.Orthographic.ToString().ToLower() : string.Empty) +
+            (copyPosition[0] ? " offset:" + CopyVector(cameraManager.Offset, copyPosition) : string.Empty) +
+            (copyRotation[0] ? " rotation:" + CopyVector(cameraManager.Rotation.eulerAngles, copyRotation) : string.Empty) +
+            (copyCameraComponents && cameraComponentList.Count > 0 ? " set:" + string.Join(",", cameraComponentList.Select(x => x.GetType().Name + "." + x.enabled.ToString().ToLower()).ToArray()) : string.Empty);
         }
-        else if (_sceneObjectList[objectId].SceneObjectType.Equals(SceneObjectType.Printer))
+        else if (obj.ObjType.Equals("printer"))
         {
-            commandString = "printer " + objectId +
-            (_copyAppearance && printerManager.GetActor(objectId).Appearance != null ? "." + printerManager.GetActor(objectId).Appearance : string.Empty) +
-            (_copyTintColor ? " tint:#" + ColorUtility.ToHtmlStringRGBA(printerManager.GetActor(objectId).TintColor) : string.Empty) +
-            (_copyPosition && _usePosOverPosition ? " pos:" + CopyVector(ParsePos(printerManager.GetActor(objectId).Position), _copyPosX, _copyPosY, _copyPosZ) : string.Empty) +
-            (_copyPosition && !_usePosOverPosition ? " position:" + CopyVector(printerManager.GetActor(objectId).Position, _copyPosX, _copyPosY, _copyPosZ) : string.Empty) +
-            (_copyRotation ? " rotation:" + CopyVector(printerManager.GetActor(objectId).Rotation.eulerAngles, _copyRotX, _copyRotY, _copyRotZ) : string.Empty) +
-            (_copyScale ? " scale:" + CopyVector(printerManager.GetActor(objectId).Scale, _copyScaleX, _copyScaleY, _copyScaleZ) : string.Empty);
+            commandString = commandString + 
+            (copyAppearance && printerManager.GetActor(obj.ObjId).Appearance != null ? "." + printerManager.GetActor(obj.ObjId).Appearance : string.Empty) +
+            (copyTintColor ? " tint:#" + ColorUtility.ToHtmlStringRGBA(printerManager.GetActor(obj.ObjId).TintColor) : string.Empty) +
+            (copyPosition[0] && usePosOverPosition ? " pos:" + CopyVector(ParsePos(printerManager.GetActor(obj.ObjId).Position), copyPosition) : string.Empty) +
+            (copyPosition[0] && !usePosOverPosition ? " position:" + CopyVector(printerManager.GetActor(obj.ObjId).Position, copyPosition) : string.Empty) +
+            (copyRotation[0] ? " rotation:" + CopyVector(printerManager.GetActor(obj.ObjId).Rotation.eulerAngles, copyRotation) : string.Empty) +
+            (copyScale[0] ? " scale:" + CopyVector(printerManager.GetActor(obj.ObjId).Scale, copyScale) : string.Empty);
         }
-        else if (_sceneObjectList[objectId].SceneObjectType.Equals(SceneObjectType.ChoiceHandler))
+        else if (obj.ObjType.Equals("choice"))
         {
-            foreach (ChoiceHandlerButton choice in _sceneObjectList[objectId].SceneGameObject.GetComponentsInChildren<ChoiceHandlerButton>())
+            foreach (ChoiceHandlerButton choice in obj.SceneGameObject.GetComponentsInChildren<ChoiceHandlerButton>())
             {
-                commandString = commandString + (inlined ? "[" : "@") + "choice " + "\"" + choice.ChoiceState.Summary + "\"" + " handler:" + objectId + " pos:" + choice.transform.localPosition.x + "," + choice.transform.localPosition.y + (inlined ? "]" : "") + "\n";
+                commandString = (inlined ? "[" : "@") + "choice " + "\"" + choice.ChoiceState.Summary + "\"" + " handler:" + objId + " pos:" + choice.transform.localPosition.x + "," + choice.transform.localPosition.y + (inlined ? "]" : "") + "\n";
             }
             return commandString;
         }
@@ -682,28 +652,31 @@ public class NaninovelSceneAssistant : EditorWindow
         else return "@" + commandString;
     }
 
-    private static string CopyVector(Vector3 vector, bool copyX, bool copyY, bool copyZ) => (copyX ? vector.x.ToString("0.##") : string.Empty) + "," + (copyY ? vector.y.ToString("0.##") : string.Empty) + "," + (copyZ ? vector.z.ToString("0.##") : string.Empty);
+    private static string CopyVector(Vector3 vector, bool[] copyValues) => (copyValues[1] ? vector.x.ToString("0.##") : string.Empty) + "," + (copyValues[2] ? vector.y.ToString("0.##") : string.Empty) + "," + (copyValues[3] ? vector.z.ToString("0.##") : string.Empty);
     private static Vector3 ParsePos(Vector3 position) => new Vector3(Engine.GetConfiguration<CameraConfiguration>().WorldToSceneSpace(position).x * 100, Engine.GetConfiguration<CameraConfiguration>().WorldToSceneSpace(position).y * 100, position.z);
     private string CopyAllOrSelected(bool copyAll)
     {
         var allString = string.Empty;
 
-        _copyAppearance = _copyLookDirection = _copyTintColor = _copyZoom = _copyOrthographic = _copyCameraComponents = _copyPosition = _copyRotation = _copyScale
-                = _copyPosX = _copyPosY = _copyPosZ = _copyRotX = _copyRotY = _copyRotZ = _copyScaleX = _copyScaleY = _copyScaleZ = true;
+        copyAppearance = copyLookDirection = copyTintColor = copyZoom = copyOrthographic = copyCameraComponents = true;
 
-        foreach (var obj in _sceneObjectList)
+        for (int i = 0; i < copyPosition.Length; i++) copyPosition[i] = true;
+        for (int i = 0; i < copyRotation.Length; i++) copyRotation[i] = true;
+        for (int i = 0; i < copyScale.Length; i++) copyScale[i] = true;
+
+        foreach (var obj in objList)
         {
             if (!copyAll)
             {
-                if (!_copyCharacters && _sceneObjectList[obj.Key].SceneObjectType.Equals(SceneObjectType.Character)) continue;
-                if (!_copyBackgrounds && _sceneObjectList[obj.Key].SceneObjectType.Equals(SceneObjectType.Background)) continue;
-                if (!_copySpawns && _sceneObjectList[obj.Key].SceneObjectType.Equals(SceneObjectType.Spawn)) continue;
-                if (!_copyCamera && _sceneObjectList[obj.Key].SceneObjectType.Equals(SceneObjectType.Camera)) continue;
-                if (!_copyPrinters && _sceneObjectList[obj.Key].SceneObjectType.Equals(SceneObjectType.Printer)) continue;
-                if (!_copyChoices && _sceneObjectList[obj.Key].SceneObjectType.Equals(SceneObjectType.ChoiceHandler)) continue;
-                allString = allString + CopyCommand(obj.Key, false) + "\n";
+                if (!copyCharacters && obj.ObjType.Equals("char")) continue;
+                if (!copyBackgrounds && obj.ObjType.Equals("back id:")) continue;
+                if (!copySpawns && obj.ObjType.Equals("spawn")) continue;
+                if (!copyCamera && obj.ObjType.Equals("camera")) continue;
+                if (!copyPrinters && obj.ObjType.Equals("printer")) continue;
+                if (!copyChoices && obj.ObjType.Equals("choice")) continue;
+                allString = allString + CopyCommand(obj, false) + "\n";
             }
-            else allString = allString + CopyCommand(obj.Key, false) + "\n";
+            else allString = allString + CopyCommand(obj, false) + "\n";
         }
         return allString;
     }
