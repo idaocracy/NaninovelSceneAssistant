@@ -1,5 +1,12 @@
 # NaninovelSceneAssistant
 
+## Introduction & Installation
+
+Naninovel Scene Assistant is an extension that lets you easily modify Naninovel objects in real time and copy their corresponding command and parameters to a clipboard. 
+
+Check this video for a quick guide on installation and usage:
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/Qc5XYE-ojx8/0.jpg)](https://www.youtube.com/watch?v=Qc5XYE-ojx8)
+TLDW: Add the script to an Editor folder (If you don't have one for your own use, create one under Assets). The window can be accessed via the Naninovel menu. Enter Play Mode and tada.  
 
 ## Overview
 
@@ -20,13 +27,19 @@ ____
 - Orthographic (camera only)
 - Camera Components (camera only)**
 
-/* Please note that you need to set up the tint behaviour for the printer prefab yourself, by hooking a method to the public **On Tint Color Changed event
+/* Please note that you need to set up the tint behaviour for the printer prefab yourself, by hooking a method to the public **On Tint Color Changed** event
 
 **Parameter/reset options:**  
-- Rollback: This option is only available when you have State Rollback enabled in Naninovel's State Configuration. Will attempt to roll back to the newest state snapshot.
+- Rollback:  Will attempt to roll back to the newest state snapshot. Please note that this option is only available when you have State Rollback enabled in Naninovel's State Configuration.
 - Nullify Transforms: Will reset to default or visibility-friendly values. 
-- Select/Deselect All: Will check/uncheck all the parameter options.
+- Select/Deselect All: Will check/uncheck all the parameter options for the current object.
 
 ### Current limitations
 
-Spawn effect parameters (params) cannot be manipulated. I intend to release my own pack of spawn effects soon that will be compatible with the scene assistant. 
+- When the object is going through a timed transition, hovering over the Scene Assistant window will instantly complete the transition. This is due to Naninovel registering the new values before any tweens are completed, I do not intend to work around this.   
+- Spawn effect parameters (params) cannot be manipulated. I intend to release my own pack of spawn effects soon that will be compatible with the scene assistant. 
+- This is my first time working on Editor scripting and unfortunately the documentation can be insufficient so there will be bugs. If you can identify a bug and reproduce it, please let me know!
+
+### Contact
+
+If you need help with the extension, you can contact me here or on Discord. I am the tech support person (only yellow username) on the Naninovel discord.  
