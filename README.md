@@ -34,7 +34,7 @@ ____
 - Nullify Transforms: Will reset to default or visibility-friendly values. 
 - Select/Deselect All: Will check/uncheck all the parameter options for the current object.
 
-### Current limitations
+## Current limitations
 
 - When the object is going through a timed transition, hovering over the Scene Assistant window will instantly complete the transition. This is due to Naninovel registering the new values before any tweens are completed, I do not intend to work around this.   
 - Spawn effect parameters (params) cannot be manipulated. I intend to release my own pack of spawn effects soon that will be compatible with the scene assistant. 
@@ -44,6 +44,6 @@ ____
 
 The list of objects is refreshed during every change in object hierarchy, as well as when the window is opened. Hovering over the window will update it, otherwise it should have no effect on performance. 
 
-### Contact
+## Contact
 
 If you need help with the extension, you can contact me on here or on Discord. I am the tech support person (only yellow username) on the Naninovel discord.  
