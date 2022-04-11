@@ -18,7 +18,7 @@ TLDW: Add the script to an Editor folder (If you don't have one for your own use
 ____
 **Id**: The object ID. Click on the object Id to get the list of objects you can modify.  
 **Parameter options:** Each object has a list of parameters you can modify in real time. To exclude the parameter from string generation, uncheck the box in front of the parameter name. In case of transforms, you can omit x,y,z values specifically by unchecking the boxes on the far right.  
-- Appearance (character or background)
+- Appearance (character, background and printer)
 - Look Direction (character)
 - Tint Color (character, background and printer)* 
 - Pos/Position/Offset (all)
