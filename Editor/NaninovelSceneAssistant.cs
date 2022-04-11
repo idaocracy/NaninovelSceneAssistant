@@ -15,13 +15,13 @@ public class NaninovelSceneAssistant : EditorWindow
     {
         public string ObjId;
         public string ObjType;
-        public GameObject SceneGameObject;
+        public GameObject SceneObj;
 
         public SceneObject(string objId, string objType, GameObject gameObject)
         {
             ObjId = objId;
             ObjType = objType;
-            SceneGameObject = gameObject;
+            SceneObj = gameObject;
         }
     }
 
@@ -53,12 +53,7 @@ public class NaninovelSceneAssistant : EditorWindow
     private bool[] copyRotation = new bool[] { true, true, true, true };
     private bool[] copyScale = new bool[] { true, true, true, true };
 
-    private bool copyCharacters = true;
-    private bool copyBackgrounds = true;
-    private bool copySpawns = true;
-    private bool copyCamera = true;
-    private bool copyPrinters = true;
-    private bool copyChoices = true;
+    private bool[] copyObjectTypes = { true, true, true, true, true, true };
 
     private List<MonoBehaviour> cameraComponentList = new List<MonoBehaviour>();
     private List<SceneObject> objList = new List<SceneObject>();
@@ -149,28 +144,28 @@ public class NaninovelSceneAssistant : EditorWindow
 
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
-            copyCharacters = GUILayout.Toggle(copyCharacters, "Characters", GUILayout.Height(20));
+            copyObjectTypes[0] = GUILayout.Toggle(copyObjectTypes[0], "Characters", GUILayout.Height(20));
             GUILayout.Space(5);
-            copyBackgrounds = GUILayout.Toggle(copyBackgrounds, "Backgrounds", GUILayout.Height(20));
+            copyObjectTypes[1] = GUILayout.Toggle(copyObjectTypes[1], "Backgrounds", GUILayout.Height(20));
             GUILayout.Space(5);
-            copySpawns = GUILayout.Toggle(copySpawns, "Spawns", GUILayout.Height(20));
+            copyObjectTypes[2] = GUILayout.Toggle(copyObjectTypes[2], "Spawns", GUILayout.Height(20));
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
-            copyCamera = GUILayout.Toggle(copyCamera, "Camera", GUILayout.Height(20));
+            copyObjectTypes[3] = GUILayout.Toggle(copyObjectTypes[3], "Camera", GUILayout.Height(20));
             GUILayout.Space(5);
-            copyPrinters = GUILayout.Toggle(copyPrinters, "Printers", GUILayout.Height(20));
+            copyObjectTypes[4] = GUILayout.Toggle(copyObjectTypes[4], "Printers", GUILayout.Height(20));
             GUILayout.Space(5);
-            copyChoices = GUILayout.Toggle(copyChoices, "Choices", GUILayout.Height(20));
+            copyObjectTypes[5] = GUILayout.Toggle(copyObjectTypes[5], "Choices", GUILayout.Height(20));
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Select all", GUILayout.Height(20), GUILayout.Width(70))) copyCharacters = copyBackgrounds = copySpawns = copyCamera = copyPrinters = copyChoices = true;
-            if (GUILayout.Button("Deselect All", GUILayout.Height(20), GUILayout.Width(80))) copyCharacters = copyBackgrounds = copySpawns = copyCamera = copyPrinters = copyChoices = false;
+            if (GUILayout.Button("Select all", GUILayout.Height(20), GUILayout.Width(70))) for (int i = 0; i < copyObjectTypes.Length; i++) copyObjectTypes[i] = true;
+            if (GUILayout.Button("Deselect All", GUILayout.Height(20), GUILayout.Width(80))) for (int i = 0; i < copyObjectTypes.Length; i++) copyObjectTypes[i] = false;
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
@@ -230,7 +225,7 @@ public class NaninovelSceneAssistant : EditorWindow
                         break;
 
                     case ("choice"):
-                        foreach (ChoiceHandlerButton choice in objId.SceneGameObject.GetComponentsInChildren<ChoiceHandlerButton>()) choice.transform.localPosition = Vector2.zero;
+                        foreach (ChoiceHandlerButton choice in objId.SceneObj.GetComponentsInChildren<ChoiceHandlerButton>()) choice.transform.localPosition = Vector2.zero;
                         break;
 
                 }
@@ -246,14 +241,16 @@ public class NaninovelSceneAssistant : EditorWindow
                 for (int i = 0; i < copyScale.Length; i++) copyScale[i] = true;
             }
                 
-            //todo deselect
             if (GUILayout.Button("Deselect All", GUILayout.Height(20), GUILayout.Width(80)))
             {
-                copyAppearance = copyLookDirection = copyTintColor = copyZoom = copyOrthographic = copyCameraComponents = false;
+                if (objId.ObjType.Equals("char") || objId.ObjType.Equals("back id:") || objId.ObjType.Equals("printer")) copyAppearance = false;
+                if (objId.ObjType.Equals("char")) copyLookDirection = false;
+                if (objId.ObjType.Equals("char") || objId.ObjType.Equals("back id:") || objId.ObjType.Equals("printer")) copyTintColor = false;
+                if (objId.ObjType.Equals("camera")) copyZoom = copyOrthographic = copyCameraComponents = false;
 
                 for (int i = 0; i < copyPosition.Length; i++) copyPosition[i] = false;
-                for (int i = 0; i < copyRotation.Length; i++) copyRotation[i] = false;
-                for (int i = 0; i < copyScale.Length; i++) copyScale[i] = false;
+                if (!objId.ObjType.Equals("choice")) for (int i = 0; i < copyRotation.Length; i++) copyRotation[i] = false;
+                if (!objId.ObjType.Equals("camera") || !objId.ObjType.Equals("choice")) for (int i = 0; i < copyScale.Length; i++) copyScale[i] = false;
             }
 
             GUILayout.FlexibleSpace();
@@ -286,7 +283,6 @@ public class NaninovelSceneAssistant : EditorWindow
 
     private void IdField()
     {
-
         if (objList.Count > 0)
         {
             GUILayout.BeginHorizontal();
@@ -355,7 +351,6 @@ public class NaninovelSceneAssistant : EditorWindow
                 cameraManager.Rotation = RotationField(cameraManager.Rotation);
                 GUILayout.Space(10);
 
-
                 if (cameraComponentList.Count > 0)
                 {
                     GUILayout.BeginHorizontal();
@@ -371,7 +366,6 @@ public class NaninovelSceneAssistant : EditorWindow
                         GUILayout.EndHorizontal();
                     }
                 }
-
                 GUILayout.EndVertical();
             }
 
@@ -393,7 +387,7 @@ public class NaninovelSceneAssistant : EditorWindow
             if (objId.ObjType.Equals("choice"))
             {
                 GUILayout.BeginVertical();
-                foreach (ChoiceHandlerButton choice in objList[objIndex].SceneGameObject.GetComponentsInChildren<ChoiceHandlerButton>())
+                foreach (ChoiceHandlerButton choice in objList[objIndex].SceneObj.GetComponentsInChildren<ChoiceHandlerButton>())
                 {
                     choice.transform.localPosition = ChoicePosField(choice.transform.localPosition, choice.ChoiceState.Summary);
                 }
@@ -500,19 +494,19 @@ public class NaninovelSceneAssistant : EditorWindow
     {
         if (CheckSpawnParamMethodIsNull(objId)) return string.Empty;
 
-        MethodInfo methodInfo = objId.SceneGameObject.GetComponent<Naninovel.Commands.Spawn.IParameterized>().GetType().GetMethod("SceneAssistantParameters");
+        MethodInfo methodInfo = objId.SceneObj.GetComponent<Naninovel.Commands.Spawn.IParameterized>().GetType().GetMethod("SceneAssistantParameters");
 
         GUILayout.Space(5);
         GUILayout.BeginHorizontal();
         copySpawnParams = GUILayout.Toggle(copySpawnParams, "", GUILayout.Width(20), GUILayout.Height(20));
         if (GUILayout.Button("Spawn Parameters", GUILayout.Width(150), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = clipboardString =
-        (string)methodInfo.Invoke(objId.SceneGameObject.GetComponent<Naninovel.Commands.Spawn.IParameterized>(), new object[] { });
+        (string)methodInfo.Invoke(objId.SceneObj.GetComponent<Naninovel.Commands.Spawn.IParameterized>(), new object[] { });
         GUILayout.EndHorizontal();
 
-        return (string)methodInfo.Invoke(objId.SceneGameObject.GetComponent<Naninovel.Commands.Spawn.IParameterized>(), new object[] { });
+        return (string)methodInfo.Invoke(objId.SceneObj.GetComponent<Naninovel.Commands.Spawn.IParameterized>(), new object[] { });
     }
 
-    private bool CheckSpawnParamMethodIsNull(SceneObject objId) => objId.SceneGameObject.GetComponent<Naninovel.Commands.Spawn.IParameterized>()?.GetType().GetMethod("SceneAssistantParameters") == null;
+    private bool CheckSpawnParamMethodIsNull(SceneObject objId) => objId.SceneObj.GetComponent<Naninovel.Commands.Spawn.IParameterized>()?.GetType().GetMethod("SceneAssistantParameters") == null;
 
     private Vector3 PositionField(Vector3 position)
     {
@@ -640,7 +634,7 @@ public class NaninovelSceneAssistant : EditorWindow
         }
         else if (obj.ObjType.Equals("choice"))
         {
-            foreach (ChoiceHandlerButton choice in obj.SceneGameObject.GetComponentsInChildren<ChoiceHandlerButton>())
+            foreach (ChoiceHandlerButton choice in obj.SceneObj.GetComponentsInChildren<ChoiceHandlerButton>())
             {
                 commandString = (inlined ? "[" : "@") + "choice " + "\"" + choice.ChoiceState.Summary + "\"" + " handler:" + objId + " pos:" + choice.transform.localPosition.x + "," + choice.transform.localPosition.y + (inlined ? "]" : "") + "\n";
             }
@@ -668,12 +662,12 @@ public class NaninovelSceneAssistant : EditorWindow
         {
             if (!copyAll)
             {
-                if (!copyCharacters && obj.ObjType.Equals("char")) continue;
-                if (!copyBackgrounds && obj.ObjType.Equals("back id:")) continue;
-                if (!copySpawns && obj.ObjType.Equals("spawn")) continue;
-                if (!copyCamera && obj.ObjType.Equals("camera")) continue;
-                if (!copyPrinters && obj.ObjType.Equals("printer")) continue;
-                if (!copyChoices && obj.ObjType.Equals("choice")) continue;
+                if (!copyObjectTypes[0] && obj.ObjType.Equals("char")) continue;
+                if (!copyObjectTypes[1] && obj.ObjType.Equals("back id:")) continue;
+                if (!copyObjectTypes[2] && obj.ObjType.Equals("spawn")) continue;
+                if (!copyObjectTypes[3] && obj.ObjType.Equals("camera")) continue;
+                if (!copyObjectTypes[4] && obj.ObjType.Equals("printer")) continue;
+                if (!copyObjectTypes[5] && obj.ObjType.Equals("choice")) continue;
                 allString = allString + CopyCommand(obj, false) + "\n";
             }
             else allString = allString + CopyCommand(obj, false) + "\n";
