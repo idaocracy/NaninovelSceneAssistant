@@ -42,4 +42,4 @@ ____
 
 ### Contact
 
-If you need help with the extension, you can contact me here or on Discord. I am the tech support person (only yellow username) on the Naninovel discord.  
+If you need help with the extension, you can contact me on here or on Discord. I am the tech support person (only yellow username) on the Naninovel discord.  
