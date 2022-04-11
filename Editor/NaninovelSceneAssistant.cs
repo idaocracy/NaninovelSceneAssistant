@@ -596,7 +596,7 @@ public class NaninovelSceneAssistant : EditorWindow
         }
         else if (obj.ObjType.Equals("back id:"))
         {
-            commandString = "back id:" + obj.ObjId +
+            commandString = obj.ObjType + obj.ObjId +
             (copyAppearance && backgroundManager.GetActor(obj.ObjId).Appearance != null ? " appearance:" + backgroundManager.GetActor(obj.ObjId).Appearance : string.Empty) +
             (copyTintColor ? " tint:#" + ColorUtility.ToHtmlStringRGBA(backgroundManager.GetActor(obj.ObjId).TintColor) : string.Empty) +
             (copyPosition[0] && usePosOverPosition ? " pos:" + CopyVector(ParsePos(backgroundManager.GetActor(obj.ObjId).Position), copyPosition) : string.Empty) +
