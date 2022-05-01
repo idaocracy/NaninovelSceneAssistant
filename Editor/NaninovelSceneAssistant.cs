@@ -344,7 +344,7 @@ public class NaninovelSceneAssistant : EditorWindow
             if (objId.ObjType.Equals("camera"))
             {
                 GUILayout.BeginVertical();
-                cameraManager.Zoom = ZoomField(cameraManager.Zoom);
+                cameraManager.Zoom = ZoomField(cameraManager.Zoom, cameraManager.Orthographic ? cameraManager.Camera.orthographicSize : cameraManager.Camera.fieldOfView);
                 cameraManager.Orthographic = OrthographicField(cameraManager.Orthographic);
                 GUILayout.Space(10);
                 cameraManager.Offset = PositionField(cameraManager.Offset);
@@ -451,12 +451,16 @@ public class NaninovelSceneAssistant : EditorWindow
         return bool.Parse(options[orthoIndex]);
     }
 
-    private float ZoomField(float zoom)
+    private float ZoomField(float zoom, float fov)
     {
         GUILayout.BeginHorizontal();
         copyZoom = GUILayout.Toggle(copyZoom, "", GUILayout.Width(20), GUILayout.Height(20));
         if (GUILayout.Button("Zoom", GUILayout.Width(150), GUILayout.Height(20))) GUIUtility.systemCopyBuffer = clipboardString = zoom.ToString("0.##");
         zoom = EditorGUILayout.Slider(zoom, 0f, 1f, GUILayout.Width(180), GUILayout.Height(20));
+        EditorGUI.BeginDisabledGroup(true);
+        fov = EditorGUILayout.FloatField(fov, GUILayout.Width(50), GUILayout.Height(20));
+        EditorGUI.EndDisabledGroup();
+
         GUILayout.EndHorizontal();
 
         return zoom;
