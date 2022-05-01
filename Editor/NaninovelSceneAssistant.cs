@@ -634,10 +634,12 @@ public class NaninovelSceneAssistant : EditorWindow
         }
         else if (obj.ObjType.Equals("choice"))
         {
+            commandString = String.Empty;
             foreach (ChoiceHandlerButton choice in obj.SceneObj.GetComponentsInChildren<ChoiceHandlerButton>())
             {
-                commandString = (inlined ? "[" : "@") + "choice " + "\"" + choice.ChoiceState.Summary + "\"" + " handler:" + objId + " pos:" + choice.transform.localPosition.x + "," + choice.transform.localPosition.y + (inlined ? "]" : "") + "\n";
+                commandString = commandString + (inlined ? "[" : "@") + "choice " + "\"" + choice.ChoiceState.Summary + "\"" + " handler:" + obj.SceneObj.name + " pos:" + choice.transform.localPosition.x + "," + choice.transform.localPosition.y + (inlined ? "]" : "") + "\n";
             }
+            commandString = commandString.TrimEnd("\n");
             return commandString;
         }
 
