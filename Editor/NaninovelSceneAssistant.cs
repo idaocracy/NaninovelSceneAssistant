@@ -181,7 +181,6 @@ public class NaninovelSceneAssistant : EditorWindow
             if (Engine.GetConfiguration<StateConfiguration>().EnableStateRollback)
             {
                 if (GUILayout.Button("Rollback", GUILayout.Height(20), GUILayout.Width(60))) Rollback();
-
             }
             if (GUILayout.Button("Nullify Transforms", GUILayout.Height(20), GUILayout.Width(120)))
             {
@@ -292,6 +291,15 @@ public class NaninovelSceneAssistant : EditorWindow
             objIndex = EditorGUILayout.Popup(objIndex, objList.Select(p => p.ObjId.ToString()).ToArray(), textFieldStyle, GUILayout.Height(20), GUILayout.Width(140));
             objId = objList[objIndex];
             GUILayout.EndVertical();
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button("Inspect object", GUILayout.Width(140), GUILayout.Height(20)))
+            {
+                Selection.activeGameObject = objId.SceneObj;
+            }
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
