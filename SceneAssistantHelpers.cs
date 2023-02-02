@@ -15,8 +15,7 @@ namespace NaninovelSceneAssistant
     public interface ISceneAssistantObject
     {
         string GetCommandId();
-        List<Param> Params { get; }
-        void InitializeParams();
+        List<Param> GetParams();
     }
 
     public static class SceneAssistantHelpers
@@ -69,9 +68,10 @@ namespace NaninovelSceneAssistant
         public static string FormatValue(object value)
         {
             if (value is Vector2 || value is Vector3 || value is Vector4) return value.ToString().Replace(" ", "").Replace("(", "").Replace(")", "");
-            else if(value is bool) return value.ToString().ToLower();
-            else if(value is Quaternion quaternion) return quaternion.eulerAngles.ToString().Replace(" ", "").Replace("(", "").Replace(")", "");
-            else return value.ToString();
+            else if (value is bool) return value.ToString().ToLower();
+            else if (value is Quaternion quaternion) return quaternion.eulerAngles.ToString().Replace(" ", "").Replace("(", "").Replace(")", "");
+            else if (value is Color color) return "#" + ColorUtility.ToHtmlStringRGBA(color);
+            else return value?.ToString();
         }
 
     }

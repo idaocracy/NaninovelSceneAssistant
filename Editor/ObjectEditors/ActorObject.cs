@@ -6,60 +6,80 @@ using UnityEditor;
 
 namespace NaninovelSceneAssistant
 {
-    public abstract class ActorObject<TActor, TMetadata> : NaninovelObject where TActor : IActor where TMetadata : ActorMetadata  
+    public abstract class ActorObject<TActor, TMetadata> : NaninovelObject where TActor : IActor where TMetadata : ActorMetadata
     {
-        public TActor Actor { get; }
-        public TMetadata Metadata { get; }
-        public override string Id { get; set; }
-
-        public ActorObject(TActor actor, TMetadata metadata) : base() 
+        public ActorObject(TActor actor, TMetadata metadata)
         {
             Actor = actor;
             Metadata = metadata;
-            Id = actor.Id;
+            AddParams();
         }
 
-        public override GameObject GetGameObject()
+        protected TActor Actor { get; private set; }
+        protected TMetadata Metadata { get; private set; }
+        public override string Id { get => Actor.Id; }
+        public override GameObject GameObject => GetGameObject();
+
+        protected GameObject GetGameObject()
         {
             var monoActor = Actor as MonoBehaviourActor<TMetadata>;
             return monoActor.GameObject;
         }
 
-        protected virtual void AddBaseProperties(List<Param> paramList, bool includeAppearance = true, bool includeColor = true, bool includeTransform = true)  
+        protected virtual void AddBaseParams(bool includeAppearance = true, bool includeColor = true, bool includeTransform = true)  
         {
    
-            if(includeAppearance) paramList.Add(new Param { Id = "Appearance", Value = Actor.Appearance, OnEditor = () => Actor.Appearance = EditorGUILayout.DelayedTextField(Actor.Appearance) });
-            if(includeColor) paramList.Add(new Param { Id = "Tint", Value = Actor.TintColor, OnEditor = () => Actor.TintColor = EditorGUILayout.ColorField(Actor.TintColor) });
+            if(includeAppearance) Params.Add(new Param { Id = "Appearance", Value = Actor.Appearance, OnEditor = () => Actor.Appearance = EditorGUILayout.DelayedTextField(Actor.Appearance) });
+            if(includeColor) Params.Add(new Param { Id = "Tint", Value = Actor.TintColor, OnEditor = () => Actor.TintColor = EditorGUILayout.ColorField(Actor.TintColor) });
 
             if (includeTransform)
             {
-                paramList.Add(new Param { Id = "Position", Value = Actor.Position, OnEditor = () => Actor.Position = EditorGUILayout.Vector3Field("", Actor.Position) });
-                paramList.Add(new Param { Id = "Rotation", Value = Actor.Rotation.eulerAngles, OnEditor = () => Actor.Rotation = Quaternion.Euler(EditorGUILayout.Vector3Field("", Actor.Rotation.eulerAngles)) });
-                paramList.Add(new Param { Id = "Scale", Value = Actor.Scale, OnEditor = () => Actor.Scale = EditorGUILayout.Vector3Field("", Actor.Scale) });
+                Params.Add(new Param { Id = "Position", Value = Actor.Position, OnEditor = () => Actor.Position = EditorGUILayout.Vector3Field("", Actor.Position) });
+                Params.Add(new Param { Id = "Rotation", Value = Actor.Rotation, OnEditor = () => Actor.Rotation = Quaternion.Euler(EditorGUILayout.Vector3Field("", Actor.Rotation.eulerAngles)) });
+                Params.Add(new Param { Id = "Scale", Value = Actor.Scale, OnEditor = () => Actor.Scale = EditorGUILayout.Vector3Field("", Actor.Scale) });
             }
-
         }
-
     }
 
 
     public class CharacterObject : ActorObject<ICharacterActor, CharacterMetadata>
     {
-        public override List<Param> Params => paramList;
-
-        private List<Param> paramList = new List<Param>();
-
-        public CharacterObject(ICharacterActor actor, CharacterMetadata metadata) : base(actor, metadata)
+        public CharacterObject(ICharacterActor actor, CharacterMetadata metadata) : base(actor, metadata) { }
+        protected override string GetCommandNameAndId() => "char " + Id;
+        protected override void AddParams()
         {
-            InitializeParams();
+            AddBaseParams();
+            Params.Add(new Param { Id = "Look Direction", Value = Actor.LookDirection, OnEditor = () => Actor.LookDirection = SceneAssistantHelpers.EnumField<CharacterLookDirection>(Actor.LookDirection) });
         }
+    }
 
-        public override string GetCommandNameAndId() => "char " + Id;
-
-        protected override void InitializeParams()
+    public class BackgroundObject : ActorObject<IBackgroundActor, BackgroundMetadata>
+    {
+        public BackgroundObject(IBackgroundActor actor, BackgroundMetadata metadata) : base(actor, metadata) { }
+        protected override string GetCommandNameAndId() => "back " + "id:" + Id;
+        protected override void AddParams()
         {
-            AddBaseProperties(paramList);
-            paramList.Add(new Param { Id = "Look Direction", Value = Actor.LookDirection, OnEditor = () => Actor.LookDirection = SceneAssistantHelpers.EnumField<CharacterLookDirection>(Actor.LookDirection) });
+            AddBaseParams();
+        }
+    }
+
+    public class TextPrinterObject : ActorObject<ITextPrinterActor, TextPrinterMetadata>
+    {
+        public TextPrinterObject(ITextPrinterActor actor, TextPrinterMetadata metadata) : base(actor, metadata) { }
+        protected override string GetCommandNameAndId() => "printer " + Id;
+        protected override void AddParams()
+        {
+            AddBaseParams();
+        }
+    }
+
+    public class ChoiceHandlerObject : ActorObject<IChoiceHandlerActor, ChoiceHandlerMetadata>
+    {
+        public ChoiceHandlerObject(IChoiceHandlerActor actor, ChoiceHandlerMetadata metadata) : base(actor, metadata) { }
+        protected override string GetCommandNameAndId() => "choice ";
+        protected override void AddParams()
+        {
+
         }
     }
 

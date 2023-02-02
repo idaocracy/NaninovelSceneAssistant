@@ -60,83 +60,53 @@ namespace NaninovelSceneAssistant
 
         public void InitializeSceneAssistant()
         {
-            if (ObjectList.Count == 0) return;
+
             DisplayObjectList();
-            scriptPlayer.AddPostExecutionTask(HandleCommandExecuted);
+            scriptPlayer.AddPostExecutionTask(RefreshList);
         }
 
         public void DeinitializeSceneAssistant()
         {
-            scriptPlayer.RemovePostExecutionTask(HandleCommandExecuted);
+            scriptPlayer.RemovePostExecutionTask(RefreshList);
             ObjectList.Clear();
         }
 
-        protected virtual UniTask HandleCommandExecuted(Command command)
+        public virtual UniTask RefreshList(Command command = null)
         {
-            //// Add Character to the list
-            //if (command is ModifyCharacter modifyChar && modifyChar.Visible) 
-            //    if(!ObjectExists(modifyChar.Id)) ObjectList.Add(new ActorObject<ICharacterActor, CharacterMetadata>(characterManager.GetActor(modifyChar.Id), characterManager.Configuration.GetMetadataOrDefault(modifyChar.Id)));
-
-           
-
-            ////Add Background to the list
-            //if (command is ModifyBackground modifyBack && modifyBack.Visible)
-            //    if (!ObjectExists(modifyBack.Id)) ObjectList.Add(new ActorObject<IBackgroundActor, BackgroundMetadata>(backgroundManager.GetActor(modifyBack.Id), backgroundManager.Configuration.GetMetadataOrDefault(modifyBack.Id)));
-
-            ////Add Text Printer to the list
-            //if (command is ModifyTextPrinter modifyPrinter && modifyPrinter.Visible)
-            //    if (!ObjectExists(modifyPrinter.Id))  ObjectList.Add(new ActorObject<ITextPrinterActor, TextPrinterMetadata>(textPrinterManager.GetActor(modifyPrinter.Id), textPrinterManager.Configuration.GetMetadataOrDefault(modifyPrinter.Id)));
-
-            //// Add Spawn to the list. 
-            //if (command is Spawn spawn)
-            //    if (!ObjectExists(spawn.Path)) ObjectList.Add(new SpawnObject<SpawnedObject>(spawnManager.GetSpawned(spawn.Path)));
-
-            //// Remove Spawn from the list.
-            //if (command is DestroySpawned despawn)
-            //    ObjectList.Remove(ObjectList.FirstOrDefault(o => o is SpawnObject<SpawnedObject> && o.Id == despawn.Path));
-
-            return UniTask.CompletedTask;
-        }
-
-        private bool ObjectExists(string id) => ObjectList.Contains(ObjectList.FirstOrDefault(o => o.Id == id));
-
-        private bool ObjectExists(NaninovelObject naninovelObject) => ObjectList.Contains(ObjectList.FirstOrDefault(o => o == naninovelObject));
-
-        public virtual void AddToList(NaninovelObject naninovelObject)
-        {
-            if (!ObjectExists(naninovelObject)) ObjectList.Add(naninovelObject);
-        }
-
-        public virtual void RemoveFromList(string id)
-        {
-            if(!ObjectExists(id)) ObjectList.Remove(ObjectList.FirstOrDefault(o => o.Id == id));
-        }
-
-        public virtual void InitializeObjectList()
-        {
-            //Add the main camera to the list.
-             if(!ObjectExists(nameof(cameraManager.Camera))) ObjectList.Add(new CameraObject<ICameraManager>(cameraManager));
+            ////Add the main camera to the list.
+            if (!ObjectExists(typeof(CameraObject<ICameraManager>)) || command == null) ObjectList.Add(new CameraObject<ICameraManager>(cameraManager));
 
             //Add all visible character actors to the list
-            foreach (var c in characterManager.GetAllActors())
-                if (!ObjectExists(c.Id) && c.Visible)
-                    ObjectList.Add(new CharacterObject(characterManager.GetActor(c.Id), characterManager.Configuration.GetMetadataOrDefault(c.Id)));
+            if (command is ModifyCharacter || command == null) RefreshCharacterList();
 
             ////Add all visible background actors to the list
-            //foreach (var b in backgroundManager.GetAllActors()) 
-            //    if (!ObjectExists(b.Id) && b.Visible) 
-            //        ObjectList.Add(new ActorObject<IBackgroundActor, BackgroundMetadata>(backgroundManager.GetActor(b.Id), backgroundManager.Configuration.GetMetadataOrDefault(b.Id)));
+            //foreach (var b in backgroundManager.GetAllActors())
+            //    if (!ObjectExists(b.Id) && b.Visible)
+            //        ObjectList.Add(new BackgroundObject(backgroundManager.GetActor(b.Id), backgroundManager.Configuration.GetMetadataOrDefault(b.Id)));
 
             ////Add all visible text printer actors to the list
             //foreach (var p in textPrinterManager.GetAllActors())
             //    if (!ObjectExists(p.Id) && p.Visible)
-            //        ObjectList.Add(new ActorObject<ITextPrinterActor, TextPrinterMetadata>(textPrinterManager.GetActor(p.Id), textPrinterManager.Configuration.GetMetadataOrDefault(p.Id)));
+            //        ObjectList.Add(new TextPrinterObject(textPrinterManager.GetActor(p.Id), textPrinterManager.Configuration.GetMetadataOrDefault(p.Id)));
 
             ////Add all visible choice handler actors to the list
             //foreach (var h in choiceHandlerManager.GetAllActors())
             //    if (!ObjectExists(h.Id) && h.Visible)
-            //        ObjectList.Add(new ActorObject<IChoiceHandlerActor, ChoiceHandlerMetadata>(choiceHandlerManager.GetActor(h.Id), choiceHandlerManager.Configuration.GetMetadataOrDefault(h.Id)));
+            //        ObjectList.Add(new ChoiceHandlerObject(choiceHandlerManager.GetActor(h.Id), choiceHandlerManager.Configuration.GetMetadataOrDefault(h.Id)));
+
+            return UniTask.CompletedTask;
         }
+
+        public virtual void RefreshCharacterList()
+        {
+            foreach(var character in characterManager.GetAllActors())
+            {
+                if(!ObjectExists(typeof(CharacterObject), character.Id) && character.Visible) 
+                    ObjectList.Add(new CharacterObject(characterManager.GetActor(character.Id), characterManager.Configuration.GetMetadataOrDefault(character.Id)));
+            }
+        }
+
+        private bool ObjectExists<NaninovelObject>(NaninovelObject naninovelObject, string id = null) => ObjectList.Contains(ObjectList.FirstOrDefault(o => o.Id == id && o.GetType() == naninovelObject.GetType()));
 
         private void DisplayObjectList()
         {
@@ -188,7 +158,7 @@ namespace NaninovelSceneAssistant
             GUILayout.BeginVertical();
             if (SceneAssistantHelpers.ShowButton("Id")) ClipboardString = CurrentlyDisplayedObject.Id;
             objectIndex = EditorGUILayout.Popup(objectIndex, ObjectDropdown, GUILayout.Width(150));
-            if (SceneAssistantHelpers.ShowButton("Inspect object")) Selection.activeGameObject = CurrentlyDisplayedObject.GetGameObject();
+            if (SceneAssistantHelpers.ShowButton("Inspect object")) Selection.activeGameObject = CurrentlyDisplayedObject.GameObject;
             GUILayout.EndVertical();
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
@@ -205,7 +175,7 @@ public class SceneAssistant : EditorWindow
     private void Awake()
     {
         sceneAssistantManager = Engine.GetService<SceneAssistantManager>();
-        sceneAssistantManager.InitializeObjectList();
+        sceneAssistantManager.RefreshList();
     }
 
 

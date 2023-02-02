@@ -6,10 +6,13 @@ using System.Linq;
 
 namespace NaninovelSceneAssistant {
 
-    public abstract class NaninovelObject : INaninovelObject, IEquatable<NaninovelObject>
+    public abstract class NaninovelObject : IEquatable<NaninovelObject>
     {
-        public abstract string Id { get; set; }
-        public abstract List<Param> Params { get; }
+        protected NaninovelObject() => InitializeParams();
+        public abstract string Id { get; }
+        protected virtual List<Param> Params { get; private set; }
+        public abstract GameObject GameObject { get; }
+        protected abstract string GetCommandNameAndId();
         public virtual string GetCommandLine() => GetCommandNameAndId() + Params != null ? " " + string.Join(" ", Params.Where(p => p.GetValue() != null && p.Selected).Select(p => p.Id.ToLower() + ":" + p.GetValue())) : null;
         public virtual void ShowParamValues()
         {
@@ -22,27 +25,15 @@ namespace NaninovelSceneAssistant {
             }
         }
 
-        protected abstract void InitializeParams();
-        public abstract string GetCommandNameAndId();
-        public abstract GameObject GetGameObject();
+        protected void InitializeParams() => Params = new List<Param>();
+        protected abstract void AddParams();
 
+        // todo get this to work
         public bool Equals(NaninovelObject other)
         {
-            return this.GetType() == other.GetType() && this.Id == other.Id;
+            return this.Id == other.Id;
         }
 
-    }
-
-
-    public interface INaninovelObject
-    {
-        string Id { get; set; }
-
-        List<Param> Params { get; }
-
-        GameObject GetGameObject();
-
-        string GetCommandNameAndId();
     }
 
 
