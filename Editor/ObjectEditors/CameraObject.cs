@@ -18,10 +18,10 @@ namespace NaninovelSceneAssistant
 
         protected override void AddParams()
         {
-            Params.Add(new CommandParam("Offset", () => Camera.Offset, p => Camera.Offset = (Vector3)p, () => Camera.Offset = EditorGUILayout.Vector3Field("", Camera.Offset)));;
-            Params.Add(new CommandParam ("Rotation", () => Camera.Rotation, p => Camera.Rotation = (Quaternion)p, () => Camera.Rotation = Quaternion.Euler(EditorGUILayout.Vector3Field("", Camera.Rotation.eulerAngles))));
-            Params.Add(new CommandParam("Zoom", () => Camera.Zoom, p => Camera.Zoom = (float)p, () => Camera.Zoom = EditorGUILayout.Slider(Camera.Zoom, 0f, 1f)));
-            Params.Add(new CommandParam("Orthographic", () => Camera.Orthographic, p => Camera.Orthographic = (bool)p, () => Camera.Orthographic = EditorGUILayout.Toggle(Camera.Orthographic)) { DefaultValue = true } );
+            //Params.Add(new CommandParam("Offset", () => Camera.Offset, v => Camera.Offset = (Vector3)v, (i,p) => i.Vector3Field(p)));
+            //Params.Add(new CommandParam ("Rotation", () => Camera.Rotation.eulerAngles, v => Camera.Rotation = Quaternion.Euler((Vector3)v), (i,p) => i.Vector3Field(p)));
+            Params.Add(new CommandParam("Zoom", () => Camera.Zoom, v => Camera.Zoom = (float)v, (i,p) => i.SliderField(p, 0f, 1f)));
+            //Params.Add(new CommandParam("Orthographic", () => Camera.Orthographic, v => Camera.Orthographic = (bool)v, (i,p) => i.BoolField(p)) { DefaultValue = true } );
 
 
             

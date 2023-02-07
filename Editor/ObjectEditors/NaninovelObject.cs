@@ -62,19 +62,21 @@ namespace NaninovelSceneAssistant {
         public object DefaultValue { get; set; }
 
 
-        private Func<object> getValue;
-        private Action<object> setValue;
+        public Func<object> getValue { get; private set; }
+        public Action<object> setValue { get; private set; }
         public Action OnEditor;
 
-        public CommandParam(string id, Func<object> getValue, Action<object> setValue, Action onEditor)
+        public Action<ISceneAssistantLayout, CommandParam> OnLayout;
+
+        public CommandParam(string id, Func<object> getValue, Action<object> setValue, Action<ISceneAssistantLayout, CommandParam> onLayout)
         {
             Id = id;
             this.getValue = getValue;
             this.setValue = setValue;
-            OnEditor = onEditor;
+            OnLayout = onLayout;
         }
 
-        public void DisplayField() => OnEditor();
+        public void DisplayField(ISceneAssistantLayout layout) => OnLayout(layout, this);
         public string GetValue => FormatValue(getValue());
         public void GetDefaultValue()
         {

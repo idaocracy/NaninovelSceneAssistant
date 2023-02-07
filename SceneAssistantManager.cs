@@ -149,7 +149,7 @@ namespace NaninovelSceneAssistant
     }
 }
 
-public class SceneAssistant : EditorWindow
+public class SceneAssistant : EditorWindow, ISceneAssistantLayout
 {
     public string[] Tabs { get; protected set; }
     protected INaninovelObject CurrentObject { get => sceneAssistantManager.ObjectList[objectIndex]; }
@@ -165,6 +165,7 @@ public class SceneAssistant : EditorWindow
     private string clipboardString = string.Empty;
     private Vector2 scrollPos = default;
     private bool logResults;
+    private ISceneAssistantLayout sceneAssistantLayout;
 
     [MenuItem("Naninovel/New Scene Assistant", false, 350)]
     public static void ShowWindow() => GetWindow<SceneAssistant>("Naninovel Scene Assistant");
@@ -174,6 +175,7 @@ public class SceneAssistant : EditorWindow
         EditorGUIUtility.labelWidth = 150;
         Tabs = new string[] { "Objects", "Custom Variables", "Unlockables" };
         sceneAssistantManager = Engine.GetService<SceneAssistantManager>();
+        sceneAssistantLayout = this is ISceneAssistantLayout  sceneAssistant ? sceneAssistant : null;
     }
 
     public void OnGUI()
@@ -319,11 +321,9 @@ public class SceneAssistant : EditorWindow
         {
             EditorGUILayout.BeginHorizontal();
             ShowValueOptions(param);
-            param.DisplayField();
+            param.DisplayField(sceneAssistantLayout);
             EditorGUILayout.EndHorizontal();
         }
-
-
     }
 
     protected virtual void ShowCustomVariables(SortedList<string, CustomVar> vars, string id = null)
@@ -379,5 +379,11 @@ public class SceneAssistant : EditorWindow
         }
         else GUILayout.Label(param.Id.ToString());
     }
+
+    public void Vector3Field(CommandParam param)  => param.setValue(EditorGUILayout.Vector3Field("", (Vector3)param.getValue()));
+ 
+    public void SliderField(CommandParam param, float minValue, float maxValue) => param.setValue(EditorGUILayout.Slider((float)param.getValue(), minValue, maxValue));
+
+    public void BoolField(CommandParam param) => param.setValue(EditorGUILayout.Toggle((bool)param.getValue()));
 }
 
