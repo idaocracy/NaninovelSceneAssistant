@@ -6,27 +6,10 @@ using Naninovel;
 
 namespace NaninovelSceneAssistant
 {
-    public interface ISceneAssistantSpawnObject : ISceneAssistantObject
-    {
-        bool IsTransformable();
-        string GetSpawnId();
-    }
 
-    public interface ISceneAssistantObject
-    {
-        string GetCommandId();
-        List<Param> GetParams();
-    }
 
     public static class SceneAssistantHelpers
     {
-
-        public static string GetAllCommands(List<NaninovelObject> objectList)
-        {
-            var allString = String.Empty;
-            foreach (var o in objectList) allString = allString + o.GetCommandLine() + "\n";
-            return allString;
-        }
 
         public static T EnumField<T>(object value) where T : Enum
         {
@@ -48,31 +31,9 @@ namespace NaninovelSceneAssistant
         //    return cameraConfiguration.SceneToWorldSpace(position);
         //}
 
-        public static bool ShowButton(string label)
-        {
-            if (GUILayout.Button(label, GUILayout.Width(150))) return true;
-            else return false;
-        }
 
-        public static void ShowValueOptions(Param param)
-        {
-            param.Selected = EditorGUILayout.Toggle(param.Selected, GUILayout.Width(20f));
 
-            if (param.HasOptions)
-            {
-                if (ShowButton(param.Id)) Engine.GetService<SceneAssistantManager>().ClipboardString = FormatValue(param.Value);
-            }
-            else GUILayout.Label(param.Id.ToString());
-        }
 
-        public static string FormatValue(object value)
-        {
-            if (value is Vector2 || value is Vector3 || value is Vector4) return value.ToString().Replace(" ", "").Replace("(", "").Replace(")", "");
-            else if (value is bool) return value.ToString().ToLower();
-            else if (value is Quaternion quaternion) return quaternion.eulerAngles.ToString().Replace(" ", "").Replace("(", "").Replace(")", "");
-            else if (value is Color color) return "#" + ColorUtility.ToHtmlStringRGBA(color);
-            else return value?.ToString();
-        }
 
     }
 

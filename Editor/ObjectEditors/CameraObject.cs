@@ -6,26 +6,25 @@ using UnityEngine;
 
 namespace NaninovelSceneAssistant
 {
-    public class CameraObject<TCameraManager> : NaninovelObject where TCameraManager : ICameraManager
+    public class CameraObject : NaninovelObject<ICameraManager>, INaninovelObject
     {
-        public CameraObject(TCameraManager camera) : base() 
-        { 
-            Camera = camera; 
-            AddParams();
-        }
+        public CameraObject() => Initialize();
 
-        protected TCameraManager Camera { get; private set; }
-        public override string Id { get => nameof(Camera.Camera); }
+        protected ICameraManager Camera { get => Engine.GetService<ICameraManager>(); }
         public override GameObject GameObject { get => Camera.Camera.gameObject; }
-        protected override string GetCommandNameAndId() => "camera";
+        public override string Id { get => GameObject.name; set => Id = value; }
+
+        protected override string CommandNameAndId => "camera";
 
         protected override void AddParams()
         {
-            Params.Add(new Param { Id = "Offset", Value = Camera.Offset,OnEditor = () => Camera.Offset = EditorGUILayout.Vector3Field("", Camera.Offset) });
-            Params.Add(new Param { Id = "Rotation", Value = Camera.Rotation.eulerAngles, OnEditor = () => Camera.Rotation = Quaternion.Euler(EditorGUILayout.Vector3Field("", Camera.Rotation.eulerAngles))});
-            Params.Add(new Param { Id = "Zoom", Value = Camera.Zoom, OnEditor = () => Camera.Zoom = EditorGUILayout.Slider(Camera.Zoom, 0f, 1f) });
-            Params.Add(new Param { Id = "Orthographic", Value = Camera.Orthographic, OnEditor = () => Camera.Orthographic = EditorGUILayout.Toggle(Camera.Orthographic) });
+            Params.Add(new CommandParam("Offset", () => Camera.Offset, p => Camera.Offset = (Vector3)p, () => Camera.Offset = EditorGUILayout.Vector3Field("", Camera.Offset)));;
+            Params.Add(new CommandParam ("Rotation", () => Camera.Rotation, p => Camera.Rotation = (Quaternion)p, () => Camera.Rotation = Quaternion.Euler(EditorGUILayout.Vector3Field("", Camera.Rotation.eulerAngles))));
+            Params.Add(new CommandParam("Zoom", () => Camera.Zoom, p => Camera.Zoom = (float)p, () => Camera.Zoom = EditorGUILayout.Slider(Camera.Zoom, 0f, 1f)));
+            Params.Add(new CommandParam("Orthographic", () => Camera.Orthographic, p => Camera.Orthographic = (bool)p, () => Camera.Orthographic = EditorGUILayout.Toggle(Camera.Orthographic)) { DefaultValue = true } );
 
+
+            
         }
     }
 }
