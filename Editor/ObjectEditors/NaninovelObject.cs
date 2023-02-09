@@ -33,7 +33,7 @@ namespace NaninovelSceneAssistant {
         public virtual SortedList<string, CustomVar> CustomVars { get; protected set; } = new SortedList<string, CustomVar>();
         public abstract GameObject GameObject { get; }
         protected abstract string CommandNameAndId { get; }
-        public virtual string GetCommandLine() => Params != null ? CommandNameAndId + " " + string.Join(" ", Params.Where(p => p.GetValue != null && p.Selected).Select(p => p.Id.ToLower() + ":" + p.GetValue)) : null;
+        public virtual string GetCommandLine() => Params != null ? CommandNameAndId + " " + string.Join(" ", Params.Where(p => p.GetCommandValue() != null && p.Selected && p.HasCommandOptions).Select(p => p.Id.ToLower() + ":" + p.GetCommandValue())) : null;
         protected abstract void AddParams();
         public virtual bool HasPosValues(out int posParamIndex, out int positionParamIndex)
         {
@@ -54,37 +54,42 @@ namespace NaninovelSceneAssistant {
         }
     }
 
-    public class CommandParam
+    public interface ICommandParam
     {
-        public string Id { get; private set; }
+        string Id { get; }
+        bool Selected { get; set; }
+        bool HasCommandOptions { get; set; }
+    }
+
+
+    public class CommandParam : ICommandParam
+    {
+        public string Id { get; }
         public bool Selected { get; set; } = true;
-        public bool HasOptions { get; set; } = true;
+        public bool HasCommandOptions { get; set; } = true;
         public object DefaultValue { get; set; }
 
-
-        public Func<object> getValue { get; private set; }
-        public Action<object> setValue { get; private set; }
-        public Action OnEditor;
-
-        public Action<ISceneAssistantLayout, CommandParam> OnLayout;
+        public Func<object> GetValue { get; private set; }
+        public Action<object> SetValue { get; private set; }
+        public Action<ISceneAssistantLayout, CommandParam> OnLayout { get; private set; }
 
         public CommandParam(string id, Func<object> getValue, Action<object> setValue, Action<ISceneAssistantLayout, CommandParam> onLayout)
         {
             Id = id;
-            this.getValue = getValue;
-            this.setValue = setValue;
+            this.GetValue = getValue;
+            this.SetValue = setValue;
             OnLayout = onLayout;
         }
 
         public void DisplayField(ISceneAssistantLayout layout) => OnLayout(layout, this);
-        public string GetValue => FormatValue(getValue());
+        public string GetCommandValue() => FormatValue(GetValue());
         public void GetDefaultValue()
         {
-            if (DefaultValue != null) setValue(DefaultValue);
+            if (DefaultValue != null) SetValue(DefaultValue);
             else
             {
-                var value = getValue().GetType();
-                if (value.IsValueType) setValue(Activator.CreateInstance(value));
+                var value = GetValue().GetType();
+                if (value.IsValueType) SetValue(Activator.CreateInstance(value));
             }
 
         }
@@ -95,7 +100,21 @@ namespace NaninovelSceneAssistant {
             else if (value is bool) return value.ToString().ToLower();
             else if (value is Quaternion quaternion) return quaternion.eulerAngles.ToString("0.##").Replace(" ", "").Replace("(", "").Replace(")", "");
             else if (value is Color color) return "#" + ColorUtility.ToHtmlStringRGBA(color);
+            else if (ValueIsDictionary(value, out var namedList)) return namedList;
             else return value?.ToString();
+        }
+
+        private static bool ValueIsDictionary(object value, out string namedList)
+        {
+            namedList = string.Empty;
+
+            if(value is Dictionary<string, string> namedValues){
+                var namedStrings = new List<string>();
+                foreach (var item in namedValues) namedStrings.Add(item.Key + "." + item.Value);
+                namedList = string.Join(",", namedStrings);
+            }
+
+            return !string.IsNullOrEmpty(namedList);
         }
     }
 

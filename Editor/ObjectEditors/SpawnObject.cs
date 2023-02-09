@@ -33,24 +33,29 @@ namespace NaninovelSceneAssistant
 
             if (IsTransformable)
             {
-                for (int i = 0; i <= 2; i++) tempString = tempString + tempParams[i].Id.ToLower() + ":" + tempParams[i].GetValue + " ";
+                for (int i = 0; i <= 2; i++) tempString = tempString + tempParams[i].Id.ToLower() + ":" + tempParams[i].GetValue() + " ";
                 tempParams.RemoveRange(0, 3);
             }
 
-            return tempString = tempString + " params:"+ string.Join(",", tempParams.Select(p => p.GetValue.ToString()));
+            return tempString = tempString + " params:"+ string.Join(",", tempParams.Select(p => p.GetCommandValue().ToString()));
         }
 
         protected void AddTransformParams()
         {
-            //Params.Add(new CommandParam("Position", Transform.localPosition, () => Transform.localPosition = EditorGUILayout.Vector3Field("", Transform.localPosition)));
-            //Params.Add(new CommandParam ("Rotation", Transform.localRotation, () => Transform.localRotation = Quaternion.Euler(EditorGUILayout.Vector3Field("", Transform.localRotation.eulerAngles))));
-            //Params.Add(new CommandParam("Scale", Transform.localScale, () => Transform.localScale = EditorGUILayout.Vector3Field("", Transform.localScale)));
+            Params.Add(new CommandParam("Position", () => Transform.localPosition, v => Transform.localPosition = (Vector3)v, (i,p) => i.Vector3Field(p)));
+            Params.Add(new CommandParam("Rotation", () => Transform.localRotation.eulerAngles, v => Transform.localRotation = Quaternion.Euler((Vector3)v), (i,p) => i.Vector3Field(p)));
+            Params.Add(new CommandParam("Scale", () => Transform.localScale, v => Transform.localScale = (Vector3)v, (i, p) => i.Vector3Field(p)));
         }
 
         protected override void AddParams()
         {
             if(spawnSceneAssistant == null || spawnSceneAssistant.IsTransformable) AddTransformParams();
-            if(spawnSceneAssistant?.GetParams() != null)Params = Params.Concat(spawnSceneAssistant?.GetParams()).ToList();
+
+            if (spawnSceneAssistant?.GetParams() != null)
+            {
+                Params.Add(new CommandParam("Params", () => string.Join(",", spawnSceneAssistant.GetParams().Select(p => p.GetCommandValue()).ToList()), v => { }, (i,p) => { }));
+                Params = Params.Concat(spawnSceneAssistant?.GetParams()).ToList();
+            }
         }
     }
 

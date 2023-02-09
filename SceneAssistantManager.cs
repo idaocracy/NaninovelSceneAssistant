@@ -6,8 +6,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using NaninovelSceneAssistant;
-using Naninovel.UI;
-using PlasticPipe.PlasticProtocol.Messages;
+
 
 namespace NaninovelSceneAssistant
 {
@@ -25,8 +24,9 @@ namespace NaninovelSceneAssistant
         private IScriptPlayer scriptPlayer;
         private ICustomVariableManager variableManager;
         private IUnlockableManager unlockableManager;
+        private IStateManager stateManager;
 
-        protected IEngineService[] actorManagers { get; set; }
+        public bool SceneAssistantInitialized { get; set; } = false;
 
         public List<INaninovelObject> ObjectList { get; protected set; } = new List<INaninovelObject>();
         public SortedList<string, CustomVar> CustomVarList { get; protected set; } = new SortedList<string, CustomVar> { };
@@ -34,8 +34,9 @@ namespace NaninovelSceneAssistant
 
         public bool Initialized = false;
         public SceneAssistantManager(SceneAssistantConfiguration config, ICameraManager cameraManager, ICharacterManager characterManager, 
-                IBackgroundManager backgroundManager, IChoiceHandlerManager choiceHandlerManager, ITextPrinterManager textPrinterManager, 
-                ISpawnManager spawnManager, IScriptPlayer scriptPlayer, ICustomVariableManager variableManager, IUnlockableManager unlockableManager)
+                IBackgroundManager backgroundManager, IChoiceHandlerManager choiceHandlerManager, ITextPrinterManager textPrinterManager,
+                ISpawnManager spawnManager, IScriptPlayer scriptPlayer, ICustomVariableManager variableManager, IUnlockableManager unlockableManager,
+                IStateManager stateManager)
         {
             Configuration = config;
             this.cameraManager = cameraManager;
@@ -47,16 +48,15 @@ namespace NaninovelSceneAssistant
             this.scriptPlayer = scriptPlayer;
             this.variableManager = variableManager;
             this.unlockableManager = unlockableManager;
-        }
+            this.stateManager = stateManager;
+         }
 
         public virtual UniTask InitializeServiceAsync()
-        {
+        {   
         #if UNITY_EDITOR
             InitializeSceneAssistant();
             ObjectList.Add(new CameraObject());
-
-    #endif
-
+        #endif
             return UniTask.CompletedTask;
         }
 
@@ -67,24 +67,68 @@ namespace NaninovelSceneAssistant
 
         public void DestroyService()
         {
+            if (Initialized) DestroySceneAssistant();
         }
 
         public void InitializeSceneAssistant()
         {
-            foreach (var variable in variableManager.GetAllVariables()) CustomVarList.Add(variable.Name, new CustomVar(variable.Name, variable.Value));
-            foreach (var unlockable in unlockableManager.GetAllItems()) UnlockablesList.Add(unlockable.Key, new Unlockable(unlockable.Key, unlockable.Value));
+            //Initialize custom variables list.
+            RefreshCustomVariables();
+            variableManager.OnVariableUpdated += HandleVariableUpdated;
+            stateManager.OnGameLoadFinished += HandleVariablesOnGameLoadFinished;
+            stateManager.OnResetFinished += RefreshCustomVariables;
+            stateManager.OnRollbackFinished += RefreshCustomVariables;
+
+            //Initialize unlockables list.
+            RefreshUnlockables();
+            unlockableManager.OnItemUpdated += HandleUnlockableUpdated;
+            stateManager.OnGameLoadFinished += HandleUnlockablesOnGameLoadFinished;
+            stateManager.OnResetFinished += RefreshUnlockables;
+            stateManager.OnRollbackFinished += RefreshUnlockables;
 
             HandleCommand();
             scriptPlayer.AddPostExecutionTask(HandleCommand);
+
+            SceneAssistantInitialized = true;
+
+        }
+
+        private void HandleVariablesOnGameLoadFinished(GameSaveLoadArgs obj) => RefreshCustomVariables();
+        private void HandleUnlockablesOnGameLoadFinished(GameSaveLoadArgs obj) => RefreshUnlockables();
+
+        protected void RefreshCustomVariables()
+        {
+            CustomVarList.Clear();
+            foreach (var variable in variableManager.GetAllVariables()) CustomVarList.Add(variable.Name, new CustomVar(variable.Name, variable.Value));
+        }
+
+        protected void RefreshUnlockables()
+        {
+            UnlockablesList.Clear();
+            foreach (var unlockable in unlockableManager.GetAllItems()) UnlockablesList.Add(unlockable.Key, new Unlockable(unlockable.Key, unlockable.Value));
+        }
+
+        protected void HandleVariableUpdated(CustomVariableUpdatedArgs args)
+        {
+            if (CustomVarList.ContainsKey(args.Name)) CustomVarList[args.Name].Value = args.Value;
+            else CustomVarList.Add(args.Name, new CustomVar(args.Name, args.Value));
+        }
+
+        protected void HandleUnlockableUpdated(UnlockableItemUpdatedArgs args)
+        {
+            if (UnlockablesList.ContainsKey(args.Id)) UnlockablesList[args.Id].Value = args.Unlocked;
+            else UnlockablesList.Add(args.Id, new Unlockable(args.Id, args.Unlocked));
         }
 
         public void DestroySceneAssistant()
         {
             scriptPlayer.RemovePostExecutionTask(HandleCommand);
+            unlockableManager.OnItemUpdated -= HandleUnlockableUpdated;
+            variableManager.OnVariableUpdated -= HandleVariableUpdated;
             ObjectList.Clear();
         }
 
-        public void RefreshList()
+        public void RefreshObjectList()
         {
             //actorManagers = new IEngineServices[] { characterManager, backgroundManager, textPrinterManager, choiceHandlerManager };
 
@@ -117,9 +161,13 @@ namespace NaninovelSceneAssistant
                     ObjectList.Add(new TextPrinterObject(printerId));
             }
 
-            if (command is AddChoice choice && ActorExistsAndIsVisible<IChoiceHandlerManager, ChoiceHandlerObject>(choiceHandlerManager, choice.HandlerId))
-                ObjectList.Add(new ChoiceHandlerObject(choice.HandlerId));
 
+            if (command is AddChoice choice)
+            {
+                var choiceHandlerId = choice.HandlerId.HasValue ? choice.HandlerId.Value : choiceHandlerManager.Configuration.DefaultHandlerId;
+                ObjectList.Add(new ChoiceHandlerObject(choiceHandlerId));
+
+            }
             if (command is Spawn spawn) if(!ObjectExists<SpawnObject>(spawn.Path)) ObjectList.Add(new SpawnObject(spawn.Path));
 
             return UniTask.CompletedTask;
@@ -140,8 +188,6 @@ namespace NaninovelSceneAssistant
 
             foreach (var o in ObjectList)
             {
-                Debug.Log(o.Id);
-                Debug.Log(o.GetCommandLine());
                 allString = allString + "@" + o.GetCommandLine() + "\n";
             }
             return allString;
@@ -372,18 +418,31 @@ public class SceneAssistant : EditorWindow, ISceneAssistantLayout
 
     public void ShowValueOptions(CommandParam param)
     {
-        if (param.HasOptions)
+        if (param.HasCommandOptions)
         {
             param.Selected = EditorGUILayout.Toggle(param.Selected, GUILayout.Width(20f));
-            if (ShowButton(param.Id)) ClipboardString = param.GetValue;
+            if (ShowButton(param.Id)) ClipboardString = param.GetCommandValue();
         }
-        else GUILayout.Label(param.Id.ToString());
+        else
+        {
+            GUILayout.Space(25f);
+            GUILayout.Label(param.Id.ToString(), GUILayout.Width(150));
+        }
     }
 
-    public void Vector3Field(CommandParam param)  => param.setValue(EditorGUILayout.Vector3Field("", (Vector3)param.getValue()));
- 
-    public void SliderField(CommandParam param, float minValue, float maxValue) => param.setValue(EditorGUILayout.Slider((float)param.getValue(), minValue, maxValue));
+    public void Vector3Field(CommandParam param)  => param.SetValue(EditorGUILayout.Vector3Field("", (Vector3)param.GetValue()));
+    public void SliderField(CommandParam param, float min, float max) => param.SetValue(EditorGUILayout.Slider((float)param.GetValue(), min, max));
+    public void BoolField(CommandParam param) => param.SetValue(EditorGUILayout.Toggle((bool)param.GetValue()));
+    public void StringField(CommandParam param) => param.SetValue(EditorGUILayout.DelayedTextField((string)param.GetValue()));
+    public void ColorField(CommandParam param) => param.SetValue(EditorGUILayout.ColorField((Color)param.GetValue()));
+    public void FloatField(CommandParam param) => param.SetValue(EditorGUILayout.FloatField((float)param.GetValue()));
+    public void Vector2Field(CommandParam param) => param.SetValue(EditorGUILayout.Vector2Field("",(Vector2)param.GetValue()));
 
-    public void BoolField(CommandParam param) => param.setValue(EditorGUILayout.Toggle((bool)param.getValue()));
+    public void StringListField(CommandParam param, string[] stringValues)
+    {
+        var stringIndex = stringValues.IndexOf(param.GetValue());
+        stringIndex = EditorGUILayout.Popup(stringIndex, stringValues);
+        param.SetValue(stringValues[stringIndex]);
+    }
 }
 

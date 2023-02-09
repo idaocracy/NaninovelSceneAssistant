@@ -1,6 +1,9 @@
 ﻿using Naninovel;
 using UnityEngine;
 using UnityEditor;
+using Naninovel.UI;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace NaninovelSceneAssistant
 {
@@ -18,11 +21,26 @@ namespace NaninovelSceneAssistant
             AddVars();
         }
 
-        public override string Id { get; set; } 
+        public override string Id { get; set; }
         protected TActor Actor { get => (TActor)EngineService.GetActor(Id); }
         protected TMeta Metadata { get => Config.GetMetadataOrDefault(Id); }
         protected TConfig Config { get => Engine.GetConfiguration<TConfig>(); }
         public override GameObject GameObject => GetGameObject();
+
+
+        async UniTask<List<string>> GetAppearanceList()
+        {
+            var resourceProviderManager = Engine.GetService<IResourceProviderManager>();
+            var appearanceList = new List<string>();
+
+            foreach (var provider in resourceProviderManager.GetProviders(Metadata.Loader.ProviderTypes))
+            {
+                var paths = await provider.LocateResourcesAsync<Object>(Metadata.Loader.PathPrefix + "/" + Id);
+                foreach (var path in paths) appearanceList.Add(path.Split("/".ToCharArray()).Last());
+            }
+
+            return appearanceList;
+        }
 
         protected GameObject GetGameObject()
         {
@@ -32,16 +50,22 @@ namespace NaninovelSceneAssistant
 
         protected virtual void AddBaseParams(bool includeAppearance = true, bool includeColor = true, bool includeTransform = true, bool includeZPos = true)  
         {
-            //if(includeAppearance) Params.Add(new CommandParam("Appearance", Actor.Appearance, () => Actor.Appearance = EditorGUILayout.DelayedTextField(Actor.Appearance)));
-            //if(includeColor) Params.Add(new CommandParam("Tint", Actor.TintColor, () => Actor.TintColor = EditorGUILayout.ColorField(Actor.TintColor)));
+            if (includeAppearance)
+            {
+                Params.Add(new CommandParam("Appearance", () => Actor.Appearance, v => Actor.Appearance = (string)v, (i, p) => i.StringListField(p, GetAppearanceList().Result.ToArray())));
+                //Params.Add(new CommandParam("Appearance", () => Actor.Appearance, v => Actor.Appearance = (string)v, (i, p) => i.StringField(p)));
+            }
 
-            //if (includeTransform)
-            //{
-            //    Params.Add(new CommandParam ("Position", Actor.Position, () => Actor.Position = includeZPos ? EditorGUILayout.Vector3Field("", Actor.Position) : (Vector3)EditorGUILayout.Vector2Field("", Actor.Position)));
-            //    Params.Add(new CommandParam ("Pos", Actor.Position, () => Actor.Position = includeZPos ? EditorGUILayout.Vector3Field("", Actor.Position) : (Vector3)EditorGUILayout.Vector2Field("", Actor.Position)));
-            //    Params.Add(new CommandParam ("Rotation", Actor.Rotation, () => Actor.Rotation = Quaternion.Euler(EditorGUILayout.Vector3Field("", Actor.Rotation.eulerAngles))));
-            //    Params.Add(new CommandParam ("Scale", Actor.Scale, () => Actor.Scale = EditorGUILayout.Vector3Field("", Actor.Scale)));
-            //}
+            if (includeTransform)
+            {
+                Params.Add(new CommandParam ("Position", () => Actor.Position, v => Actor.Position = (Vector3)v, (i,p) => i.Vector3Field(p)));
+                //not implemented pos
+                Params.Add(new CommandParam("Pos", () => Actor.Position, v => Actor.Position = (Vector3)v, (i, p) => i.Vector3Field(p)));
+                Params.Add(new CommandParam("Rotation", () => Actor.Rotation.eulerAngles, v => Actor.Rotation = Quaternion.Euler((Vector3)v), (i, p) => i.Vector3Field(p)));
+                Params.Add(new CommandParam("Scale", () => Actor.Scale, v => Actor.Scale = (Vector3)v, (i, p) => i.Vector3Field(p)));
+            }
+
+            if (includeColor) Params.Add(new CommandParam("Tint", () => Actor.TintColor, v => Actor.TintColor = (Color)v, (i, p) => i.ColorField(p)));
         }
 
         protected virtual void AddVars()
@@ -96,7 +120,10 @@ namespace NaninovelSceneAssistant
         protected override string CommandNameAndId => "choice ";
         protected override void AddParams()
         {
-
+            foreach(var choice in GameObject.GetComponentsInChildren<ChoiceHandlerButton>())
+            {
+                Params.Add(new CommandParam(choice.ChoiceState.Summary, () => (Vector2)choice.transform.localPosition, v => choice.transform.localPosition = (Vector2)v, (i, p) => i.Vector2Field(p)));
+            }
         }
     }
 
