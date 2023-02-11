@@ -6,7 +6,12 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using NaninovelSceneAssistant;
-
+using PlasticPipe.PlasticProtocol.Messages;
+using Codice.CM.SEIDInfo;
+using JetBrains.Annotations;
+using UnityEngine.UIElements;
+using System.Runtime.Serialization;
+using System.Security.Permissions;
 
 namespace NaninovelSceneAssistant
 {
@@ -26,14 +31,11 @@ namespace NaninovelSceneAssistant
         private IUnlockableManager unlockableManager;
         private IStateManager stateManager;
 
-        public bool SceneAssistantInitialized { get; set; } = false;
-
         public List<INaninovelObject> ObjectList { get; protected set; } = new List<INaninovelObject>();
         public SortedList<string, CustomVar> CustomVarList { get; protected set; } = new SortedList<string, CustomVar> { };
         public SortedList<string, Unlockable> UnlockablesList { get; protected set; } = new SortedList<string, Unlockable> { };
 
-        public bool Initialized = false;
-        public SceneAssistantManager(SceneAssistantConfiguration config, ICameraManager cameraManager, ICharacterManager characterManager, 
+        public SceneAssistantManager(SceneAssistantConfiguration config, ICameraManager cameraManager, ICharacterManager characterManager,
                 IBackgroundManager backgroundManager, IChoiceHandlerManager choiceHandlerManager, ITextPrinterManager textPrinterManager,
                 ISpawnManager spawnManager, IScriptPlayer scriptPlayer, ICustomVariableManager variableManager, IUnlockableManager unlockableManager,
                 IStateManager stateManager)
@@ -49,7 +51,7 @@ namespace NaninovelSceneAssistant
             this.variableManager = variableManager;
             this.unlockableManager = unlockableManager;
             this.stateManager = stateManager;
-         }
+        }
 
         public virtual UniTask InitializeServiceAsync()
         {   
@@ -57,6 +59,7 @@ namespace NaninovelSceneAssistant
             InitializeSceneAssistant();
             ObjectList.Add(new CameraObject());
         #endif
+
             return UniTask.CompletedTask;
         }
 
@@ -67,43 +70,32 @@ namespace NaninovelSceneAssistant
 
         public void DestroyService()
         {
-            if (Initialized) DestroySceneAssistant();
+            if (ObjectList.Count > 0) DestroySceneAssistant();
         }
 
         public void InitializeSceneAssistant()
         {
-            //Initialize custom variables list.
-            RefreshCustomVariables();
+            RefreshLists();
             variableManager.OnVariableUpdated += HandleVariableUpdated;
-            stateManager.OnGameLoadFinished += HandleVariablesOnGameLoadFinished;
-            stateManager.OnResetFinished += RefreshCustomVariables;
-            stateManager.OnRollbackFinished += RefreshCustomVariables;
-
-            //Initialize unlockables list.
-            RefreshUnlockables();
             unlockableManager.OnItemUpdated += HandleUnlockableUpdated;
-            stateManager.OnGameLoadFinished += HandleUnlockablesOnGameLoadFinished;
-            stateManager.OnResetFinished += RefreshUnlockables;
-            stateManager.OnRollbackFinished += RefreshUnlockables;
 
-            HandleCommand();
+            stateManager.OnGameLoadFinished += HandleOnGameLoadFinished;
+            stateManager.OnResetFinished += RefreshLists;
+            stateManager.OnRollbackFinished += RefreshLists;
+
             scriptPlayer.AddPostExecutionTask(HandleCommand);
-
-            SceneAssistantInitialized = true;
-
         }
 
-        private void HandleVariablesOnGameLoadFinished(GameSaveLoadArgs obj) => RefreshCustomVariables();
-        private void HandleUnlockablesOnGameLoadFinished(GameSaveLoadArgs obj) => RefreshUnlockables();
+        private void HandleOnGameLoadFinished(GameSaveLoadArgs obj) => RefreshLists();
 
-        protected void RefreshCustomVariables()
+        protected void RefreshLists()
         {
+            ObjectList.Clear();
+            RefreshObjectList();
+
             CustomVarList.Clear();
             foreach (var variable in variableManager.GetAllVariables()) CustomVarList.Add(variable.Name, new CustomVar(variable.Name, variable.Value));
-        }
 
-        protected void RefreshUnlockables()
-        {
             UnlockablesList.Clear();
             foreach (var unlockable in unlockableManager.GetAllItems()) UnlockablesList.Add(unlockable.Key, new Unlockable(unlockable.Key, unlockable.Value));
         }
@@ -128,59 +120,65 @@ namespace NaninovelSceneAssistant
             ObjectList.Clear();
         }
 
-        public void RefreshObjectList()
+        protected virtual void RefreshObjectList()
         {
-            //actorManagers = new IEngineServices[] { characterManager, backgroundManager, textPrinterManager, choiceHandlerManager };
+            ObjectList.Add(new CameraObject());
+            RefreshSpawnList();
+            RefreshActorList();
+        }
 
-            //foreach(var manager in actorManagers)
-            //{
-            //    foreach (actor in manager.GetAllActors()
-            //    { 
+        private void RefreshActorList(Type type = null)
+        {
+            foreach (var actorService in Engine.FindAllServices<IActorManager>())
+            {
+                foreach (var actor in actorService.GetAllActors())
+                {
+                    if (actor is ICharacterActor character) if (character.Visible) ObjectList.Add(new CharacterObject(character.Id));
+                    if (actor is IBackgroundActor background) if (background.Visible) ObjectList.Add(new BackgroundObject(background.Id));
+                    if (actor is IChoiceHandlerActor choiceHandler) if (choiceHandler.Visible) ObjectList.Add(new ChoiceHandlerObject(choiceHandler.Id));
+                    if (actor is ITextPrinterActor textPrinter) if (textPrinter.Visible) ObjectList.Add(new TextPrinterObject(textPrinter.Id));
+                }
+            }
+        }
 
-            //    }
-            //}
+        protected virtual void RefreshSpawnList()
+        {
+            foreach (var spawn in spawnManager.GetAllSpawned()) if(!ObjectExists(typeof(SpawnObject), spawn.Path)) ObjectList.Add(new SpawnObject(spawn.Path));
         }
 
         public virtual UniTask HandleCommand(Command command = null)
         {
+            if (command is ModifyCharacter character) 
 
-            if (command is ModifyCharacter character && ActorExistsAndIsVisible<ICharacterManager, CharacterObject>(characterManager, character.IdAndAppearance.Name)) 
-                ObjectList.Add(new CharacterObject(character.IdAndAppearance.Name));
 
             if (command is ModifyBackground background)
             {
                 var backId = background.Id.HasValue ? background.Id.Value : "MainBackground";
-                if (ActorExistsAndIsVisible<IBackgroundManager, BackgroundObject>(backgroundManager, backId))
-                    ObjectList.Add(new BackgroundObject(backId));
+                if (!ObjectExists(typeof(BackgroundObject)) && ActorIsVisible(backgroundManager, backId)) ObjectList.Add(new BackgroundObject(backId));
             }
 
             if (command is PrintText textPrinter)
             {
                 var printerId = textPrinter.PrinterId.HasValue ? textPrinter.PrinterId.Value : textPrinterManager.DefaultPrinterId;
-                if (ActorExistsAndIsVisible<ITextPrinterManager, TextPrinterObject>(textPrinterManager, printerId)) 
-                    ObjectList.Add(new TextPrinterObject(printerId));
+                if (!ObjectExists(typeof(TextPrinterObject)) && ActorIsVisible(textPrinterManager, printerId)) ObjectList.Add(new TextPrinterObject(printerId));
             }
-
-
             if (command is AddChoice choice)
             {
-                var choiceHandlerId = choice.HandlerId.HasValue ? choice.HandlerId.Value : choiceHandlerManager.Configuration.DefaultHandlerId;
+                var choiceHandlerId = choice.HandlerId.HasValue ? choice.HandlerId.Value : choiceHandlerManager.Configuration.DefaultHandlerId; 
                 ObjectList.Add(new ChoiceHandlerObject(choiceHandlerId));
 
             }
-            if (command is Spawn spawn) if(!ObjectExists<SpawnObject>(spawn.Path)) ObjectList.Add(new SpawnObject(spawn.Path));
+            if (command is Spawn spawn) if(!ObjectExists(typeof(SpawnObject))) ObjectList.Add(new SpawnObject(spawn.Path));
 
             return UniTask.CompletedTask;
         }
 
-        private bool ActorExistsAndIsVisible<TService, TActorObject>(TService service, string id)
+        private bool ActorIsVisible<TService>(TService service, string id)
             where TService : class, IActorManager
-            where TActorObject : INaninovelObject
-            => !ObjectExists<TActorObject>(id) && service.GetActor(id).Visible;
-        
+            => service.GetActor(id).Visible;
 
-        private bool ObjectExists<NaninovelObject>(string id = null)
-        => ObjectList.Contains(ObjectList.FirstOrDefault(o => o.Id == id));
+
+        private bool ObjectExists(Type type, string id = null) => ObjectList.Contains(ObjectList.FirstOrDefault(o => o.GetType() == typeof(Type) && o.Id == id ));
 
         public string GetAllCommands()
         {
@@ -437,7 +435,9 @@ public class SceneAssistant : EditorWindow, ISceneAssistantLayout
     public void ColorField(CommandParam param) => param.SetValue(EditorGUILayout.ColorField((Color)param.GetValue()));
     public void FloatField(CommandParam param) => param.SetValue(EditorGUILayout.FloatField((float)param.GetValue()));
     public void Vector2Field(CommandParam param) => param.SetValue(EditorGUILayout.Vector2Field("",(Vector2)param.GetValue()));
-
+    public void IntField(CommandParam param) => param.SetValue(EditorGUILayout.IntField((int)param.GetValue()));
+    public void EnumField(CommandParam param) => param.SetValue(EditorGUILayout.EnumPopup((Enum)param.GetValue()));
+    public void Vector4Field(CommandParam param) => param.SetValue(EditorGUILayout.Vector4Field("", (Vector4)param.GetValue()));
     public void StringListField(CommandParam param, string[] stringValues)
     {
         var stringIndex = stringValues.IndexOf(param.GetValue());

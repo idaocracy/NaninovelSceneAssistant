@@ -2,12 +2,12 @@
 using UnityEngine;
 using UnityEditor;
 using Naninovel.UI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace NaninovelSceneAssistant
 {
-
     public abstract class ActorObject<TService, TActor, TMeta, TConfig> : NaninovelObject<TService>, INaninovelObject
         where TService : class, IActorManager
         where TActor : IActor
@@ -35,7 +35,7 @@ namespace NaninovelSceneAssistant
 
             foreach (var provider in resourceProviderManager.GetProviders(Metadata.Loader.ProviderTypes))
             {
-                var paths = await provider.LocateResourcesAsync<Object>(Metadata.Loader.PathPrefix + "/" + Id);
+                var paths = await provider.LocateResourcesAsync<UnityEngine.Object>(Metadata.Loader.PathPrefix + "/" + Id);
                 foreach (var path in paths) appearanceList.Add(path.Split("/".ToCharArray()).Last());
             }
 
@@ -88,7 +88,7 @@ namespace NaninovelSceneAssistant
         protected override void AddParams()
         {
             AddBaseParams();
-            //Params.Add(new CommandParam ("Look", Actor.LookDirection, () => Actor.LookDirection = SceneAssistantHelpers.EnumField<CharacterLookDirection>(Actor.LookDirection)));
+            Params.Add(new CommandParam("Look", () => Actor.LookDirection, v => Actor.LookDirection = (CharacterLookDirection)v, (i, p) => i.EnumField(p)));
         }
     }
 

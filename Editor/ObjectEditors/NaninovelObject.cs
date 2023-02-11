@@ -27,7 +27,8 @@ namespace NaninovelSceneAssistant {
             customVariableManager = Engine.GetService<ICustomVariableManager>();
         }
 
-        protected TEngineService EngineService { get => Engine.GetService<TEngineService>(); }
+        protected static TEngineService EngineService { get => Engine.GetService<TEngineService>(); }
+
         public abstract string Id { get; set; }
         public virtual List<CommandParam> Params { get; protected set; } = new List<CommandParam>();
         public virtual SortedList<string, CustomVar> CustomVars { get; protected set; } = new SortedList<string, CustomVar>();

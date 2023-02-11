@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Naninovel;
@@ -11,14 +12,15 @@ namespace NaninovelSceneAssistant {
         void StringField(CommandParam param);
         void StringListField(CommandParam param, string[] stringValues);
         void BoolField(CommandParam param);
-        //void IntField(int value);
+        void IntField(CommandParam param);
         void FloatField(CommandParam param);
         //void OptionlessFloatField(float value);
         void SliderField(CommandParam param, float minValue, float maxValue);
         void ColorField(CommandParam param);
+        void EnumField(CommandParam param);
         void Vector2Field(CommandParam param);
         void Vector3Field(CommandParam param);
-        //void Vector4Field(Vector4 value);
+        void Vector4Field(CommandParam param);
     }
 
 
