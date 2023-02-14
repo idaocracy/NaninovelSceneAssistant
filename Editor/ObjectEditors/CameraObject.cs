@@ -1,9 +1,6 @@
 ﻿using Naninovel;
-using PlasticPipe.PlasticProtocol.Messages;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Plastic.Newtonsoft.Json.Linq;
-using UnityEditor;
 using UnityEngine;
 
 
@@ -13,12 +10,12 @@ namespace NaninovelSceneAssistant
     {
         public CameraObject() => Initialize();
 
-        protected ICameraManager CameraManager { get => EngineService; }
-        public override GameObject GameObject { get => CameraManager.Camera.gameObject; }
-        public override string Id { get => GameObject.name.Replace("(Clone)",""); set => Id = value; }
+        protected ICameraManager CameraManager => EngineService; 
+        public override GameObject GameObject => CameraManager.Camera.gameObject; 
+        public override string Id => GameObject.name.Replace("(Clone)","");
+        public override string TypeId => "Camera";
         protected override string CommandNameAndId => "camera";
-        protected List<MonoBehaviour> CameraComponents { get => CameraManager.Camera.GetComponents<MonoBehaviour>().Where(c => c.GetType() != typeof(Camera)).ToList(); }
-
+        protected List<MonoBehaviour> CameraComponents => CameraManager.Camera.GetComponents<MonoBehaviour>().Where(c => c.GetType() != typeof(Camera)).ToList(); 
 
         protected override void AddParams()
         {

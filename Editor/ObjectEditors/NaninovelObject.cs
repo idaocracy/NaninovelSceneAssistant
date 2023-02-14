@@ -4,14 +4,13 @@ using UnityEngine;
 using UnityEditor;
 using System.Linq;
 using Naninovel;
-using Unity.Plastic.Newtonsoft.Json.Linq;
-using Codice.CM.Common;
 
 namespace NaninovelSceneAssistant {
 
     public interface INaninovelObject
     {
-        string Id { get; set; }
+        string Id { get; }
+        string TypeId { get; }
         GameObject GameObject { get; }
         string GetCommandLine();
         List<CommandParam> Params { get; }
@@ -28,8 +27,8 @@ namespace NaninovelSceneAssistant {
         }
 
         protected static TEngineService EngineService { get => Engine.GetService<TEngineService>(); }
-
-        public abstract string Id { get; set; }
+        public abstract string Id { get; }
+        public abstract string TypeId { get; }
         public virtual List<CommandParam> Params { get; protected set; } = new List<CommandParam>();
         public virtual SortedList<string, CustomVar> CustomVars { get; protected set; } = new SortedList<string, CustomVar>();
         public abstract GameObject GameObject { get; }

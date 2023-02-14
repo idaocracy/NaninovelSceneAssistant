@@ -19,17 +19,17 @@ namespace NaninovelSceneAssistant
             return (T)Enum.Parse(typeof(T), options[valueIndex]);
         }
 
-        //public static Vector3 PosField(string label, Vector3 position, bool paramIsButton = true)
-        //{
-        //    var cameraConfiguration = Engine.GetConfiguration<CameraConfiguration>();
-        //    position = cameraConfiguration.WorldToSceneSpace(position);
-        //    position.x *= 100;
-        //    position.y *= 100;
-        //    //position = Vector3Field(label, position, paramIsButton);
-        //    position.x /= 100;
-        //    position.y /= 100;
-        //    return cameraConfiguration.SceneToWorldSpace(position);
-        //}
+        public static Vector3 PosField(string label, Vector3 position, bool paramIsButton = true)
+        {
+            var cameraConfiguration = Engine.GetConfiguration<CameraConfiguration>();
+            position = cameraConfiguration.WorldToSceneSpace(position);
+            position.x *= 100;
+            position.y *= 100;
+            //position = Vector3Field(label, position, paramIsButton);
+            position.x /= 100;
+            position.y /= 100;
+            return cameraConfiguration.SceneToWorldSpace(position);
+        }
 
 
 

@@ -21,6 +21,7 @@ namespace NaninovelSceneAssistant {
         void Vector2Field(CommandParam param);
         void Vector3Field(CommandParam param);
         void Vector4Field(CommandParam param);
+        void PosField(CommandParam param);
     }
 
 

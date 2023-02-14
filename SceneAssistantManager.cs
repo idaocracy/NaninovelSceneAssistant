@@ -6,12 +6,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using NaninovelSceneAssistant;
-using PlasticPipe.PlasticProtocol.Messages;
-using Codice.CM.SEIDInfo;
-using JetBrains.Annotations;
-using UnityEngine.UIElements;
-using System.Runtime.Serialization;
-using System.Security.Permissions;
+using UnityEditor.TestTools.TestRunner;
 
 namespace NaninovelSceneAssistant
 {
@@ -19,48 +14,48 @@ namespace NaninovelSceneAssistant
     public class SceneAssistantManager : IEngineService
     {
         public virtual SceneAssistantConfiguration Configuration { get; }
-
-        private ICameraManager cameraManager;
-        private ICharacterManager characterManager;
-        private IBackgroundManager backgroundManager;
-        private IChoiceHandlerManager choiceHandlerManager;
-        private ITextPrinterManager textPrinterManager;
         private ISpawnManager spawnManager;
         private IScriptPlayer scriptPlayer;
         private ICustomVariableManager variableManager;
         private IUnlockableManager unlockableManager;
         private IStateManager stateManager;
+        private IReadOnlyCollection<IActorManager> actorServices;
 
         public List<INaninovelObject> ObjectList { get; protected set; } = new List<INaninovelObject>();
         public SortedList<string, CustomVar> CustomVarList { get; protected set; } = new SortedList<string, CustomVar> { };
         public SortedList<string, Unlockable> UnlockablesList { get; protected set; } = new SortedList<string, Unlockable> { };
 
-        public SceneAssistantManager(SceneAssistantConfiguration config, ICameraManager cameraManager, ICharacterManager characterManager,
-                IBackgroundManager backgroundManager, IChoiceHandlerManager choiceHandlerManager, ITextPrinterManager textPrinterManager,
-                ISpawnManager spawnManager, IScriptPlayer scriptPlayer, ICustomVariableManager variableManager, IUnlockableManager unlockableManager,
+        public SceneAssistantManager(SceneAssistantConfiguration config, ISpawnManager spawnManager, IScriptPlayer scriptPlayer, ICustomVariableManager variableManager, IUnlockableManager unlockableManager,
                 IStateManager stateManager)
         {
             Configuration = config;
-            this.cameraManager = cameraManager;
-            this.characterManager = characterManager;
-            this.backgroundManager = backgroundManager;
-            this.choiceHandlerManager = choiceHandlerManager;
-            this.textPrinterManager = textPrinterManager;
             this.spawnManager = spawnManager;
             this.scriptPlayer = scriptPlayer;
             this.variableManager = variableManager;
             this.unlockableManager = unlockableManager;
             this.stateManager = stateManager;
+            actorServices = Engine.FindAllServices<IActorManager>();
         }
 
         public virtual UniTask InitializeServiceAsync()
-        {   
-        #if UNITY_EDITOR
-            InitializeSceneAssistant();
-            ObjectList.Add(new CameraObject());
-        #endif
+        {
+#if UNITY_EDITOR
+            //Engine.OnInitializationFinished += InitializeSceneAssistant;
+            EditorApplication.playModeStateChanged += DetectPlayModeChanged;
+#endif
+
+
 
             return UniTask.CompletedTask;
+        }
+
+
+        private void DetectPlayModeChanged(PlayModeStateChange stateChange)
+        {
+            if (stateChange == PlayModeStateChange.EnteredPlayMode)
+            {
+                Engine.OnInitializationFinished += InitializeSceneAssistant;
+            }
         }
 
         public void ResetService()
@@ -75,6 +70,8 @@ namespace NaninovelSceneAssistant
 
         public void InitializeSceneAssistant()
         {
+            actorServices = Engine.FindAllServices<IActorManager>();
+
             RefreshLists();
             variableManager.OnVariableUpdated += HandleVariableUpdated;
             unlockableManager.OnItemUpdated += HandleUnlockableUpdated;
@@ -83,7 +80,7 @@ namespace NaninovelSceneAssistant
             stateManager.OnResetFinished += RefreshLists;
             stateManager.OnRollbackFinished += RefreshLists;
 
-            scriptPlayer.AddPostExecutionTask(HandleCommand);
+            scriptPlayer.AddPostExecutionTask(HandlePlayedCommand);
         }
 
         private void HandleOnGameLoadFinished(GameSaveLoadArgs obj) => RefreshLists();
@@ -114,7 +111,7 @@ namespace NaninovelSceneAssistant
 
         public void DestroySceneAssistant()
         {
-            scriptPlayer.RemovePostExecutionTask(HandleCommand);
+            scriptPlayer.RemovePostExecutionTask(HandlePlayedCommand);
             unlockableManager.OnItemUpdated -= HandleUnlockableUpdated;
             variableManager.OnVariableUpdated -= HandleVariableUpdated;
             ObjectList.Clear();
@@ -122,21 +119,25 @@ namespace NaninovelSceneAssistant
 
         protected virtual void RefreshObjectList()
         {
-            ObjectList.Add(new CameraObject());
+            if(!ObjectExists(typeof(CameraObject))) ObjectList.Add(new CameraObject());
             RefreshSpawnList();
             RefreshActorList();
         }
 
-        private void RefreshActorList(Type type = null)
+        protected virtual void RefreshActorList(Type type = null)
         {
-            foreach (var actorService in Engine.FindAllServices<IActorManager>())
+            foreach (var actorService in actorServices)
             {
                 foreach (var actor in actorService.GetAllActors())
                 {
-                    if (actor is ICharacterActor character) if (character.Visible) ObjectList.Add(new CharacterObject(character.Id));
-                    if (actor is IBackgroundActor background) if (background.Visible) ObjectList.Add(new BackgroundObject(background.Id));
-                    if (actor is IChoiceHandlerActor choiceHandler) if (choiceHandler.Visible) ObjectList.Add(new ChoiceHandlerObject(choiceHandler.Id));
-                    if (actor is ITextPrinterActor textPrinter) if (textPrinter.Visible) ObjectList.Add(new TextPrinterObject(textPrinter.Id));
+                    if (actor is ICharacterActor character) 
+                        if (!ObjectExists(typeof(ICharacterActor), character.Id) && character.Visible) ObjectList.Add(new CharacterObject(character.Id));
+                    if (actor is IBackgroundActor background) 
+                        if (!ObjectExists(typeof(IBackgroundActor), background.Id) && background.Visible) ObjectList.Add(new BackgroundObject(background.Id));
+                    if (actor is IChoiceHandlerActor choiceHandler) 
+                        if (!ObjectExists(typeof(IChoiceHandlerActor), choiceHandler.Id) && choiceHandler.Visible) ObjectList.Add(new ChoiceHandlerObject(choiceHandler.Id));
+                    if (actor is ITextPrinterActor textPrinter) 
+                        if (!ObjectExists(typeof(ITextPrinterActor), textPrinter.Id) && textPrinter.Visible) ObjectList.Add(new TextPrinterObject(textPrinter.Id));
                 }
             }
         }
@@ -146,39 +147,35 @@ namespace NaninovelSceneAssistant
             foreach (var spawn in spawnManager.GetAllSpawned()) if(!ObjectExists(typeof(SpawnObject), spawn.Path)) ObjectList.Add(new SpawnObject(spawn.Path));
         }
 
-        public virtual UniTask HandleCommand(Command command = null)
+        public virtual UniTask HandlePlayedCommand(Command command = null)
         {
-            if (command is ModifyCharacter character) 
+            if (command is ModifyCharacter) RefreshActorList();
+            if (command is ModifyBackground) RefreshActorList();
+            if (command is ModifyTextPrinter) RefreshActorList();
+            if (command is AddChoice) RefreshActorList();
+            if (command is Spawn) RefreshSpawnList();
+            if (command is DestroySpawned) RefreshSpawnList();
+            if (command is DestroyAllSpawned) RefreshSpawnList();
 
-
-            if (command is ModifyBackground background)
-            {
-                var backId = background.Id.HasValue ? background.Id.Value : "MainBackground";
-                if (!ObjectExists(typeof(BackgroundObject)) && ActorIsVisible(backgroundManager, backId)) ObjectList.Add(new BackgroundObject(backId));
-            }
-
-            if (command is PrintText textPrinter)
-            {
-                var printerId = textPrinter.PrinterId.HasValue ? textPrinter.PrinterId.Value : textPrinterManager.DefaultPrinterId;
-                if (!ObjectExists(typeof(TextPrinterObject)) && ActorIsVisible(textPrinterManager, printerId)) ObjectList.Add(new TextPrinterObject(printerId));
-            }
-            if (command is AddChoice choice)
-            {
-                var choiceHandlerId = choice.HandlerId.HasValue ? choice.HandlerId.Value : choiceHandlerManager.Configuration.DefaultHandlerId; 
-                ObjectList.Add(new ChoiceHandlerObject(choiceHandlerId));
-
-            }
-            if (command is Spawn spawn) if(!ObjectExists(typeof(SpawnObject))) ObjectList.Add(new SpawnObject(spawn.Path));
+            if (command is HideAllActors) RefreshActorList();
+            if (command is HideAllCharacters) RefreshActorList();
+            if (command is HideActors) RefreshActorList();
+            if (command is HidePrinter) RefreshActorList();
+            if (command is ClearChoiceHandler) RefreshActorList();
 
             return UniTask.CompletedTask;
         }
 
-        private bool ActorIsVisible<TService>(TService service, string id)
-            where TService : class, IActorManager
-            => service.GetActor(id).Visible;
+        private bool ObjectExists(Type type, string id = null)
+        {
+            if (!ObjectList.Any(c => c.GetType() == type))  return false;
+            else
+            {
+                if (string.IsNullOrEmpty(id)) return true;
+                else return (ObjectList.Any(c => c.GetType() == type && c.Id == c.Id));
+            }
 
-
-        private bool ObjectExists(Type type, string id = null) => ObjectList.Contains(ObjectList.FirstOrDefault(o => o.GetType() == typeof(Type) && o.Id == id ));
+        }
 
         public string GetAllCommands()
         {
@@ -193,22 +190,21 @@ namespace NaninovelSceneAssistant
     }
 }
 
+[InitializeOnLoad]
 public class SceneAssistant : EditorWindow, ISceneAssistantLayout
 {
     public string[] Tabs { get; protected set; }
-    protected INaninovelObject CurrentObject { get => sceneAssistantManager.ObjectList[objectIndex]; }
-    protected string[] ObjectDropdown { get => sceneAssistantManager.ObjectList.Select(p => p.Id).ToArray(); }
+    protected INaninovelObject CurrentObject => sceneAssistantManager.ObjectList[objectIndex]; 
+    protected string[] ObjectDropdown => sceneAssistantManager.ObjectList.Select(p => p.Id).ToArray(); 
+    protected string[] TypeList => sceneAssistantManager.ObjectList.Select(p => p.TypeId).ToArray(); 
     protected string ClipboardString { get => clipboardString; set { clipboardString = value; EditorGUIUtility.systemCopyBuffer = value; if (logResults) Debug.Log(value); } }
 
-    private string[] typeList = new string[] { "Characters", "Backgrounds", "Text Printers", "Choices", "Camera", "Spawns" };
-    private bool[] typeBools = new bool[] { true, true, true, true, true, true };
-
     private SceneAssistantManager sceneAssistantManager;
-    private int objectIndex = 0;
-    private int tabIndex = 0;
-    private string clipboardString = string.Empty;
-    private Vector2 scrollPos = default;
-    private bool logResults;
+    private static int objectIndex = 0;
+    private static int tabIndex = 0;
+    private static string clipboardString = string.Empty;
+    private static Vector2 scrollPos = default;
+    private static bool logResults;
     private ISceneAssistantLayout sceneAssistantLayout;
 
     [MenuItem("Naninovel/New Scene Assistant", false, 350)]
@@ -218,13 +214,13 @@ public class SceneAssistant : EditorWindow, ISceneAssistantLayout
     {
         EditorGUIUtility.labelWidth = 150;
         Tabs = new string[] { "Objects", "Custom Variables", "Unlockables" };
-        sceneAssistantManager = Engine.GetService<SceneAssistantManager>();
-        sceneAssistantLayout = this is ISceneAssistantLayout  sceneAssistant ? sceneAssistant : null;
+        sceneAssistantLayout = this is ISceneAssistantLayout sceneAssistant ? sceneAssistant : null;
     }
+
 
     public void OnGUI()
     {
-        if (Engine.Initialized && Engine.TryGetService(out sceneAssistantManager))
+        if (Engine.Initialized && Engine.TryGetService(out sceneAssistantManager) && this is ISceneAssistantLayout sceneAssistantLayout && sceneAssistantManager?.ObjectList.Count > 0)
         {
             ShowTabs();
         }
@@ -333,7 +329,7 @@ public class SceneAssistant : EditorWindow, ISceneAssistantLayout
         GUILayout.BeginHorizontal();
         GUILayout.FlexibleSpace();
 
-        for (int i = 0; i < typeList.Length; i++)
+        for (int i = 0; i < TypeList.Length; i++)
         {
             if (i == 3)
             {
@@ -343,8 +339,8 @@ public class SceneAssistant : EditorWindow, ISceneAssistantLayout
                 GUILayout.FlexibleSpace();
             }
 
-            typeBools[i] = EditorGUILayout.Toggle("", typeBools[i], GUILayout.Width(15));
-            EditorGUILayout.LabelField(typeList[i], EditorStyles.miniLabel, GUILayout.Width(25 + typeList[i].Replace(" ","").Length * 4));
+            //typeBools[i] = EditorGUILayout.Toggle("", typeBools[i], GUILayout.Width(15));
+            //EditorGUILayout.LabelField(typeList[i], EditorStyles.miniLabel, GUILayout.Width(25 + typeList[i].Replace(" ", "").Length * 4));
         }
 
         GUILayout.FlexibleSpace();
@@ -353,7 +349,7 @@ public class SceneAssistant : EditorWindow, ISceneAssistantLayout
 
     protected virtual void ShowCommandParameters(List<CommandParam> parameters)
     {
-        if (parameters == null) return;
+        if (parameters == null || parameters.Count == 0) return;
 
         if (CurrentObject.HasPosValues(out var posParamIndex, out var positionParamIndex))
         {
@@ -401,12 +397,10 @@ public class SceneAssistant : EditorWindow, ISceneAssistantLayout
     }
 
 
-    private void OnDestroy()
-    {
-        //if(sceneAssistantManager?.ObjectList?.Count > 0) sceneAssistantManager.DestroySceneAssistant();
-        //Engine.OnInitializationFinished -= sceneAssistantManager.InitializeSceneAssistant;
-
-    }
+    //private void OnDestroy()
+    //{
+    //    if(sceneAssistantManager?.ObjectList?.Count > 0) sceneAssistantManager.DestroySceneAssistant();
+    //}
 
     public static bool ShowButton(string label)
     {
@@ -443,6 +437,19 @@ public class SceneAssistant : EditorWindow, ISceneAssistantLayout
         var stringIndex = stringValues.IndexOf(param.GetValue());
         stringIndex = EditorGUILayout.Popup(stringIndex, stringValues);
         param.SetValue(stringValues[stringIndex]);
+    }
+
+    public void PosField(CommandParam param)
+    {
+        var cameraConfiguration = Engine.GetConfiguration<CameraConfiguration>();
+        var position = cameraConfiguration.WorldToSceneSpace((Vector3)param.GetValue());
+        position.x *= 100;
+        position.y *= 100;
+        position = EditorGUILayout.Vector3Field("", position);
+        position.x /= 100;
+        position.y /= 100;
+        position = cameraConfiguration.SceneToWorldSpace(position);
+        param.SetValue(position);
     }
 }
 

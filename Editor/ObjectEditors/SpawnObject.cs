@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Naninovel;
-using UnityEditor;
 using System.Linq;
-using Codice.Utils;
 
 namespace NaninovelSceneAssistant
 {
@@ -12,17 +10,20 @@ namespace NaninovelSceneAssistant
     {
         public SpawnObject(string id)
         {
-            Id = id;
+            this.id = id;
             Initialize();
         }
 
         protected SpawnedObject Spawn { get => Engine.GetService<SpawnManager>().GetSpawned(Id); }
-        public override string Id { get; set; }
-        protected Transform Transform { get => Spawn.Transform; }
-        public override GameObject GameObject { get => Spawn.GameObject; }
-        protected ISceneAssistantSpawnObject spawnSceneAssistant { get => GameObject.GetComponent<ISceneAssistantSpawnObject>() ?? null; }
+        public override string Id => id;
+        public override string TypeId => "Spawn";
+        protected Transform Transform => Spawn.Transform; 
+        public override GameObject GameObject => Spawn.GameObject; 
+        protected ISceneAssistantSpawnObject spawnSceneAssistant => GameObject.GetComponent<ISceneAssistantSpawnObject>() ?? null; 
         protected override string CommandNameAndId => "spawn " + Id;
-        protected bool IsTransformable { get => spawnSceneAssistant?.IsTransformable ?? true; }
+        protected bool IsTransformable => spawnSceneAssistant?.IsTransformable ?? true;
+
+        private string id;
 
         public override string GetCommandLine()
         {
