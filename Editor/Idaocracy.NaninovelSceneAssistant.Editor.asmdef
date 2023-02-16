@@ -1,0 +1,19 @@
+{
+    "name": "Idaocracy.NaninovelSceneAssistant.Editor",
+    "references": [
+        "GUID:08ab4e9b32bfd234da6fed8acbd71909",
+        "GUID:299f0e1d2253c7f42906a1f24d2d2eb0",
+        "GUID:4f5653c98d7fd794db5803926a626c12"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

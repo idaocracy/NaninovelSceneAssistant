@@ -2348,7 +2348,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 3993256376020375901}
+      - m_Target: {fileID: 0}
         m_MethodName: RefreshList
         m_Mode: 1
         m_Arguments:
@@ -3144,7 +3144,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6306036015961478113}
   - component: {fileID: 6306036015961478112}
-  - component: {fileID: 3993256376020375901}
+  - component: {fileID: 1704781686645475466}
   - component: {fileID: 6306036015961478118}
   - component: {fileID: 6306036015961478117}
   - component: {fileID: 6306036015961478116}
@@ -3198,7 +3198,7 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 1
   m_TargetDisplay: 0
---- !u!114 &3993256376020375901
+--- !u!114 &1704781686645475466
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3223,17 +3223,16 @@ MonoBehaviour:
   onHide:
     m_PersistentCalls:
       m_Calls: []
-  hideOnLoad: 0
+  hideOnLoad: 1
   hideInThumbnail: 0
   saveVisibilityState: 1
   blockInputWhenVisible: 0
   allowedSamplers: []
   modalUI: 0
   fontChangeConfiguration: []
-  content: {fileID: 5467230170163553574}
-  objectDropdown: {fileID: 610518922950095078}
-  sliderField: {fileID: 4299436050622034797, guid: b219498a203a8c74fa9866f22794cf10,
-    type: 3}
+  content: {fileID: 0}
+  objectDropdown: {fileID: 0}
+  sliderField: {fileID: 0}
 --- !u!225 &6306036015961478118
 CanvasGroup:
   m_ObjectHideFlags: 0
