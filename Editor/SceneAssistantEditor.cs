@@ -12,19 +12,19 @@ namespace NaninovelSceneAssistant
     [InitializeOnLoad]
     public class SceneAssistant : EditorWindow, ISceneAssistantLayout
     {
+        private ISceneAssistantLayout layout { get => this; }
         public string[] Tabs { get; protected set; }
         protected INaninovelObject CurrentObject => sceneAssistantManager.ObjectList[objectIndex];
         protected string[] ObjectDropdown => sceneAssistantManager.ObjectList.Select(p => p.Id).ToArray();
         protected string[] TypeList => sceneAssistantManager.ObjectList.Select(p => p.TypeId).ToArray();
         protected string ClipboardString { get => clipboardString; set { clipboardString = value; EditorGUIUtility.systemCopyBuffer = value; if (logResults) Debug.Log(value); } }
 
-        private SceneAssistantManager sceneAssistantManager;
+        private static SceneAssistantManager sceneAssistantManager;
         private static int objectIndex = 0;
         private static int tabIndex = 0;
         private static string clipboardString = string.Empty;
         private static Vector2 scrollPos = default;
         private static bool logResults;
-        private ISceneAssistantLayout sceneAssistantLayout;
 
         [MenuItem("Naninovel/New Scene Assistant", false, 350)]
         public static void ShowWindow() => GetWindow<SceneAssistant>("Naninovel Scene Assistant");
@@ -33,21 +33,31 @@ namespace NaninovelSceneAssistant
         {
             EditorGUIUtility.labelWidth = 150;
             Tabs = new string[] { "Objects", "Custom Variables", "Unlockables" };
-            sceneAssistantLayout = this is ISceneAssistantLayout sceneAssistant ? sceneAssistant : null;
         }
 
+        [InitializeOnEnterPlayMode]
+        private static void DetectEngineInitialization()
+        {
+            Engine.OnInitializationFinished += SetupSceneAssistant;
+        }
+
+        private static void SetupSceneAssistant()
+        {
+            sceneAssistantManager = Engine.GetService<SceneAssistantManager>();
+            sceneAssistantManager.InitializeSceneAssistant();
+        }
 
         public void OnGUI()
         {
             if (Engine.Initialized && Engine.TryGetService(out sceneAssistantManager) && (this is ISceneAssistantLayout) && sceneAssistantManager?.ObjectList.Count > 0)
             {
-                ShowTabs();
+                ShowTabs(sceneAssistantManager, layout);
             }
             else EditorGUILayout.LabelField("Naninovel is not initialized.");
         }
 
 
-        private void ShowTabs()
+        protected virtual void ShowTabs(SceneAssistantManager sceneAssistant, ISceneAssistantLayout layout)
         {
             GUILayout.Space(10f);
             tabIndex = GUILayout.Toolbar(tabIndex, Tabs, EditorStyles.toolbarButton);
@@ -56,19 +66,19 @@ namespace NaninovelSceneAssistant
             switch (tabIndex)
             {
                 case 0:
-                    ShowSceneAssistant();
-                    ShowCustomVariables(CurrentObject.CustomVars, CurrentObject.Id);
+                    ShowSceneAssistant(layout);
+                    ShowCustomVariables(CurrentObject.CustomVars, layout, CurrentObject.Id);
                     break;
                 case 1:
-                    ShowCustomVariables(sceneAssistantManager.CustomVarList);
+                    ShowCustomVariables(sceneAssistant.CustomVarList, layout);
                     break;
                 case 2:
-                    ShowUnlockables(sceneAssistantManager.UnlockablesList);
+                    ShowUnlockables(sceneAssistant.UnlockablesList, layout);
                     break;
             }
         }
 
-        private void ShowSceneAssistant()
+        protected virtual void ShowSceneAssistant(ISceneAssistantLayout layout)
         {
             GUILayout.BeginHorizontal();
             GUILayout.Space(10);
@@ -84,7 +94,7 @@ namespace NaninovelSceneAssistant
 
             EditorGUILayout.Space(10);
 
-            ShowCommandParameters(CurrentObject.Params);
+            ShowCommandParameters(CurrentObject.Params, layout);
 
             ShowOptionButtons();
 
@@ -166,9 +176,10 @@ namespace NaninovelSceneAssistant
             GUILayout.EndHorizontal();
         }
 
-        protected virtual void ShowCommandParameters(List<CommandParam> parameters)
+        protected virtual void ShowCommandParameters(List<CommandParam> parameters, ISceneAssistantLayout layout)
         {
             if (parameters == null || parameters.Count == 0) return;
+            if (layout == null) return;
 
             if (CurrentObject.HasPosValues(out var posParamIndex, out var positionParamIndex))
             {
@@ -180,12 +191,12 @@ namespace NaninovelSceneAssistant
             {
                 EditorGUILayout.BeginHorizontal();
                 ShowValueOptions(param);
-                param.DisplayField(sceneAssistantLayout);
+                param.DisplayField(layout);
                 EditorGUILayout.EndHorizontal();
             }
         }
 
-        protected virtual void ShowCustomVariables(SortedList<string, CustomVar> vars, string id = null)
+        protected virtual void ShowCustomVariables(SortedList<string, CustomVar> vars, ISceneAssistantLayout layout, string id = null)
         {
             if (vars == null) return;
 
@@ -195,13 +206,13 @@ namespace NaninovelSceneAssistant
             foreach (CustomVar variable in vars.Values)
             {
                 EditorGUILayout.BeginHorizontal();
-                variable.DisplayField();
+                variable.DisplayField(layout);
                 EditorGUILayout.EndHorizontal();
             }
             EditorGUILayout.EndScrollView();
         }
 
-        protected virtual void ShowUnlockables(SortedList<string, Unlockable> unlockables)
+        protected virtual void ShowUnlockables(SortedList<string, Unlockable> unlockables, ISceneAssistantLayout layout)
         {
             if (unlockables == null) return;
 
@@ -209,7 +220,7 @@ namespace NaninovelSceneAssistant
             foreach (Unlockable unlockable in unlockables.Values)
             {
                 EditorGUILayout.BeginHorizontal();
-                unlockable.DisplayField();
+                unlockable.DisplayField(layout);
                 EditorGUILayout.EndHorizontal();
             }
             EditorGUILayout.EndScrollView();
@@ -232,44 +243,61 @@ namespace NaninovelSceneAssistant
             if (param.HasCommandOptions)
             {
                 param.Selected = EditorGUILayout.Toggle(param.Selected, GUILayout.Width(20f));
-                if (ShowButton(param.Id)) ClipboardString = param.GetCommandValue();
+                if (ShowButton(param.Name)) ClipboardString = param.GetCommandValue();
             }
             else
             {
                 GUILayout.Space(25f);
-                GUILayout.Label(param.Id.ToString(), GUILayout.Width(150));
+                GUILayout.Label(param.Name.ToString(), GUILayout.Width(150));
             }
         }
 
-        public void Vector3Field(CommandParam param) => param.SetValue(EditorGUILayout.Vector3Field("", (Vector3)param.GetValue()));
-        public void SliderField(CommandParam param, float min, float max) => param.SetValue(EditorGUILayout.Slider((float)param.GetValue(), min, max));
-        public void BoolField(CommandParam param) => param.SetValue(EditorGUILayout.Toggle((bool)param.GetValue()));
-        public void StringField(CommandParam param) => param.SetValue(EditorGUILayout.DelayedTextField((string)param.GetValue()));
-        public void ColorField(CommandParam param) => param.SetValue(EditorGUILayout.ColorField((Color)param.GetValue()));
-        public void FloatField(CommandParam param) => param.SetValue(EditorGUILayout.FloatField((float)param.GetValue()));
-        public void Vector2Field(CommandParam param) => param.SetValue(EditorGUILayout.Vector2Field("", (Vector2)param.GetValue()));
-        public void IntField(CommandParam param) => param.SetValue(EditorGUILayout.IntField((int)param.GetValue()));
-        public void EnumField(CommandParam param) => param.SetValue(EditorGUILayout.EnumPopup((Enum)param.GetValue()));
-        public void Vector4Field(CommandParam param) => param.SetValue(EditorGUILayout.Vector4Field("", (Vector4)param.GetValue()));
+        public void Vector3Field(CommandParam param) => param.Value = EditorGUILayout.Vector3Field("", (Vector3)param.Value);
+        public void SliderField(CommandParam param, float min, float max) => param.Value = (EditorGUILayout.Slider((float)param.Value, min, max));
+        public void BoolField(CommandParam param) => param.Value = EditorGUILayout.Toggle((bool)param.Value);
+        public void StringField(CommandParam param) => param.Value = EditorGUILayout.DelayedTextField((string)param.Value);
+        public void ColorField(CommandParam param) => param.Value = EditorGUILayout.ColorField((Color)param.Value);
+        public void FloatField(CommandParam param) => param.Value = EditorGUILayout.FloatField((float)param.Value);
+        public void Vector2Field(CommandParam param) => param.Value = EditorGUILayout.Vector2Field("", (Vector2)param.Value);
+        public void IntField(CommandParam param) => param.Value = EditorGUILayout.IntField((int)param.Value);
+        public void EnumField(CommandParam param) => param.Value = EditorGUILayout.EnumPopup((Enum)param.Value);
+        public void Vector4Field(CommandParam param) => param.Value = EditorGUILayout.Vector4Field("", (Vector4)param.Value);
         public void StringListField(CommandParam param, string[] stringValues)
         {
-            var stringIndex = stringValues.IndexOf(param.GetValue());
+            var stringIndex = stringValues.IndexOf(param.Value);
             stringIndex = EditorGUILayout.Popup(stringIndex, stringValues);
-            param.SetValue(stringValues[stringIndex]);
+            param.Value = stringValues[stringIndex];
         }
 
         public void PosField(CommandParam param)
         {
             var cameraConfiguration = Engine.GetConfiguration<CameraConfiguration>();
-            var position = cameraConfiguration.WorldToSceneSpace((Vector3)param.GetValue());
+            var position = cameraConfiguration.WorldToSceneSpace((Vector3)param.Value);
             position.x *= 100;
             position.y *= 100;
             position = EditorGUILayout.Vector3Field("", position);
             position.x /= 100;
             position.y /= 100;
             position = cameraConfiguration.SceneToWorldSpace(position);
-            param.SetValue(position);
+            param.Value = position;
         }
 
+        public void CustomVarField(CustomVar var)
+        {
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField(var.Name);
+            var.Value = EditorGUILayout.DelayedTextField(var.Value);
+            EditorGUILayout.EndHorizontal();
+        }
+
+        public void UnlockableField(Unlockable unlockable, int stateIndex, string[] states)
+        {
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField(unlockable.Name);
+            stateIndex = EditorGUILayout.Popup(stateIndex, states);
+            unlockable.Value = stateIndex == 1 ? true : false;
+            EditorGUILayout.EndHorizontal();
+        }
     }
+
 }
