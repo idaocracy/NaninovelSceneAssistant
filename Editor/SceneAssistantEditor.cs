@@ -1,6 +1,5 @@
 ﻿using Naninovel;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -178,23 +177,52 @@ namespace NaninovelSceneAssistant
 
         protected virtual void ShowCommandParameters(List<CommandParam> parameters, ISceneAssistantLayout layout)
         {
-            if (parameters == null || parameters.Count == 0) return;
-            if (layout == null) return;
+            if (parameters == null || parameters.Count == 0 || layout == null) return;
 
-            if (CurrentObject.HasPosValues(out var posParamIndex, out var positionParamIndex))
-            {
-                parameters[posParamIndex].Selected = !parameters[positionParamIndex].Selected;
-                parameters[positionParamIndex].Selected = !parameters[posParamIndex].Selected;
-            }
 
-            foreach (CommandParam param in parameters)
+
+            for( int i=0; i < parameters.Count; i++)
             {
                 EditorGUILayout.BeginHorizontal();
-                ShowValueOptions(param);
-                param.DisplayField(layout);
+
+                if (parameters[i].HasCommandOptions)
+                {
+
+
+                    if (CurrentObject.HasPosValues(out var posParamIndex, out var positionParamIndex))
+                    {
+
+                        //We need to put a check behind each toggle, otherwise it's not possible to toggle from false to true on one of the toggles 
+                        if(i == posParamIndex) { 
+                            parameters[posParamIndex].Selected = EditorGUILayout.Toggle(parameters[posParamIndex].Selected, GUILayout.Width(20f));
+                            if (parameters[posParamIndex].Selected == parameters[positionParamIndex].Selected == true) parameters[positionParamIndex].Selected = false;
+                        }
+
+                        else if (i == positionParamIndex) { 
+                            parameters[positionParamIndex].Selected = EditorGUILayout.Toggle(parameters[positionParamIndex].Selected, GUILayout.Width(20f));
+                            if (parameters[posParamIndex].Selected == parameters[positionParamIndex].Selected == true) parameters[posParamIndex].Selected = false;
+                        }
+
+                        else parameters[i].Selected = EditorGUILayout.Toggle(parameters[i].Selected, GUILayout.Width(20f));
+
+                    }
+                    else parameters[i].Selected = EditorGUILayout.Toggle(parameters[i].Selected, GUILayout.Width(20f));
+                    if (ShowButton(parameters[i].Name)) ClipboardString = parameters[i].GetCommandValue();
+                }
+                else
+                {
+                    GUILayout.Space(25f);
+                    GUILayout.Label(parameters[i].Name.ToString(), GUILayout.Width(150));
+                }
+
+                if(parameters[i].HasCommandOptions) EditorGUI.BeginDisabledGroup(!parameters[i].Selected);
+                parameters[i].DisplayField(layout);
+                if (parameters[i].HasCommandOptions) EditorGUI.EndDisabledGroup();
+                
                 EditorGUILayout.EndHorizontal();
             }
         }
+
 
         protected virtual void ShowCustomVariables(SortedList<string, CustomVar> vars, ISceneAssistantLayout layout, string id = null)
         {
@@ -240,16 +268,7 @@ namespace NaninovelSceneAssistant
 
         public void ShowValueOptions(CommandParam param)
         {
-            if (param.HasCommandOptions)
-            {
-                param.Selected = EditorGUILayout.Toggle(param.Selected, GUILayout.Width(20f));
-                if (ShowButton(param.Name)) ClipboardString = param.GetCommandValue();
-            }
-            else
-            {
-                GUILayout.Space(25f);
-                GUILayout.Label(param.Name.ToString(), GUILayout.Width(150));
-            }
+
         }
 
         public void Vector3Field(CommandParam param) => param.Value = EditorGUILayout.Vector3Field("", (Vector3)param.Value);
