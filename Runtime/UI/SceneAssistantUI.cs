@@ -16,7 +16,7 @@ namespace NaninovelSceneAssistant
         private SceneAssistantManager sceneAssistantManager;
 
         protected INaninovelObject CurrentObject { get; set; }
-        protected string[] ObjectDropdown { get => sceneAssistantManager.ObjectList.Select(p => p.Id).ToArray(); }
+        //protected string[] ObjectDropdown { get => sceneAssistantManager.ObjectList.Select(p => p.Id).ToArray(); }
         //protected string ClipboardString { get => clipboardString; set { clipboardString = value; EditorGUIUtility.systemCopyBuffer = value; if (logResults) Debug.Log(value); } }
 
         private int objectIndex = 0;
@@ -29,20 +29,22 @@ namespace NaninovelSceneAssistant
         //[SerializeField] private SliderField sliderField;
         public void InitializeObject(INaninovelObject obj)
         {
-            foreach(var param in obj.Params)
-            {
-                param.DisplayField(layout);
-            }
+            //foreach(var param in obj.Params)
+            //{
+            //    param.DisplayField(layout);
+            //}
         }
 
 
         protected override void Awake()
         {
-            base.Awake();
+            sceneAssistantManager = Engine.GetService<SceneAssistantManager>();
 
             layout = GetComponent<ISceneAssistantLayout>();
-            sceneAssistantManager = Engine.GetService<SceneAssistantManager>();
             RefreshList();
+
+            base.Awake();
+
 
         }
 
@@ -51,10 +53,10 @@ namespace NaninovelSceneAssistant
             objectDropdown.ClearOptions();
             var objList = new List<TMP_Dropdown.OptionData>();
 
-            foreach (var obj in ObjectDropdown)
-            {
-                objList.Add(new TMP_Dropdown.OptionData() { text = obj });
-            }
+            //foreach (var obj in ObjectDropdown)
+            //{
+            //    objList.Add(new TMP_Dropdown.OptionData() { text = obj });
+            //}
 
             objectDropdown.AddOptions(objList);
         }
@@ -76,7 +78,7 @@ namespace NaninovelSceneAssistant
         public void SliderField(CommandParam param, float minValue, float maxValue)
         {
             var slider = Instantiate(sliderField, content.transform);
-            slider.Init(param.Id, param);        }
+            slider.Init(param.Name, param);        }
 
         public void Vector3Field(CommandParam param)
         {
@@ -129,6 +131,16 @@ namespace NaninovelSceneAssistant
         }
 
         public void PosField(CommandParam param)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void CustomVarField(CustomVar var)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void UnlockableField(Unlockable unlockable, int stateIndex, string[] states)
         {
             throw new System.NotImplementedException();
         }

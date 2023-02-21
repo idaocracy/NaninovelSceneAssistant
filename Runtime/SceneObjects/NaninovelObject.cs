@@ -33,13 +33,13 @@ namespace NaninovelSceneAssistant {
         public virtual SortedList<string, CustomVar> CustomVars { get; protected set; } = new SortedList<string, CustomVar>();
         public abstract GameObject GameObject { get; }
         protected abstract string CommandNameAndId { get; }
-        public virtual string GetCommandLine() => Params != null ? CommandNameAndId + " " + string.Join(" ", Params.Where(p => p.GetCommandValue() != null && p.Selected && p.HasCommandOptions).Select(p => p.Id.ToLower() + ":" + p.GetCommandValue())) : null;
+        public virtual string GetCommandLine() => Params != null ? CommandNameAndId + " " + string.Join(" ", Params.Where(p => p.GetCommandValue() != null && p.Selected && p.HasCommandOptions).Select(p => p.Name.ToLower() + ":" + p.GetCommandValue())) : null;
         protected abstract void AddParams();
         public virtual bool HasPosValues(out int posParamIndex, out int positionParamIndex)
         {
-            var hasPosValues = Params.Exists(p => p.Id == "Pos") && Params.Exists(p => p.Id == "Position");
-            posParamIndex = Params.FindIndex(p => p.Id == "Position");
-            positionParamIndex = Params.FindIndex(p => p.Id == "Pos");
+            var hasPosValues = Params.Exists(p => p.Name == "Pos") && Params.Exists(p => p.Name == "Position");
+            posParamIndex = Params.FindIndex(p => p.Name == "Position");
+            positionParamIndex = Params.FindIndex(p => p.Name == "Pos");
 
             return hasPosValues;
         }
@@ -54,45 +54,44 @@ namespace NaninovelSceneAssistant {
         }
     }
 
-    public interface ICommandParam
-    {
-        string Id { get; }
-        bool Selected { get; set; }
-        bool HasCommandOptions { get; set; }
-    }
 
-
-    public class CommandParam : ICommandParam
+    public class CommandParam 
     {
-        public string Id { get; }
+        public string Name { get; }
+        public object Value { get => getValue(); set => setValue(value); }
         public bool Selected { get; set; } = true;
         public bool HasCommandOptions { get; set; } = true;
         public object DefaultValue { get; set; }
-
-        public Func<object> GetValue { get; private set; }
-        public Action<object> SetValue { get; private set; }
         public Action<ISceneAssistantLayout, CommandParam> OnLayout { get; private set; }
+        private Func<object> getValue;
+        private Action<object> setValue;
 
         public CommandParam(string id, Func<object> getValue, Action<object> setValue, Action<ISceneAssistantLayout, CommandParam> onLayout)
         {
-            Id = id;
-            this.GetValue = getValue;
-            this.SetValue = setValue;
+            Name = id;
+            this.getValue = getValue;
+            this.setValue = setValue;
             OnLayout = onLayout;
         }
 
-        public void DisplayField(ISceneAssistantLayout layout) => OnLayout(layout, this);
-        public string GetCommandValue() => FormatValue(GetValue());
+        public string GetCommandValue() => FormatValue(Value);
         public void GetDefaultValue()
         {
-            if (DefaultValue != null) SetValue(DefaultValue);
+            if (DefaultValue != null) Value = DefaultValue;
             else
             {
-                var value = GetValue().GetType();
-                if (value.IsValueType) SetValue(Activator.CreateInstance(value));
+                var value = Value.GetType();
+                if (value.IsValueType) Value = Activator.CreateInstance(value);
             }
-
         }
+
+        public void DisplayField(ISceneAssistantLayout layout)
+        {
+            if (layout == null) return;
+
+            OnLayout(layout, this);
+        }
+
 
         private static string FormatValue(object value)
         {
@@ -120,47 +119,46 @@ namespace NaninovelSceneAssistant {
 
     public class CustomVar
     {
-        public string Name;
-        public string Value;
+        public string Name { get; }
+        public string Value { get => getValue(); set => setValue(value); }
 
-        public CustomVar(string name, string value)
+        private Func<string> getValue;
+        private Action<string> setValue;
+
+        public CustomVar(string name)
         {
             Name = name;
-            Value = value;
+            getValue = () => Engine.GetService<ICustomVariableManager>().GetVariableValue(name);
+            setValue = (value) => Engine.GetService<ICustomVariableManager>().SetVariableValue(name, value);
         }
 
-        public void DisplayField()
+        public void DisplayField(ISceneAssistantLayout layout)
         {
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(Name);
-            Value = EditorGUILayout.DelayedTextField(Value);
-            Engine.GetService<ICustomVariableManager>().SetVariableValue(Name, Value);
-            EditorGUILayout.EndHorizontal();
+            layout.CustomVarField(this);
         }
     }
 
     public class Unlockable
     {
-        private string Name;
-        public bool Value;
-        private string[] States = new string[] { "Locked", "Unlocked" };
-        private int stateIndex;
+        public string Name { get; }
+        public bool Value { get => getValue(); set => setValue(value); }
+        public int stateIndex { get => getValue() ? 1 : 0; set => setValue(value == 1 ? true : false); }
 
-        public Unlockable(string name, bool value)
+        private string[] States = new string[] { "Locked", "Unlocked" };
+
+        private Func<bool> getValue;
+        private Action<bool> setValue;
+
+        public Unlockable(string name)
         {
             Name = name;
-            Value = value;
-            stateIndex = value ? 1 : 0;
+            getValue = () => Engine.GetService<IUnlockableManager>().ItemUnlocked(name);
+            setValue = (value) => Engine.GetService<IUnlockableManager>().SetItemUnlocked(name, value);
         }
 
-        public void DisplayField()
+        public void DisplayField(ISceneAssistantLayout layout)
         {
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(Name);
-            stateIndex = EditorGUILayout.Popup(stateIndex, States);
-            Value = stateIndex == 1 ? true : false;
-            Engine.GetService<IUnlockableManager>().SetItemUnlocked(Name, Value);
-            EditorGUILayout.EndHorizontal();
+            layout.UnlockableField(this, stateIndex, States);
         }
     }
 

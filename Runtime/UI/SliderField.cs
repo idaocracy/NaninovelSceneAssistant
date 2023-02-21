@@ -21,7 +21,7 @@ public class SliderField : ScriptableSlider
     public void Init(string Id, CommandParam param)
     {
         button.GetComponentInChildren<TextMeshProUGUI>().text = Id;
-        OnSliderValueChanged += (v) => param.SetValue(v);
+        OnSliderValueChanged += (v) => param.Value = v;
     }
 
     protected override void Awake()

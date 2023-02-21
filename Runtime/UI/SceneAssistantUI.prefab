@@ -3230,9 +3230,10 @@ MonoBehaviour:
   allowedSamplers: []
   modalUI: 0
   fontChangeConfiguration: []
-  content: {fileID: 0}
-  objectDropdown: {fileID: 0}
-  sliderField: {fileID: 0}
+  content: {fileID: 5467230170163553574}
+  objectDropdown: {fileID: 610518922950095078}
+  sliderField: {fileID: 4299436050622034797, guid: b219498a203a8c74fa9866f22794cf10,
+    type: 3}
 --- !u!225 &6306036015961478118
 CanvasGroup:
   m_ObjectHideFlags: 0

@@ -22,6 +22,8 @@ namespace NaninovelSceneAssistant {
         void Vector3Field(CommandParam param);
         void Vector4Field(CommandParam param);
         void PosField(CommandParam param);
+        void CustomVarField(CustomVar var);
+        void UnlockableField(Unlockable unlockable, int stateIndex, string[] states);
     }
 
 

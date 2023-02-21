@@ -34,7 +34,7 @@ namespace NaninovelSceneAssistant
 
             if (IsTransformable)
             {
-                for (int i = 0; i <= 2; i++) tempString = tempString + tempParams[i].Id.ToLower() + ":" + tempParams[i].GetValue() + " ";
+                for (int i = 0; i <= 2; i++) tempString = tempString + tempParams[i].Name.ToLower() + ":" + tempParams[i].Value + " ";
                 tempParams.RemoveRange(0, 3);
             }
 

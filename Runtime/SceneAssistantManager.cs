@@ -31,28 +31,11 @@ namespace NaninovelSceneAssistant
             this.variableManager = variableManager;
             this.unlockableManager = unlockableManager;
             this.stateManager = stateManager;
-            actorServices = Engine.FindAllServices<IActorManager>();
         }
 
         public virtual UniTask InitializeServiceAsync()
         {
-#if UNITY_EDITOR
-            //Engine.OnInitializationFinished += InitializeSceneAssistant;
-            EditorApplication.playModeStateChanged += DetectPlayModeChanged;
-#endif
-
-
-
             return UniTask.CompletedTask;
-        }
-
-
-        private void DetectPlayModeChanged(PlayModeStateChange stateChange)
-        {
-            if (stateChange == PlayModeStateChange.EnteredPlayMode)
-            {
-                Engine.OnInitializationFinished += InitializeSceneAssistant;
-            }
         }
 
         public void ResetService()
@@ -88,22 +71,22 @@ namespace NaninovelSceneAssistant
             RefreshObjectList();
 
             CustomVarList.Clear();
-            foreach (var variable in variableManager.GetAllVariables()) CustomVarList.Add(variable.Name, new CustomVar(variable.Name, variable.Value));
+            foreach (var variable in variableManager.GetAllVariables()) CustomVarList.Add(variable.Name, new CustomVar(variable.Name));
 
             UnlockablesList.Clear();
-            foreach (var unlockable in unlockableManager.GetAllItems()) UnlockablesList.Add(unlockable.Key, new Unlockable(unlockable.Key, unlockable.Value));
+            foreach (var unlockable in unlockableManager.GetAllItems()) UnlockablesList.Add(unlockable.Key, new Unlockable(unlockable.Key));
         }
 
         protected void HandleVariableUpdated(CustomVariableUpdatedArgs args)
         {
             if (CustomVarList.ContainsKey(args.Name)) CustomVarList[args.Name].Value = args.Value;
-            else CustomVarList.Add(args.Name, new CustomVar(args.Name, args.Value));
+            else CustomVarList.Add(args.Name, new CustomVar(args.Name));
         }
 
         protected void HandleUnlockableUpdated(UnlockableItemUpdatedArgs args)
         {
             if (UnlockablesList.ContainsKey(args.Id)) UnlockablesList[args.Id].Value = args.Unlocked;
-            else UnlockablesList.Add(args.Id, new Unlockable(args.Id, args.Unlocked));
+            else UnlockablesList.Add(args.Id, new Unlockable(args.Id));
         }
 
         public void DestroySceneAssistant()
@@ -171,7 +154,6 @@ namespace NaninovelSceneAssistant
                 if (string.IsNullOrEmpty(id)) return true;
                 else return (ObjectList.Any(c => c.GetType() == type && c.Id == c.Id));
             }
-
         }
 
         public string GetAllCommands()

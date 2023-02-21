@@ -87,7 +87,7 @@ namespace NaninovelSceneAssistant
             {
                 if (variable.Name.Contains(Id))
                 {
-                    CustomVars.Add(variable.Name, new CustomVar(variable.Name, variable.Value));
+                    CustomVars.Add(variable.Name, new CustomVar(variable.Name));
                 }
             }
         }
