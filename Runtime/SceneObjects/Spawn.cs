@@ -6,19 +6,18 @@ using System.Linq;
 
 namespace NaninovelSceneAssistant
 {
-    public class SpawnObject : NaninovelObject<SpawnManager>, INaninovelObject  
+    public class Spawn : NaninovelObject<SpawnManager>, INaninovelObject  
     {
-        public SpawnObject(string id)
+        public Spawn(string id)
         {
             this.id = id;
             Initialize();
         }
 
-        protected SpawnedObject Spawn { get => Engine.GetService<SpawnManager>().GetSpawned(Id); }
+        protected SpawnedObject Spawned { get => Engine.GetService<SpawnManager>().GetSpawned(Id); }
         public override string Id => id;
-        public override string TypeId => "Spawn";
-        protected Transform Transform => Spawn.Transform; 
-        public override GameObject GameObject => Spawn.GameObject; 
+        protected Transform Transform => Spawned.Transform; 
+        public override GameObject GameObject => Spawned.GameObject; 
         protected ISceneAssistantSpawnObject spawnSceneAssistant => GameObject.GetComponent<ISceneAssistantSpawnObject>() ?? null; 
         protected override string CommandNameAndId => "spawn " + Id;
         protected bool IsTransformable => spawnSceneAssistant?.IsTransformable ?? true;

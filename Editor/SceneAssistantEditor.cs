@@ -1,4 +1,5 @@
 ﻿using Naninovel;
+using Naninovel.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,16 +10,18 @@ using UnityEngine;
 namespace NaninovelSceneAssistant
 {
     [InitializeOnLoad]
-    public class SceneAssistant : EditorWindow, ISceneAssistantLayout
+    public class SceneAssistantEditor : EditorWindow, ISceneAssistantLayout
     {
         private ISceneAssistantLayout layout { get => this; }
         public string[] Tabs { get; protected set; }
-        protected INaninovelObject CurrentObject => sceneAssistantManager.ObjectList[objectIndex];
-        protected string[] ObjectDropdown => sceneAssistantManager.ObjectList.Select(p => p.Id).ToArray();
-        protected string[] TypeList => sceneAssistantManager.ObjectList.Select(p => p.TypeId).ToArray();
+        protected INaninovelObject CurrentObject => sceneAssistantManager.ObjectList.Values[objectIndex];
+        protected string[] ObjectDropdown => sceneAssistantManager.ObjectList.Select(p => p.Value.Id).ToArray();
+        protected Dictionary<Type, bool> TypeList => sceneAssistantManager.ObjectTypeList;
         protected string ClipboardString { get => clipboardString; set { clipboardString = value; EditorGUIUtility.systemCopyBuffer = value; if (logResults) Debug.Log(value); } }
 
         private static SceneAssistantManager sceneAssistantManager;
+        private static IScriptPlayer scriptPlayer;
+        private static IStateManager stateManager;
         private static int objectIndex = 0;
         private static int tabIndex = 0;
         private static string clipboardString = string.Empty;
@@ -26,12 +29,12 @@ namespace NaninovelSceneAssistant
         private static bool logResults;
 
         [MenuItem("Naninovel/New Scene Assistant", false, 350)]
-        public static void ShowWindow() => GetWindow<SceneAssistant>("Naninovel Scene Assistant");
+        public static void ShowWindow() => GetWindow<SceneAssistantEditor>("Naninovel Scene Assistant");
 
         private void Awake()
         {
             EditorGUIUtility.labelWidth = 150;
-            Tabs = new string[] { "Objects", "Custom Variables", "Unlockables" };
+            Tabs = new string[] { "Objects", "Custom Variables", "Unlockables", "Scripts" };
         }
 
         [InitializeOnEnterPlayMode]
@@ -43,6 +46,8 @@ namespace NaninovelSceneAssistant
         private static void SetupSceneAssistant()
         {
             sceneAssistantManager = Engine.GetService<SceneAssistantManager>();
+            scriptPlayer = Engine.GetService<IScriptPlayer>();
+            stateManager = Engine.GetService<StateManager>();
             sceneAssistantManager.InitializeSceneAssistant();
         }
 
@@ -73,6 +78,9 @@ namespace NaninovelSceneAssistant
                     break;
                 case 2:
                     ShowUnlockables(sceneAssistant.UnlockablesList, layout);
+                    break;
+                case 3:
+                    ShowScriptsList(sceneAssistant.ScriptsList, layout);
                     break;
             }
         }
@@ -133,8 +141,8 @@ namespace NaninovelSceneAssistant
             GUILayout.BeginVertical();
             if (ShowButton("Copy command (@)")) ClipboardString = "@" + CurrentObject.GetCommandLine();
             if (ShowButton("Copy command ([])")) ClipboardString = "[" + CurrentObject.GetCommandLine() + "]";
-            if (ShowButton("Copy all")) ClipboardString = sceneAssistantManager.GetAllCommands();
-            if (ShowButton("Copy selected")) ClipboardString = sceneAssistantManager.GetAllCommands();
+            if (ShowButton("Copy all")) ClipboardString = sceneAssistantManager.GetAllCommands(false);
+            if (ShowButton("Copy selected")) ClipboardString = sceneAssistantManager.GetAllCommands(true);
             GUILayout.EndVertical();
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
@@ -156,19 +164,12 @@ namespace NaninovelSceneAssistant
         {
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
+            var list = TypeList.Keys.ToList();
 
-            for (int i = 0; i < TypeList.Length; i++)
+            foreach(var type in list)
             {
-                if (i == 3)
-                {
-                    GUILayout.FlexibleSpace();
-                    GUILayout.EndHorizontal();
-                    GUILayout.BeginHorizontal();
-                    GUILayout.FlexibleSpace();
-                }
-
-                //typeBools[i] = EditorGUILayout.Toggle("", typeBools[i], GUILayout.Width(15));
-                //EditorGUILayout.LabelField(typeList[i], EditorStyles.miniLabel, GUILayout.Width(25 + typeList[i].Replace(" ", "").Length * 4));
+                TypeList[type] = EditorGUILayout.Toggle("", TypeList[type], GUILayout.Width(15));
+                EditorGUILayout.LabelField(type.Name, EditorStyles.miniLabel, GUILayout.Width(25 + type.Name.Length * 4));
             }
 
             GUILayout.FlexibleSpace();
@@ -187,8 +188,6 @@ namespace NaninovelSceneAssistant
 
                 if (parameters[i].HasCommandOptions)
                 {
-
-
                     if (CurrentObject.HasPosValues(out var posParamIndex, out var positionParamIndex))
                     {
 
@@ -254,6 +253,25 @@ namespace NaninovelSceneAssistant
             EditorGUILayout.EndScrollView();
         }
 
+        protected virtual void ShowScriptsList(IReadOnlyCollection<string> scripts, ISceneAssistantLayout layout)
+        {
+            if (scripts == null) return;
+
+            EditorGUILayout.BeginScrollView(scrollPos);
+            foreach (string script in scripts)
+            {
+                EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button(script)) PlayScriptAsync(script);
+                EditorGUILayout.EndHorizontal();
+            }
+            EditorGUILayout.EndScrollView();
+        }
+
+        private async void PlayScriptAsync(string script)
+        {
+            Engine.GetService<IUIManager>()?.GetUI<ITitleUI>()?.Hide();
+            await stateManager.ResetStateAsync(() => scriptPlayer.PreloadAndPlayAsync(script));
+        }
 
         //private void OnDestroy()
         //{

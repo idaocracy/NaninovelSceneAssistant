@@ -71,7 +71,7 @@ namespace NaninovelSceneAssistant
         {
             objectIndex = index;
             Debug.Log(index);
-            CurrentObject = sceneAssistantManager.ObjectList[objectIndex];
+            CurrentObject = sceneAssistantManager.ObjectList.Values[objectIndex];
             InitializeObject(CurrentObject);
         }
 

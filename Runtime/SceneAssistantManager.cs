@@ -13,17 +13,20 @@ namespace NaninovelSceneAssistant
         public virtual SceneAssistantConfiguration Configuration { get; }
         private ISpawnManager spawnManager;
         private IScriptPlayer scriptPlayer;
+        private IScriptManager scriptManager;
         private ICustomVariableManager variableManager;
         private IUnlockableManager unlockableManager;
         private IStateManager stateManager;
         private IReadOnlyCollection<IActorManager> actorServices;
 
-        public List<INaninovelObject> ObjectList { get; protected set; } = new List<INaninovelObject>();
+        public SortedList<string, INaninovelObject> ObjectList { get; protected set; } = new SortedList<string, INaninovelObject>();
+        public Dictionary<Type, bool> ObjectTypeList { get; protected set; } = new Dictionary<Type, bool>();
         public SortedList<string, CustomVar> CustomVarList { get; protected set; } = new SortedList<string, CustomVar> { };
         public SortedList<string, Unlockable> UnlockablesList { get; protected set; } = new SortedList<string, Unlockable> { };
+        public IReadOnlyCollection<string> ScriptsList { get; protected set; }
 
         public SceneAssistantManager(SceneAssistantConfiguration config, ISpawnManager spawnManager, IScriptPlayer scriptPlayer, ICustomVariableManager variableManager, IUnlockableManager unlockableManager,
-                IStateManager stateManager)
+                IStateManager stateManager, IScriptManager scriptManager)
         {
             Configuration = config;
             this.spawnManager = spawnManager;
@@ -31,6 +34,7 @@ namespace NaninovelSceneAssistant
             this.variableManager = variableManager;
             this.unlockableManager = unlockableManager;
             this.stateManager = stateManager;
+            this.scriptManager = scriptManager;
         }
 
         public virtual UniTask InitializeServiceAsync()
@@ -48,11 +52,13 @@ namespace NaninovelSceneAssistant
             if (ObjectList.Count > 0) DestroySceneAssistant();
         }
 
-        public void InitializeSceneAssistant()
+        public async void InitializeSceneAssistant()
         {
             actorServices = Engine.FindAllServices<IActorManager>();
 
             RefreshLists();
+            ScriptsList = await scriptManager.LocateScriptsAsync();
+
             variableManager.OnVariableUpdated += HandleVariableUpdated;
             unlockableManager.OnItemUpdated += HandleUnlockableUpdated;
 
@@ -99,9 +105,14 @@ namespace NaninovelSceneAssistant
 
         protected virtual void RefreshObjectList()
         {
-            if(!ObjectExists(typeof(CameraObject))) ObjectList.Add(new CameraObject());
+            if (!ObjectExists(typeof(Camera)))
+            {
+                var camera = new Camera();
+                ObjectList.Add(camera.Id, camera);
+            }
             RefreshSpawnList();
             RefreshActorList();
+            RefreshObjectTypeList();
         }
 
         protected virtual void RefreshActorList(Type type = null)
@@ -111,20 +122,20 @@ namespace NaninovelSceneAssistant
                 foreach (var actor in actorService.GetAllActors())
                 {
                     if (actor is ICharacterActor character) 
-                        if (!ObjectExists(typeof(ICharacterActor), character.Id) && character.Visible) ObjectList.Add(new CharacterObject(character.Id));
+                        if (!ObjectExists(typeof(Character), character.Id) && character.Visible) ObjectList.Add(character.Id, new Character(character.Id));
                     if (actor is IBackgroundActor background) 
-                        if (!ObjectExists(typeof(IBackgroundActor), background.Id) && background.Visible) ObjectList.Add(new BackgroundObject(background.Id));
+                        if (!ObjectExists(typeof(Background), background.Id) && background.Visible) ObjectList.Add(background.Id, new Background(background.Id));
                     if (actor is IChoiceHandlerActor choiceHandler) 
-                        if (!ObjectExists(typeof(IChoiceHandlerActor), choiceHandler.Id) && choiceHandler.Visible) ObjectList.Add(new ChoiceHandlerObject(choiceHandler.Id));
+                        if (!ObjectExists(typeof(ChoiceHandler), choiceHandler.Id) && choiceHandler.Visible) ObjectList.Add(choiceHandler.Id, new ChoiceHandler(choiceHandler.Id));
                     if (actor is ITextPrinterActor textPrinter) 
-                        if (!ObjectExists(typeof(ITextPrinterActor), textPrinter.Id) && textPrinter.Visible) ObjectList.Add(new TextPrinterObject(textPrinter.Id));
+                        if (!ObjectExists(typeof(TextPrinter), textPrinter.Id) && textPrinter.Visible) ObjectList.Add(textPrinter.Id, new TextPrinter(textPrinter.Id));
                 }
             }
         }
 
         protected virtual void RefreshSpawnList()
         {
-            foreach (var spawn in spawnManager.GetAllSpawned()) if(!ObjectExists(typeof(SpawnObject), spawn.Path)) ObjectList.Add(new SpawnObject(spawn.Path));
+            foreach (var spawn in spawnManager.GetAllSpawned()) if(!ObjectExists(typeof(Spawn), spawn.Path)) ObjectList.Add(spawn.Path, new Spawn(spawn.Path));
         }
 
         public virtual UniTask HandlePlayedCommand(Command command = null)
@@ -133,7 +144,7 @@ namespace NaninovelSceneAssistant
             if (command is ModifyBackground) RefreshActorList();
             if (command is ModifyTextPrinter) RefreshActorList();
             if (command is AddChoice) RefreshActorList();
-            if (command is Spawn) RefreshSpawnList();
+            if (command is Naninovel.Commands.Spawn) RefreshSpawnList();
             if (command is DestroySpawned) RefreshSpawnList();
             if (command is DestroyAllSpawned) RefreshSpawnList();
 
@@ -143,27 +154,48 @@ namespace NaninovelSceneAssistant
             if (command is HidePrinter) RefreshActorList();
             if (command is ClearChoiceHandler) RefreshActorList();
 
+            RefreshObjectTypeList();
+
             return UniTask.CompletedTask;
+        }
+
+        private void RefreshObjectTypeList()
+        {
+            if (ObjectList.Count == 0) return;
+            
+            foreach (var obj in ObjectList.Values.ToList())
+            {
+                if (!ObjectTypeList.Keys.Any(t => t == obj.GetType())) ObjectTypeList.Add(obj.GetType(), true);
+            }
+
+            foreach (var type in ObjectTypeList.Keys.ToList())
+            {
+                if (!ObjectExists(type)) ObjectTypeList.Remove(type);
+            }
         }
 
         private bool ObjectExists(Type type, string id = null)
         {
-            if (!ObjectList.Any(c => c.GetType() == type))  return false;
+            if (ObjectList.Count == 0) return false;
+
+            if (!ObjectList.Any(c => c.Value.GetType() == type))  return false;
             else
             {
                 if (string.IsNullOrEmpty(id)) return true;
-                else return (ObjectList.Any(c => c.GetType() == type && c.Id == c.Id));
+                else return (ObjectList.Any(c => c.Value.GetType() == type && c.Key == id));
             }
         }
 
-        public string GetAllCommands()
+        public string GetAllCommands(bool selected)
         {
             var allString = String.Empty;
-
-            foreach (var o in ObjectList)
+      
+            foreach (var obj in ObjectList.Values)
             {
-                allString = allString + "@" + o.GetCommandLine() + "\n";
+                if (selected && !ObjectTypeList[obj.GetType()]) continue;
+                else allString = allString + "@" + obj.GetCommandLine() + "\n";
             }
+
             return allString;
         }
     }

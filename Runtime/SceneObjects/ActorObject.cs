@@ -94,12 +94,9 @@ namespace NaninovelSceneAssistant
     }
 
 
-    public class CharacterObject : ActorObject<CharacterManager, ICharacterActor, CharacterMetadata, CharactersConfiguration>
+    public class Character : ActorObject<CharacterManager, ICharacterActor, CharacterMetadata, CharactersConfiguration>
     {
-        public CharacterObject(string id) : base(id) { }
-
-        public override string TypeId => "Character";
-
+        public Character(string id) : base(id) { }
         protected override string CommandNameAndId => "char " + Id;
         protected override void AddParams()
         {
@@ -108,12 +105,9 @@ namespace NaninovelSceneAssistant
         }
     }
 
-    public class BackgroundObject : ActorObject<BackgroundManager, IBackgroundActor, BackgroundMetadata, BackgroundsConfiguration>
+    public class Background : ActorObject<BackgroundManager, IBackgroundActor, BackgroundMetadata, BackgroundsConfiguration>
     {
-        public BackgroundObject(string id) : base(id) { }
-
-        public override string TypeId => "Background";
-
+        public Background(string id) : base(id) { }
         protected override string CommandNameAndId => "back " + "id:" + Id;
         protected override void AddParams()
         {
@@ -121,12 +115,9 @@ namespace NaninovelSceneAssistant
         }
     }
 
-    public class TextPrinterObject : ActorObject<TextPrinterManager, ITextPrinterActor, TextPrinterMetadata, TextPrintersConfiguration>
+    public class TextPrinter : ActorObject<TextPrinterManager, ITextPrinterActor, TextPrinterMetadata, TextPrintersConfiguration>
     {
-        public TextPrinterObject(string id) : base(id) { }
-
-        public override string TypeId => "TextPrinter";
-
+        public TextPrinter(string id) : base(id) { }
         protected override string CommandNameAndId => "printer " + Id;
         protected override void AddParams()
         {
@@ -134,12 +125,9 @@ namespace NaninovelSceneAssistant
         }
     }
 
-    public class ChoiceHandlerObject : ActorObject<ChoiceHandlerManager, IChoiceHandlerActor, ChoiceHandlerMetadata, ChoiceHandlersConfiguration>
+    public class ChoiceHandler : ActorObject<ChoiceHandlerManager, IChoiceHandlerActor, ChoiceHandlerMetadata, ChoiceHandlersConfiguration>
     {
-        public ChoiceHandlerObject(string id) : base(id) { }
-
-        public override string TypeId => "ChoiceHandler";
-
+        public ChoiceHandler(string id) : base(id) { }
         protected override string CommandNameAndId => "choice ";
         protected override void AddParams()
         {

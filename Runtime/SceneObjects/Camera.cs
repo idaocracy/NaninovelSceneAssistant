@@ -6,16 +6,15 @@ using UnityEngine;
 
 namespace NaninovelSceneAssistant
 {
-    public class CameraObject : NaninovelObject<ICameraManager>, INaninovelObject
+    public class Camera : NaninovelObject<ICameraManager>, INaninovelObject
     {
-        public CameraObject() => Initialize();
+        public Camera() => Initialize();
 
         protected ICameraManager CameraManager => EngineService; 
         public override GameObject GameObject => CameraManager.Camera.gameObject; 
         public override string Id => GameObject.name.Replace("(Clone)","");
-        public override string TypeId => "Camera";
         protected override string CommandNameAndId => "camera";
-        protected List<MonoBehaviour> CameraComponents => CameraManager.Camera.GetComponents<MonoBehaviour>().Where(c => c.GetType() != typeof(Camera)).ToList(); 
+        protected List<MonoBehaviour> CameraComponents => CameraManager.Camera.GetComponents<MonoBehaviour>().Where(c => c.GetType() != typeof(UnityEngine.Camera)).ToList(); 
 
         protected override void AddParams()
         {
