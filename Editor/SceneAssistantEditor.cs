@@ -3,8 +3,10 @@ using Naninovel.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace NaninovelSceneAssistant
 {
@@ -26,7 +28,6 @@ namespace NaninovelSceneAssistant
         private static Vector2 scrollPos = default;
         private static bool logResults;
 
-
         [MenuItem("Naninovel/New Scene Assistant", false, 360)]
         public static void ShowWindow() => GetWindow<SceneAssistantEditor>("Naninovel Scene Assistant");
 
@@ -34,13 +35,13 @@ namespace NaninovelSceneAssistant
         {
             EditorGUIUtility.labelWidth = 150;
             Tabs = new string[] { "Objects", "Custom Variables", "Unlockables", "Scripts" };
+            if (Engine.Initialized) sceneAssistantManager.InitializeSceneAssistant();
         }
 
         [InitializeOnEnterPlayMode]
         private static void DetectEngineInitialization()
-        {
+        { 
             Engine.OnInitializationFinished += SetupSceneAssistant;
-
             // todo find a way to repaint the editor on command execution
         }
 
@@ -59,13 +60,12 @@ namespace NaninovelSceneAssistant
 
         public void OnGUI()
         {
-            if (Engine.Initialized && Engine.TryGetService(out sceneAssistantManager) && (this is ISceneAssistantLayout) && sceneAssistantManager?.ObjectList.Count > 0)
+            if (Engine.Initialized && sceneAssistantManager?.ObjectList.Count > 0)
             {
                 ShowTabs(sceneAssistantManager, layout);
             }
             else EditorGUILayout.LabelField("Naninovel is not initialized.");
         }
-
 
         protected virtual void ShowTabs(SceneAssistantManager sceneAssistant, ISceneAssistantLayout layout)
         {
@@ -129,7 +129,7 @@ namespace NaninovelSceneAssistant
             GUILayout.FlexibleSpace();
             if (GUILayout.Button("Select all", EditorStyles.miniButton)) CurrentObject.Params.ForEach(p => p.Selected = true);
             if (GUILayout.Button("Deselect all", EditorStyles.miniButton)) CurrentObject.Params.ForEach(p => p.Selected = false);
-            if (GUILayout.Button("Default", EditorStyles.miniButton)) CurrentObject.Params.ForEach(p => p.GetDefaultValue());
+            if (GUILayout.Button("Default", EditorStyles.miniButton)) CurrentObject.Params.Where(p => p.Value != null).ToList().ForEach(p => p.Value = p.GetDefaultValue());
             if (GUILayout.Button("Rollback", EditorStyles.miniButton)) Rollback();
 
             GUILayout.FlexibleSpace();
@@ -257,8 +257,8 @@ namespace NaninovelSceneAssistant
         public void StringField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
             => WrapInLayout(() => param.Value = EditorGUILayout.DelayedTextField((string)param.Value), param, condition, toggleWith);
 
-        public void ColorField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
-        => WrapInLayout(() => param.Value = EditorGUILayout.ColorField((Color)param.Value), param, condition, toggleWith);
+        public void ColorField(CommandParam param, bool includeAlpha = true, Func<bool> condition = null, CommandParam toggleWith = null)
+        => WrapInLayout(() => param.Value = EditorGUILayout.ColorField(GUIContent.none, (Color)param.Value, true, includeAlpha, false), param, condition, toggleWith);
 
         //FloatField needs to be setup differently to support sliding when displaying label only.
         public void FloatField(CommandParam param, float? min = null, float? max = null, Func<bool> condition = null, CommandParam toggleWith = null)
@@ -292,13 +292,13 @@ namespace NaninovelSceneAssistant
         public void Vector2Field(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
             => WrapInLayout(() => param.Value = EditorGUILayout.Vector2Field("", (Vector2)param.Value), param, condition, toggleWith);
 
-        public void Vector3Field(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null) => WrapInLayout(() => param.Value = EditorGUILayout.Vector3Field("", (Vector3)param.Value), param, condition, toggleWith);
+        public void Vector3Field(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null) 
+            => WrapInLayout(() => param.Value = EditorGUILayout.Vector3Field("", (Vector3)param.Value), param, condition, toggleWith);
     
         public void Vector4Field(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
             => WrapInLayout(() => param.Value = EditorGUILayout.Vector4Field("", (Vector2)param.Value), param, condition, toggleWith);
         public void EnumField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
             => WrapInLayout(() => param.Value = EditorGUILayout.EnumPopup((Enum)param.Value), param, condition, toggleWith);
-
 
         public void StringListField(CommandParam param, string[] stringValues, Func<bool> condition = null, CommandParam toggleWith = null)
         {

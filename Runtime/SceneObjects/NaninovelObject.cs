@@ -76,6 +76,8 @@ namespace NaninovelSceneAssistant {
     public class CommandParam 
     {
         public string Name { get; }
+
+        //todo find out why an exception is thrown on applying default values
         public object Value { get => getValue(); set => setValue(value); }
         public bool Selected { get; set; } = true;
         public bool HasCommandOptions { get; }
@@ -95,14 +97,16 @@ namespace NaninovelSceneAssistant {
         }
 
         public string GetCommandValue() => FormatValue(Value);
-        public void GetDefaultValue()
+        public object GetDefaultValue()
         {
-            if (DefaultValue != null) Value = DefaultValue;
+            if (Value == null) return null;
+            else if (DefaultValue != null) return DefaultValue;
             else
             {
                 var value = Value.GetType();
-                if (value.IsValueType) Value = Activator.CreateInstance(value);
+                if (value.IsValueType) return Activator.CreateInstance(value);
             }
+            return null;
         }
 
         public void DisplayField(ISceneAssistantLayout layout)

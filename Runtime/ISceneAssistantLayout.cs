@@ -15,7 +15,7 @@ namespace NaninovelSceneAssistant {
         void IntField(CommandParam param, int? minValue, int? maxValue, Func<bool> condition = null, CommandParam toggleWith = null);
         void FloatField(CommandParam param, float? minValue = null, float? maxValue = null, Func<bool> condition = null, CommandParam toggleWith = null);
         void SliderField(CommandParam param, float minValue, float maxValue, Func<bool> condition = null, CommandParam toggleWith = null);
-        void ColorField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null);
+        void ColorField(CommandParam param, bool includeAlpha = true, Func<bool> condition = null, CommandParam toggleWith = null);
         void EnumField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null);
         void Vector2Field(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null);
         void Vector3Field(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null);

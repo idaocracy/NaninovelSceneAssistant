@@ -96,7 +96,7 @@ namespace NaninovelSceneAssistant
             throw new System.NotImplementedException();
         }
 
-        public void ColorField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
+        public void ColorField(CommandParam param, bool includeAlpha = true, Func<bool> condition = null, CommandParam toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
