@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using Naninovel.UI;
@@ -71,66 +72,66 @@ namespace NaninovelSceneAssistant
         {
             objectIndex = index;
             Debug.Log(index);
-            CurrentObject = sceneAssistantManager.ObjectList.Values[objectIndex];
+            //CurrentObject = sceneAssistantManager.ObjectList.Values[objectIndex];
             InitializeObject(CurrentObject);
         }
 
-        public void SliderField(CommandParam param, float minValue, float maxValue)
+        public void SliderField(CommandParam param, float minValue, float maxValue, Func<bool> condition = null)
         {
             var slider = Instantiate(sliderField, content.transform);
             slider.Init(param.Name, param);        }
 
-        public void Vector3Field(CommandParam param)
+        public void Vector3Field(CommandParam param, Func<bool> condition = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void BoolField(CommandParam param)
+        public void BoolField(CommandParam param, Func<bool> condition = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void StringField(CommandParam value)
+        public void StringField(CommandParam value, Func<bool> condition = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void ColorField(CommandParam value)
+        public void ColorField(CommandParam value, Func<bool> condition = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void FloatField(CommandParam param)
+        public void FloatField(CommandParam param, float? minValue = null, float? maxValue = null, Func<bool> condition = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void Vector2Field(CommandParam param)
+        public void Vector2Field(CommandParam param, Func<bool> condition = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void StringListField(CommandParam param, string[] stringValues)
+        public void StringListField(CommandParam param, string[] stringValues, Func<bool> condition = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void IntField(CommandParam param)
+        public void IntField(CommandParam param, Func<bool> condition = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void EnumField(CommandParam param)
+        public void EnumField(CommandParam param, Func<bool> condition = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void Vector4Field(CommandParam param)
+        public void Vector4Field(CommandParam param, Func<bool> condition = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void PosField(CommandParam param)
+        public void PosField(CommandParam param, Func<bool> condition = null)
         {
             throw new System.NotImplementedException();
         }
@@ -143,6 +144,16 @@ namespace NaninovelSceneAssistant
         public void UnlockableField(Unlockable unlockable, int stateIndex, string[] states)
         {
             throw new System.NotImplementedException();
+        }
+
+        public void IntField(CommandParam param, int? minValue, int? maxValue, Func<bool> condition = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ShowValueOptions(CommandParam param)
+        {
+            throw new NotImplementedException();
         }
     }
 

@@ -6,16 +6,14 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-
 namespace NaninovelSceneAssistant
 {
-    [InitializeOnLoad]
     public class SceneAssistantEditor : EditorWindow, ISceneAssistantLayout
     {
         private ISceneAssistantLayout layout { get => this; }
         public string[] Tabs { get; protected set; }
-        protected INaninovelObject CurrentObject => sceneAssistantManager.ObjectList.Values[objectIndex];
-        protected string[] ObjectDropdown => sceneAssistantManager.ObjectList.Select(p => p.Value.Id).ToArray();
+        protected INaninovelObject CurrentObject => sceneAssistantManager.ObjectList.Values.ToArray()[objectIndex];
+        protected string[] ObjectDropdown => sceneAssistantManager.ObjectList.Keys.ToArray();
         protected Dictionary<Type, bool> TypeList => sceneAssistantManager.ObjectTypeList;
         protected string ClipboardString { get => clipboardString; set { clipboardString = value; EditorGUIUtility.systemCopyBuffer = value; if (logResults) Debug.Log(value); } }
 
@@ -28,7 +26,8 @@ namespace NaninovelSceneAssistant
         private static Vector2 scrollPos = default;
         private static bool logResults;
 
-        [MenuItem("Naninovel/New Scene Assistant", false, 350)]
+
+        [MenuItem("Naninovel/New Scene Assistant", false, 360)]
         public static void ShowWindow() => GetWindow<SceneAssistantEditor>("Naninovel Scene Assistant");
 
         private void Awake()
@@ -41,7 +40,14 @@ namespace NaninovelSceneAssistant
         private static void DetectEngineInitialization()
         {
             Engine.OnInitializationFinished += SetupSceneAssistant;
+
+            // todo find a way to repaint the editor on command execution
         }
+
+        //private void Update()
+        //{
+        //    Repaint();
+        //}
 
         private static void SetupSceneAssistant()
         {
@@ -133,16 +139,15 @@ namespace NaninovelSceneAssistant
 
         }
 
-
         protected virtual void DrawCommandButtons()
         {
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
             GUILayout.BeginVertical();
-            if (ShowButton("Copy command (@)")) ClipboardString = "@" + CurrentObject.GetCommandLine();
-            if (ShowButton("Copy command ([])")) ClipboardString = "[" + CurrentObject.GetCommandLine() + "]";
-            if (ShowButton("Copy all")) ClipboardString = sceneAssistantManager.GetAllCommands(false);
-            if (ShowButton("Copy selected")) ClipboardString = sceneAssistantManager.GetAllCommands(true);
+            if (ShowButton("Copy command (@)")) ClipboardString = CurrentObject.GetCommandLine();
+            if (ShowButton("Copy command ([])")) ClipboardString = CurrentObject.GetCommandLine(true);
+            if (ShowButton("Copy all")) ClipboardString = CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList);
+            if (ShowButton("Copy selected")) ClipboardString = CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, true);
             GUILayout.EndVertical();
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
@@ -180,43 +185,41 @@ namespace NaninovelSceneAssistant
         {
             if (parameters == null || parameters.Count == 0 || layout == null) return;
 
-
-
             for( int i=0; i < parameters.Count; i++)
             {
                 EditorGUILayout.BeginHorizontal();
 
-                if (parameters[i].HasCommandOptions)
-                {
-                    if (CurrentObject.HasPosValues(out var posParamIndex, out var positionParamIndex))
-                    {
+            //    if (parameters[i].HasCommandOptions)
+            //    {
+            //        if (CurrentObject.HasPosValues(out var posParamIndex, out var positionParamIndex))
+            //        {
 
-                        //We need to put a check behind each toggle, otherwise it's not possible to toggle from false to true on one of the toggles 
-                        if(i == posParamIndex) { 
-                            parameters[posParamIndex].Selected = EditorGUILayout.Toggle(parameters[posParamIndex].Selected, GUILayout.Width(20f));
-                            if (parameters[posParamIndex].Selected == parameters[positionParamIndex].Selected == true) parameters[positionParamIndex].Selected = false;
-                        }
+            //            //We need to put a check behind each toggle, otherwise it's not possible to toggle from false to true on one of the toggles 
+            //            if(i == posParamIndex) { 
+            //                parameters[posParamIndex].Selected = EditorGUILayout.Toggle(parameters[posParamIndex].Selected, GUILayout.Width(20f));
+            //                if (parameters[posParamIndex].Selected == parameters[positionParamIndex].Selected == true) parameters[positionParamIndex].Selected = false;
+            //            }
 
-                        else if (i == positionParamIndex) { 
-                            parameters[positionParamIndex].Selected = EditorGUILayout.Toggle(parameters[positionParamIndex].Selected, GUILayout.Width(20f));
-                            if (parameters[posParamIndex].Selected == parameters[positionParamIndex].Selected == true) parameters[posParamIndex].Selected = false;
-                        }
+            //            else if (i == positionParamIndex) { 
+            //                parameters[positionParamIndex].Selected = EditorGUILayout.Toggle(parameters[positionParamIndex].Selected, GUILayout.Width(20f));
+            //                if (parameters[posParamIndex].Selected == parameters[positionParamIndex].Selected == true) parameters[posParamIndex].Selected = false;
+            //            }
 
-                        else parameters[i].Selected = EditorGUILayout.Toggle(parameters[i].Selected, GUILayout.Width(20f));
+            //            else parameters[i].Selected = EditorGUILayout.Toggle(parameters[i].Selected, GUILayout.Width(20f));
 
-                    }
-                    else parameters[i].Selected = EditorGUILayout.Toggle(parameters[i].Selected, GUILayout.Width(20f));
-                    if (ShowButton(parameters[i].Name)) ClipboardString = parameters[i].GetCommandValue();
-                }
-                else
-                {
-                    GUILayout.Space(25f);
-                    GUILayout.Label(parameters[i].Name.ToString(), GUILayout.Width(150));
-                }
+            //        }
+            //        else parameters[i].Selected = EditorGUILayout.Toggle(parameters[i].Selected, GUILayout.Width(20f));
+            //        if (ShowButton(parameters[i].Name)) ClipboardString = parameters[i].GetCommandValue();
+            //    }
+            //    else
+            //    {
+            //        GUILayout.Space(25f);
+            //        GUILayout.Label(parameters[i].Name.ToString(), GUILayout.Width(150));
+            //    }
 
-                if(parameters[i].HasCommandOptions) EditorGUI.BeginDisabledGroup(!parameters[i].Selected);
+                //if(parameters[i].HasCommandOptions) EditorGUI.BeginDisabledGroup(!parameters[i].Selected);
                 parameters[i].DisplayField(layout);
-                if (parameters[i].HasCommandOptions) EditorGUI.EndDisabledGroup();
+                //if (parameters[i].HasCommandOptions) EditorGUI.EndDisabledGroup();
                 
                 EditorGUILayout.EndHorizontal();
             }
@@ -278,41 +281,95 @@ namespace NaninovelSceneAssistant
         //    if(sceneAssistantManager?.ObjectList?.Count > 0) sceneAssistantManager.DestroySceneAssistant();
         //}
 
-        public static bool ShowButton(string label)
+        public void SliderField(CommandParam param, float min, float max, Func<bool> condition = null)
+            => WrapInLayout(() => param.Value = EditorGUILayout.Slider((float)param.Value, min, max), param, condition);
+
+        public void BoolField(CommandParam param, Func<bool> condition = null)
+            => WrapInLayout(() => param.Value = EditorGUILayout.Toggle((bool)param.Value), param, condition);
+
+        public void StringField(CommandParam param, Func<bool> condition = null)
+            => WrapInLayout(() => param.Value = EditorGUILayout.DelayedTextField((string)param.Value), param, condition);
+
+        public void ColorField(CommandParam param, Func<bool> condition = null)
+        => WrapInLayout(() => param.Value = EditorGUILayout.ColorField((Color)param.Value), param, condition);
+
+        //FloatField needs to be setup differently to support sliding when displaying label only.
+        public void FloatField(CommandParam param, float? min = null, float? max = null, Func<bool> condition = null)
         {
-            if (GUILayout.Button(label, GUILayout.Width(150))) return true;
-            else return false;
+            if (condition != null && !condition()) return;
+
+            if (param.HasCommandOptions)
+            {
+                ShowParameterOptions(param);
+                param.Value = EditorGUILayout.FloatField(Mathf.Clamp((float)param.Value, min ?? float.MinValue, max ?? float.MaxValue));
+            }
+            else
+            {
+                GUILayout.Space(25f);
+                EditorGUI.BeginDisabledGroup(!param.Selected);
+
+                TextAnchor orginalAlignment = EditorStyles.label.alignment;
+                EditorStyles.label.alignment = TextAnchor.MiddleCenter;
+
+                param.Value = EditorGUILayout.FloatField(param.Name, Mathf.Clamp((float)param.Value, min ?? float.MinValue, max ?? float.MaxValue));
+
+                EditorStyles.label.alignment = orginalAlignment;
+                EditorGUI.EndDisabledGroup();
+            }
         }
 
-        public void ShowValueOptions(CommandParam param)
-        {
+        public void IntField(CommandParam param, int? minValue = null, int? maxValue = null, Func<bool> condition = null)
+            => WrapInLayout(() => param.Value = EditorGUILayout.IntField((int)param.Value), param, condition);
 
+        public void Vector2Field(CommandParam param, Func<bool> condition = null)
+            => WrapInLayout(() => param.Value = EditorGUILayout.Vector2Field("", (Vector2)param.Value), param, condition);
+
+        public void Vector3Field(CommandParam param, Func<bool> condition = null)
+        {
+            WrapInLayout(() => param.Value = EditorGUILayout.Vector3Field("", (Vector3)param.Value), param, condition);
+            if (CurrentObject.HasPosValues && param.Name == "Position")
+            {
+                if (param.Selected == CurrentObject.Params.Find(x => x.Name == "Pos").Selected == true) CurrentObject.Params.Find(x => x.Name == "Pos").Selected = false;
+            }
         }
+    
+        public void Vector4Field(CommandParam param, Func<bool> condition = null)
+            => WrapInLayout(() => param.Value = EditorGUILayout.Vector4Field("", (Vector2)param.Value), param, condition);
+        public void EnumField(CommandParam param, Func<bool> condition = null)
+            => WrapInLayout(() => param.Value = EditorGUILayout.EnumPopup((Enum)param.Value), param, condition);
 
-        public void Vector3Field(CommandParam param) => param.Value = EditorGUILayout.Vector3Field("", (Vector3)param.Value);
-        public void SliderField(CommandParam param, float min, float max) => param.Value = (EditorGUILayout.Slider((float)param.Value, min, max));
-        public void BoolField(CommandParam param) => param.Value = EditorGUILayout.Toggle((bool)param.Value);
-        public void StringField(CommandParam param) => param.Value = EditorGUILayout.DelayedTextField((string)param.Value);
-        public void ColorField(CommandParam param) => param.Value = EditorGUILayout.ColorField((Color)param.Value);
-        public void FloatField(CommandParam param) => param.Value = EditorGUILayout.FloatField((float)param.Value);
-        public void Vector2Field(CommandParam param) => param.Value = EditorGUILayout.Vector2Field("", (Vector2)param.Value);
-        public void IntField(CommandParam param) => param.Value = EditorGUILayout.IntField((int)param.Value);
-        public void EnumField(CommandParam param) => param.Value = EditorGUILayout.EnumPopup((Enum)param.Value);
-        public void Vector4Field(CommandParam param) => param.Value = EditorGUILayout.Vector4Field("", (Vector4)param.Value);
-        public void StringListField(CommandParam param, string[] stringValues)
+
+        public void StringListField(CommandParam param, string[] stringValues, Func<bool> condition = null)
         {
-            var stringIndex = stringValues.IndexOf(param.Value);
+            if (condition != null && false) return;
+            var stringIndex = stringValues.IndexOf(param.Value ?? "None");
+            ShowParameterOptions(param);
+
+            EditorGUI.BeginDisabledGroup(!param.Selected);
             stringIndex = EditorGUILayout.Popup(stringIndex, stringValues);
-            param.Value = stringValues[stringIndex];
+            EditorGUI.EndDisabledGroup();
+
+            if (stringValues[stringIndex] != "None") param.Value = stringValues[stringIndex];
         }
 
-        public void PosField(CommandParam param)
+        public void PosField(CommandParam param, Func<bool> condition = null)
         {
+            if (condition != null && false) return;
             var cameraConfiguration = Engine.GetConfiguration<CameraConfiguration>();
+            ShowParameterOptions(param);
             var position = cameraConfiguration.WorldToSceneSpace((Vector3)param.Value);
             position.x *= 100;
             position.y *= 100;
+
+            EditorGUI.BeginDisabledGroup(!param.Selected);
             position = EditorGUILayout.Vector3Field("", position);
+            if (CurrentObject.HasPosValues)
+            {
+                if (param.Selected == CurrentObject.Params.Find(x => x.Name == "Position").Selected == true) CurrentObject.Params.Find(x => x.Name == "Position").Selected = false;
+            }
+
+            EditorGUI.EndDisabledGroup();
+            
             position.x /= 100;
             position.y /= 100;
             position = cameraConfiguration.SceneToWorldSpace(position);
@@ -334,6 +391,37 @@ namespace NaninovelSceneAssistant
             stateIndex = EditorGUILayout.Popup(stateIndex, states);
             unlockable.Value = stateIndex == 1 ? true : false;
             EditorGUILayout.EndHorizontal();
+        }
+
+        public void WrapInLayout(Action layoutField, CommandParam param, Func<bool> condition = null, string toggleWith = null)
+        {
+            if (condition != null && false) return;
+            ShowParameterOptions(param);
+            EditorGUI.BeginDisabledGroup(!param.Selected);
+            layoutField();
+            if(!string.IsNullOrEmpty(toggleWith)) if (param.Selected == CurrentObject.Params.Find(x => x.Name == toggleWith).Selected == true) CurrentObject.Params.Find(x => x.Name == "Pos").Selected = false;
+            EditorGUI.EndDisabledGroup();
+        }
+
+        public static bool ShowButton(string label)
+        {
+            if (GUILayout.Button(label, GUILayout.Width(150))) return true;
+            else return false;
+        }
+
+        public void ShowParameterOptions(CommandParam param)
+        {
+            //todo sort out pos and position toggles again
+            if (param.HasCommandOptions)
+            {
+                param.Selected = EditorGUILayout.Toggle(param.Selected, GUILayout.Width(20f));
+                if (ShowButton(param.Name)) ClipboardString = param.GetCommandValue();
+            }
+            else
+            {
+                GUILayout.Space(25f);
+                GUILayout.Label(param.Name, new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter}, GUILayout.Width(150));
+            }
         }
     }
 

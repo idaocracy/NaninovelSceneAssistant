@@ -11,10 +11,12 @@ namespace NaninovelSceneAssistant {
     {
         string Id { get; }
         GameObject GameObject { get; }
-        string GetCommandLine();
+        string GetCommandLine(bool inlined = false, bool paramsOnly = false);
+        string GetAllCommands(Dictionary<string, INaninovelObject> objectList, Dictionary<Type, bool> objectTypeList, bool selected = false);
         List<CommandParam> Params { get; }
+        bool HasPosValues { get; }
+
         SortedList<string, CustomVar> CustomVars { get; }
-        bool HasPosValues(out int posParamIndex, out int positionParam);
     }
 
     public abstract class NaninovelObject<TEngineService> : INaninovelObject where TEngineService : class, IEngineService
@@ -31,25 +33,43 @@ namespace NaninovelSceneAssistant {
         public virtual SortedList<string, CustomVar> CustomVars { get; protected set; } = new SortedList<string, CustomVar>();
         public abstract GameObject GameObject { get; }
         protected abstract string CommandNameAndId { get; }
-        public virtual string GetCommandLine() => Params != null ? CommandNameAndId + " " + string.Join(" ", Params.Where(p => p.GetCommandValue() != null && p.Selected && p.HasCommandOptions).Select(p => p.Name.ToLower() + ":" + p.GetCommandValue())) : null;
         protected abstract void AddParams();
-        public virtual bool HasPosValues(out int posParamIndex, out int positionParamIndex)
+        public bool HasPosValues => Params.Exists(p => p.Name == "Pos") && Params.Exists(p => p.Name == "Position");
+
+        public virtual string GetCommandLine(bool inlined = false, bool paramsOnly = false)
         {
-            var hasPosValues = Params.Exists(p => p.Name == "Pos") && Params.Exists(p => p.Name == "Position");
-            posParamIndex = Params.FindIndex(p => p.Name == "Position");
-            positionParamIndex = Params.FindIndex(p => p.Name == "Pos");
+            if (Params == null)
+            {
+                Debug.LogWarning("No parameters found.");
+                return null; 
+            }
 
-            return hasPosValues;
+            var paramString = string.Join(" ", Params.Where(p => p.GetCommandValue() != null
+                && p.Selected && p.HasCommandOptions).Select(p => p.Name.ToLower() + ":" + p.GetCommandValue()));
+
+            if (paramsOnly) return paramString;
+
+            var commandString = CommandNameAndId + " " + paramString;
+
+            return inlined ? "[" + commandString + "]" : "@" + commandString;
         }
-        
-        protected ICustomVariableManager customVariableManager;
 
-        public static string GetAllCommands(List<INaninovelObject> objectList)
+        public string GetAllCommands(Dictionary<string, INaninovelObject> objectList, Dictionary<Type,bool> objectTypeList, bool selected = false)
         {
             var allString = String.Empty;
-            foreach (var o in objectList) allString = allString + o.GetCommandLine() + "\n";
+
+            foreach (var obj in objectList.Values)
+            {
+                if (selected && !objectTypeList[obj.GetType()]) continue;
+                else allString = allString + obj.GetCommandLine() + "\n";
+            }
+
             return allString;
         }
+
+        protected ICustomVariableManager customVariableManager;
+
+
     }
 
 
@@ -58,18 +78,19 @@ namespace NaninovelSceneAssistant {
         public string Name { get; }
         public object Value { get => getValue(); set => setValue(value); }
         public bool Selected { get; set; } = true;
-        public bool HasCommandOptions { get; set; } = true;
+        public bool HasCommandOptions { get; set; }
         public object DefaultValue { get; set; }
         public Action<ISceneAssistantLayout, CommandParam> OnLayout { get; private set; }
         private Func<object> getValue;
         private Action<object> setValue;
 
-        public CommandParam(string id, Func<object> getValue, Action<object> setValue, Action<ISceneAssistantLayout, CommandParam> onLayout)
+        public CommandParam(string id, Func<object> getValue, Action<object> setValue, Action<ISceneAssistantLayout, CommandParam> onLayout, bool HasCommandOptions = true)
         {
             Name = id;
             this.getValue = getValue;
             this.setValue = setValue;
             OnLayout = onLayout;
+            this.HasCommandOptions = HasCommandOptions;
         }
 
         public string GetCommandValue() => FormatValue(Value);

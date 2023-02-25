@@ -19,7 +19,7 @@ namespace NaninovelSceneAssistant
         private IStateManager stateManager;
         private IReadOnlyCollection<IActorManager> actorServices;
 
-        public SortedList<string, INaninovelObject> ObjectList { get; protected set; } = new SortedList<string, INaninovelObject>();
+        public Dictionary<string, INaninovelObject> ObjectList { get; protected set; } = new Dictionary<string, INaninovelObject>();
         public Dictionary<Type, bool> ObjectTypeList { get; protected set; } = new Dictionary<Type, bool>();
         public SortedList<string, CustomVar> CustomVarList { get; protected set; } = new SortedList<string, CustomVar> { };
         public SortedList<string, Unlockable> UnlockablesList { get; protected set; } = new SortedList<string, Unlockable> { };
@@ -105,9 +105,9 @@ namespace NaninovelSceneAssistant
 
         protected virtual void RefreshObjectList()
         {
-            if (!ObjectExists(typeof(Camera)))
+            if (!ObjectExists(typeof(CameraObject)))
             {
-                var camera = new Camera();
+                var camera = new CameraObject();
                 ObjectList.Add(camera.Id, camera);
             }
             RefreshSpawnList();
@@ -115,7 +115,7 @@ namespace NaninovelSceneAssistant
             RefreshObjectTypeList();
         }
 
-        protected virtual void RefreshActorList(Type type = null)
+        protected virtual void RefreshActorList()
         {
             foreach (var actorService in actorServices)
             {
@@ -135,7 +135,7 @@ namespace NaninovelSceneAssistant
 
         protected virtual void RefreshSpawnList()
         {
-            foreach (var spawn in spawnManager.GetAllSpawned()) if(!ObjectExists(typeof(Spawn), spawn.Path)) ObjectList.Add(spawn.Path, new Spawn(spawn.Path));
+            foreach (var spawn in spawnManager.GetAllSpawned()) if(!ObjectExists(typeof(SpawnObject), spawn.Path)) ObjectList.Add(spawn.Path, new SpawnObject(spawn.Path));
         }
 
         public virtual UniTask HandlePlayedCommand(Command command = null)
@@ -186,18 +186,7 @@ namespace NaninovelSceneAssistant
             }
         }
 
-        public string GetAllCommands(bool selected)
-        {
-            var allString = String.Empty;
-      
-            foreach (var obj in ObjectList.Values)
-            {
-                if (selected && !ObjectTypeList[obj.GetType()]) continue;
-                else allString = allString + "@" + obj.GetCommandLine() + "\n";
-            }
 
-            return allString;
-        }
     }
 }
 

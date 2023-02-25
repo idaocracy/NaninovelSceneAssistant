@@ -61,7 +61,7 @@ namespace NaninovelSceneAssistant
             return texturePaths.FirstOrDefault();
         }
 
-        protected virtual void AddBaseParams(bool includeAppearance = true, bool includeColor = true, bool includeTransform = true, bool includeZPos = true)  
+        protected virtual void AddBaseParams(bool includeAppearance = true, bool includeColor = true, bool includeTransform = true)  
         {
             if (includeAppearance)
             {
@@ -72,7 +72,8 @@ namespace NaninovelSceneAssistant
 
             if (includeTransform)
             {
-                Params.Add(new CommandParam ("Position", () => Actor.Position, v => Actor.Position = (Vector3)v, (i,p) => i.Vector3Field(p)));
+
+                Params.Add(new CommandParam("Position", () => Actor.Position, v => Actor.Position = (Vector3)v, (i,p) => i.Vector3Field(p)));
                 Params.Add(new CommandParam("Pos", () => Actor.Position, v => Actor.Position = (Vector3)v, (i, p) => i.PosField(p)));
                 Params.Add(new CommandParam("Rotation", () => Actor.Rotation.eulerAngles, v => Actor.Rotation = Quaternion.Euler((Vector3)v), (i, p) => i.Vector3Field(p)));
                 Params.Add(new CommandParam("Scale", () => Actor.Scale, v => Actor.Scale = (Vector3)v, (i, p) => i.Vector3Field(p)));
@@ -121,7 +122,7 @@ namespace NaninovelSceneAssistant
         protected override string CommandNameAndId => "printer " + Id;
         protected override void AddParams()
         {
-            AddBaseParams(includeZPos:false);
+            AddBaseParams();
         }
     }
 

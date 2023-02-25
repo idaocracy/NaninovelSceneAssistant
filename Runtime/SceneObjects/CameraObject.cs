@@ -6,9 +6,9 @@ using UnityEngine;
 
 namespace NaninovelSceneAssistant
 {
-    public class Camera : NaninovelObject<ICameraManager>, INaninovelObject
+    public class CameraObject : NaninovelObject<ICameraManager>, INaninovelObject
     {
-        public Camera() => Initialize();
+        public CameraObject() => Initialize();
 
         protected ICameraManager CameraManager => EngineService; 
         public override GameObject GameObject => CameraManager.Camera.gameObject; 

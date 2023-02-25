@@ -6,9 +6,9 @@ using System.Linq;
 
 namespace NaninovelSceneAssistant
 {
-    public class Spawn : NaninovelObject<SpawnManager>, INaninovelObject  
+    public class SpawnObject : NaninovelObject<SpawnManager>, INaninovelObject  
     {
-        public Spawn(string id)
+        public SpawnObject(string id)
         {
             this.id = id;
             Initialize();
@@ -18,18 +18,22 @@ namespace NaninovelSceneAssistant
         public override string Id => id;
         protected Transform Transform => Spawned.Transform; 
         public override GameObject GameObject => Spawned.GameObject; 
-        protected ISceneAssistantSpawnObject spawnSceneAssistant => GameObject.GetComponent<ISceneAssistantSpawnObject>() ?? null; 
+        protected ISceneAssistantSpawn spawnSceneAssistant => GameObject.GetComponent<ISceneAssistantSpawn>() ?? null; 
         protected override string CommandNameAndId => "spawn " + Id;
         protected bool IsTransformable => spawnSceneAssistant?.IsTransformable ?? true;
 
         private string id;
 
-        public override string GetCommandLine()
+        public override string GetCommandLine(bool inlined = false, bool paramsOnly = false)
         {
-            if (Params == null) return null;
+            if (Params == null)
+            {
+                Debug.LogWarning("No parameters found.");
+                return null;
+            }
 
             var tempParams = Params.ToList();
-            var tempString = CommandNameAndId + " ";
+            var tempString = string.Empty;
 
             if (IsTransformable)
             {
@@ -37,8 +41,32 @@ namespace NaninovelSceneAssistant
                 tempParams.RemoveRange(0, 3);
             }
 
-            return tempString = tempString + " params:"+ string.Join(",", tempParams.Select(p => p.GetCommandValue().ToString()));
+            var paramsString = string.Join(",", tempParams.Select(p => p.GetCommandValue().ToString()));
+
+            if (paramsOnly) return paramsString;
+            var commandString = CommandNameAndId + " params:" + paramsString; ;
+
+            return inlined ? "[" + commandString + "]" : "@" + commandString;
         }
+
+        public virtual string GetSpawnEffectLine(bool inlined = false, bool paramsOnly = false)
+        {
+            if (Params == null)
+            {
+                Debug.LogWarning("No parameters found.");
+                return null;
+            }
+
+            var paramString = string.Join(" ", Params.Where(p => p.GetCommandValue() != null
+                && p.Selected && p.HasCommandOptions).Select(p => p.Name.ToLower() + ":" + p.GetCommandValue()));
+
+            if (paramsOnly) return paramString;
+
+            var commandString = spawnSceneAssistant.CommandId + " " + paramString;
+
+            return inlined ? "[" + commandString + "]" : "@" + commandString;
+        }
+
 
         protected void AddTransformParams()
         {
@@ -53,13 +81,14 @@ namespace NaninovelSceneAssistant
 
             if (spawnSceneAssistant?.GetParams() != null)
             {
+                //todo find out why the params button is not appearing
                 Params.Add(new CommandParam("Params", () => string.Join(",", spawnSceneAssistant.GetParams().Select(p => p.GetCommandValue()).ToList()), v => { }, (i,p) => { }));
-                Params = Params.Concat(spawnSceneAssistant?.GetParams()).ToList();
+                Params = Params.Concat(spawnSceneAssistant.GetParams()).ToList();
             }
         }
     }
 
-    public interface ISceneAssistantSpawnObject : ISceneAssistantObject
+    public interface ISceneAssistantSpawn : ISceneAssistantObject
     {
         bool IsTransformable { get; }
     }
