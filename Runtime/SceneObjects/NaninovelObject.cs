@@ -13,10 +13,10 @@ namespace NaninovelSceneAssistant {
         GameObject GameObject { get; }
         string GetCommandLine(bool inlined = false, bool paramsOnly = false);
         string GetAllCommands(Dictionary<string, INaninovelObject> objectList, Dictionary<Type, bool> objectTypeList, bool selected = false);
-        List<CommandParam> Params { get; }
+        List<ParameterValue> Params { get; }
         bool HasPosValues { get; }
 
-        SortedList<string, CustomVar> CustomVars { get; }
+        SortedList<string, VariableValue> CustomVars { get; }
     }
 
     public abstract class NaninovelObject<TEngineService> : INaninovelObject where TEngineService : class, IEngineService
@@ -29,8 +29,8 @@ namespace NaninovelSceneAssistant {
 
         protected static TEngineService EngineService { get => Engine.GetService<TEngineService>(); }
         public abstract string Id { get; }
-        public virtual List<CommandParam> Params { get; protected set; } = new List<CommandParam>();
-        public virtual SortedList<string, CustomVar> CustomVars { get; protected set; } = new SortedList<string, CustomVar>();
+        public virtual List<ParameterValue> Params { get; protected set; } = new List<ParameterValue>();
+        public virtual SortedList<string, VariableValue> CustomVars { get; protected set; } = new SortedList<string, VariableValue>();
         public abstract GameObject GameObject { get; }
         protected abstract string CommandNameAndId { get; }
         protected abstract void AddParams();
@@ -45,7 +45,7 @@ namespace NaninovelSceneAssistant {
             }
 
             var paramString = string.Join(" ", Params.Where(p => p.GetCommandValue() != null
-                && p.Selected && p.HasCommandOptions).Select(p => p.Name.ToLower() + ":" + p.GetCommandValue()));
+                && p.Selected && p.IsParameter).Select(p => p.Name.ToLower() + ":" + p.GetCommandValue()));
 
             if (paramsOnly) return paramString;
 
@@ -73,26 +73,30 @@ namespace NaninovelSceneAssistant {
     }
 
 
-    public class CommandParam 
+    public class ParameterValue 
     {
         public string Name { get; }
 
         //todo find out why an exception is thrown on applying default values
         public object Value { get => getValue(); set => setValue(value); }
         public bool Selected { get; set; } = true;
-        public bool HasCommandOptions { get; }
-        public object DefaultValue { get; }
-        public Action<ISceneAssistantLayout, CommandParam> OnLayout { get; private set; }
+
+        //True if a command parameter matches the name of this instance (e.g position, rotation, etc),
+        //set to false if the parameter is part of a list (e.g all the values within params with the exception of the one called Params)
+        public bool IsParameter { get; }
+        private object DefaultValue { get; }
+        public Action<ISceneAssistantLayout, ParameterValue> OnLayout { get; private set; }
+
         private Func<object> getValue;
         private Action<object> setValue;
 
-        public CommandParam(string id, Func<object> getValue, Action<object> setValue, Action<ISceneAssistantLayout, CommandParam> onLayout, bool HasCommandOptions = true, object defaultValue = null)
+        public ParameterValue(string id, Func<object> getValue, Action<object> setValue, Action<ISceneAssistantLayout, ParameterValue> onLayout, bool isParameter = true, object defaultValue = null)
         {
             Name = id;
             this.getValue = getValue;
             this.setValue = setValue;
             OnLayout = onLayout;
-            this.HasCommandOptions = HasCommandOptions;
+            this.IsParameter = isParameter;
             this.DefaultValue = defaultValue;
         }
 
@@ -115,7 +119,6 @@ namespace NaninovelSceneAssistant {
 
             OnLayout(layout, this);
         }
-
 
         private static string FormatValue(object value)
         {
@@ -141,7 +144,7 @@ namespace NaninovelSceneAssistant {
         }
     }
 
-    public class CustomVar
+    public class VariableValue
     {
         public string Name { get; }
         public string Value { get => getValue(); set => setValue(value); }
@@ -149,7 +152,7 @@ namespace NaninovelSceneAssistant {
         private Func<string> getValue;
         private Action<string> setValue;
 
-        public CustomVar(string name)
+        public VariableValue(string name)
         {
             Name = name;
             getValue = () => Engine.GetService<ICustomVariableManager>().GetVariableValue(name);
@@ -162,7 +165,7 @@ namespace NaninovelSceneAssistant {
         }
     }
 
-    public class Unlockable
+    public class UnlockableValue
     {
         public string Name { get; }
         public bool Value { get => getValue(); set => setValue(value); }
@@ -173,7 +176,7 @@ namespace NaninovelSceneAssistant {
         private Func<bool> getValue;
         private Action<bool> setValue;
 
-        public Unlockable(string name)
+        public UnlockableValue(string name)
         {
             Name = name;
             getValue = () => Engine.GetService<IUnlockableManager>().ItemUnlocked(name);

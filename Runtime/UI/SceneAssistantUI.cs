@@ -76,82 +76,82 @@ namespace NaninovelSceneAssistant
             InitializeObject(CurrentObject);
         }
 
-        public void SliderField(CommandParam param, float minValue, float maxValue, Func<bool> condition = null, CommandParam toggleWith = null)
+        public void SliderField(ParameterValue param, float minValue, float maxValue, Func<bool> condition = null, ParameterValue toggleWith = null)
         {
             var slider = Instantiate(sliderField, content.transform);
             slider.Init(param.Name, param);        }
 
-        public void Vector3Field(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
+        public void Vector3Field(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void BoolField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
+        public void BoolField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void StringField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
+        public void StringField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void ColorField(CommandParam param, bool includeAlpha = true, Func<bool> condition = null, CommandParam toggleWith = null)
+        public void ColorField(ParameterValue param, bool includeAlpha = true, Func<bool> condition = null, ParameterValue toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void FloatField(CommandParam param, float? minValue = null, float? maxValue = null, Func<bool> condition = null, CommandParam toggleWith = null)
+        public void FloatField(ParameterValue param, float? minValue = null, float? maxValue = null, Func<bool> condition = null, ParameterValue toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void Vector2Field(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
+        public void Vector2Field(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void StringListField(CommandParam param, string[] stringValues, Func<bool> condition = null, CommandParam toggleWith = null)
+        public void StringListField(ParameterValue param, string[] stringValues, Func<bool> condition = null, ParameterValue toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void IntField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
+        public void IntField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void EnumField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
+        public void EnumField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void Vector4Field(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
+        public void Vector4Field(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void PosField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
+        public void PosField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void CustomVarField(CustomVar var)
+        public void CustomVarField(VariableValue var)
         {
             throw new System.NotImplementedException();
         }
 
-        public void UnlockableField(Unlockable unlockable, int stateIndex, string[] states)
+        public void UnlockableField(UnlockableValue unlockable, int stateIndex, string[] states)
         {
             throw new System.NotImplementedException();
         }
 
-        public void IntField(CommandParam param, int? minValue, int? maxValue, Func<bool> condition = null, CommandParam toggleWith = null)
+        public void IntField(ParameterValue param, int? minValue, int? maxValue, Func<bool> condition = null, ParameterValue toggleWith = null)
         {
             throw new NotImplementedException();
         }
 
-        public void ShowValueOptions(CommandParam param)
+        public void ShowValueOptions(ParameterValue param)
         {
             throw new NotImplementedException();
         }

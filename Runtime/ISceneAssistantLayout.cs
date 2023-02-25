@@ -9,20 +9,20 @@ namespace NaninovelSceneAssistant {
 
     public interface ISceneAssistantLayout
     {
-        void StringField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null);
-        void StringListField(CommandParam param, string[] stringValues, Func<bool> condition = null, CommandParam toggleWith = null);
-        void BoolField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null);
-        void IntField(CommandParam param, int? minValue, int? maxValue, Func<bool> condition = null, CommandParam toggleWith = null);
-        void FloatField(CommandParam param, float? minValue = null, float? maxValue = null, Func<bool> condition = null, CommandParam toggleWith = null);
-        void SliderField(CommandParam param, float minValue, float maxValue, Func<bool> condition = null, CommandParam toggleWith = null);
-        void ColorField(CommandParam param, bool includeAlpha = true, Func<bool> condition = null, CommandParam toggleWith = null);
-        void EnumField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null);
-        void Vector2Field(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null);
-        void Vector3Field(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null);
-        void Vector4Field(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null);
-        void PosField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null);
-        void CustomVarField(CustomVar var);
-        void UnlockableField(Unlockable unlockable, int stateIndex, string[] states);
+        void StringField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null);
+        void StringListField(ParameterValue param, string[] stringValues, Func<bool> condition = null, ParameterValue toggleWith = null);
+        void BoolField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null);
+        void IntField(ParameterValue param, int? minValue, int? maxValue, Func<bool> condition = null, ParameterValue toggleWith = null);
+        void FloatField(ParameterValue param, float? minValue = null, float? maxValue = null, Func<bool> condition = null, ParameterValue toggleWith = null);
+        void SliderField(ParameterValue param, float minValue, float maxValue, Func<bool> condition = null, ParameterValue toggleWith = null);
+        void ColorField(ParameterValue param, bool includeAlpha = true, Func<bool> condition = null, ParameterValue toggleWith = null);
+        void EnumField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null);
+        void Vector2Field(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null);
+        void Vector3Field(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null);
+        void Vector4Field(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null);
+        void PosField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null);
+        void CustomVarField(VariableValue var);
+        void UnlockableField(UnlockableValue unlockable, int stateIndex, string[] states);
     }
 
 

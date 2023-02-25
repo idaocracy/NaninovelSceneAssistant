@@ -21,8 +21,8 @@ namespace NaninovelSceneAssistant
 
         public Dictionary<string, INaninovelObject> ObjectList { get; protected set; } = new Dictionary<string, INaninovelObject>();
         public Dictionary<Type, bool> ObjectTypeList { get; protected set; } = new Dictionary<Type, bool>();
-        public SortedList<string, CustomVar> CustomVarList { get; protected set; } = new SortedList<string, CustomVar> { };
-        public SortedList<string, Unlockable> UnlockablesList { get; protected set; } = new SortedList<string, Unlockable> { };
+        public SortedList<string, VariableValue> CustomVarList { get; protected set; } = new SortedList<string, VariableValue> { };
+        public SortedList<string, UnlockableValue> UnlockablesList { get; protected set; } = new SortedList<string, UnlockableValue> { };
         public IReadOnlyCollection<string> ScriptsList { get; protected set; }
 
         public SceneAssistantManager(SceneAssistantConfiguration config, ISpawnManager spawnManager, IScriptPlayer scriptPlayer, ICustomVariableManager variableManager, IUnlockableManager unlockableManager,
@@ -77,22 +77,22 @@ namespace NaninovelSceneAssistant
             RefreshObjectList();
 
             CustomVarList.Clear();
-            foreach (var variable in variableManager.GetAllVariables()) CustomVarList.Add(variable.Name, new CustomVar(variable.Name));
+            foreach (var variable in variableManager.GetAllVariables()) CustomVarList.Add(variable.Name, new VariableValue(variable.Name));
 
             UnlockablesList.Clear();
-            foreach (var unlockable in unlockableManager.GetAllItems()) UnlockablesList.Add(unlockable.Key, new Unlockable(unlockable.Key));
+            foreach (var unlockable in unlockableManager.GetAllItems()) UnlockablesList.Add(unlockable.Key, new UnlockableValue(unlockable.Key));
         }
 
         protected void HandleVariableUpdated(CustomVariableUpdatedArgs args)
         {
             if (CustomVarList.ContainsKey(args.Name)) CustomVarList[args.Name].Value = args.Value;
-            else CustomVarList.Add(args.Name, new CustomVar(args.Name));
+            else CustomVarList.Add(args.Name, new VariableValue(args.Name));
         }
 
         protected void HandleUnlockableUpdated(UnlockableItemUpdatedArgs args)
         {
             if (UnlockablesList.ContainsKey(args.Id)) UnlockablesList[args.Id].Value = args.Unlocked;
-            else UnlockablesList.Add(args.Id, new Unlockable(args.Id));
+            else UnlockablesList.Add(args.Id, new UnlockableValue(args.Id));
         }
 
         public void DestroySceneAssistant()
@@ -105,9 +105,9 @@ namespace NaninovelSceneAssistant
 
         protected virtual void RefreshObjectList()
         {
-            if (!ObjectExists(typeof(CameraObject)))
+            if (!ObjectExists(typeof(CameraData)))
             {
-                var camera = new CameraObject();
+                var camera = new CameraData();
                 ObjectList.Add(camera.Id, camera);
             }
             RefreshSpawnList();
@@ -122,20 +122,20 @@ namespace NaninovelSceneAssistant
                 foreach (var actor in actorService.GetAllActors())
                 {
                     if (actor is ICharacterActor character) 
-                        if (!ObjectExists(typeof(Character), character.Id) && character.Visible) ObjectList.Add(character.Id, new Character(character.Id));
+                        if (!ObjectExists(typeof(CharacterData), character.Id) && character.Visible) ObjectList.Add(character.Id, new CharacterData(character.Id));
                     if (actor is IBackgroundActor background) 
-                        if (!ObjectExists(typeof(Background), background.Id) && background.Visible) ObjectList.Add(background.Id, new Background(background.Id));
+                        if (!ObjectExists(typeof(BackgroundData), background.Id) && background.Visible) ObjectList.Add(background.Id, new BackgroundData(background.Id));
                     if (actor is IChoiceHandlerActor choiceHandler) 
-                        if (!ObjectExists(typeof(ChoiceHandler), choiceHandler.Id) && choiceHandler.Visible) ObjectList.Add(choiceHandler.Id, new ChoiceHandler(choiceHandler.Id));
+                        if (!ObjectExists(typeof(ChoiceHandlerData), choiceHandler.Id) && choiceHandler.Visible) ObjectList.Add(choiceHandler.Id, new ChoiceHandlerData(choiceHandler.Id));
                     if (actor is ITextPrinterActor textPrinter) 
-                        if (!ObjectExists(typeof(TextPrinter), textPrinter.Id) && textPrinter.Visible) ObjectList.Add(textPrinter.Id, new TextPrinter(textPrinter.Id));
+                        if (!ObjectExists(typeof(TextPrinterData), textPrinter.Id) && textPrinter.Visible) ObjectList.Add(textPrinter.Id, new TextPrinterData(textPrinter.Id));
                 }
             }
         }
 
         protected virtual void RefreshSpawnList()
         {
-            foreach (var spawn in spawnManager.GetAllSpawned()) if(!ObjectExists(typeof(SpawnObject), spawn.Path)) ObjectList.Add(spawn.Path, new SpawnObject(spawn.Path));
+            foreach (var spawn in spawnManager.GetAllSpawned()) if(!ObjectExists(typeof(SpawnData), spawn.Path)) ObjectList.Add(spawn.Path, new SpawnData(spawn.Path));
         }
 
         public virtual UniTask HandlePlayedCommand(Command command = null)

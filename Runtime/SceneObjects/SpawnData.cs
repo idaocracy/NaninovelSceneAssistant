@@ -6,9 +6,9 @@ using System.Linq;
 
 namespace NaninovelSceneAssistant
 {
-    public class SpawnObject : NaninovelObject<SpawnManager>, INaninovelObject  
+    public class SpawnData : NaninovelObject<SpawnManager>, INaninovelObject  
     {
-        public SpawnObject(string id)
+        public SpawnData(string id)
         {
             this.id = id;
             Initialize();
@@ -58,7 +58,7 @@ namespace NaninovelSceneAssistant
             }
 
             var paramString = string.Join(" ", Params.Where(p => p.GetCommandValue() != null
-                && p.Selected && p.HasCommandOptions).Select(p => p.Name.ToLower() + ":" + p.GetCommandValue()));
+                && p.Selected && p.IsParameter).Select(p => p.Name.ToLower() + ":" + p.GetCommandValue()));
 
             if (paramsOnly) return paramString;
 
@@ -70,9 +70,9 @@ namespace NaninovelSceneAssistant
 
         protected void AddTransformParams()
         {
-            Params.Add(new CommandParam("Position", () => Transform.localPosition, v => Transform.localPosition = (Vector3)v, (i,p) => i.Vector3Field(p)));
-            Params.Add(new CommandParam("Rotation", () => Transform.localRotation.eulerAngles, v => Transform.localRotation = Quaternion.Euler((Vector3)v), (i,p) => i.Vector3Field(p)));
-            Params.Add(new CommandParam("Scale", () => Transform.localScale, v => Transform.localScale = (Vector3)v, (i, p) => i.Vector3Field(p)));
+            Params.Add(new ParameterValue("Position", () => Transform.localPosition, v => Transform.localPosition = (Vector3)v, (i,p) => i.Vector3Field(p)));
+            Params.Add(new ParameterValue("Rotation", () => Transform.localRotation.eulerAngles, v => Transform.localRotation = Quaternion.Euler((Vector3)v), (i,p) => i.Vector3Field(p)));
+            Params.Add(new ParameterValue("Scale", () => Transform.localScale, v => Transform.localScale = (Vector3)v, (i, p) => i.Vector3Field(p)));
         }
 
         protected override void AddParams()
@@ -82,7 +82,7 @@ namespace NaninovelSceneAssistant
             if (spawnSceneAssistant?.GetParams() != null)
             {
                 //todo find out why the params button is not appearing
-                Params.Add(new CommandParam("Params", () => string.Join(",", spawnSceneAssistant.GetParams().Select(p => p.GetCommandValue()).ToList()), v => { }, (i,p) => { }));
+                Params.Add(new ParameterValue("Params", () => string.Join(",", spawnSceneAssistant.GetParams().Select(p => p.GetCommandValue()).ToList()), v => { }, (i,p) => { }));
                 Params = Params.Concat(spawnSceneAssistant.GetParams()).ToList();
             }
         }
@@ -96,6 +96,6 @@ namespace NaninovelSceneAssistant
     public interface ISceneAssistantObject
     {
         string CommandId { get; }
-        List<CommandParam> GetParams();
+        List<ParameterValue> GetParams();
     }
 }
