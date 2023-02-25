@@ -188,43 +188,10 @@ namespace NaninovelSceneAssistant
             for( int i=0; i < parameters.Count; i++)
             {
                 EditorGUILayout.BeginHorizontal();
-
-            //    if (parameters[i].HasCommandOptions)
-            //    {
-            //        if (CurrentObject.HasPosValues(out var posParamIndex, out var positionParamIndex))
-            //        {
-
-            //            //We need to put a check behind each toggle, otherwise it's not possible to toggle from false to true on one of the toggles 
-            //            if(i == posParamIndex) { 
-            //                parameters[posParamIndex].Selected = EditorGUILayout.Toggle(parameters[posParamIndex].Selected, GUILayout.Width(20f));
-            //                if (parameters[posParamIndex].Selected == parameters[positionParamIndex].Selected == true) parameters[positionParamIndex].Selected = false;
-            //            }
-
-            //            else if (i == positionParamIndex) { 
-            //                parameters[positionParamIndex].Selected = EditorGUILayout.Toggle(parameters[positionParamIndex].Selected, GUILayout.Width(20f));
-            //                if (parameters[posParamIndex].Selected == parameters[positionParamIndex].Selected == true) parameters[posParamIndex].Selected = false;
-            //            }
-
-            //            else parameters[i].Selected = EditorGUILayout.Toggle(parameters[i].Selected, GUILayout.Width(20f));
-
-            //        }
-            //        else parameters[i].Selected = EditorGUILayout.Toggle(parameters[i].Selected, GUILayout.Width(20f));
-            //        if (ShowButton(parameters[i].Name)) ClipboardString = parameters[i].GetCommandValue();
-            //    }
-            //    else
-            //    {
-            //        GUILayout.Space(25f);
-            //        GUILayout.Label(parameters[i].Name.ToString(), GUILayout.Width(150));
-            //    }
-
-                //if(parameters[i].HasCommandOptions) EditorGUI.BeginDisabledGroup(!parameters[i].Selected);
                 parameters[i].DisplayField(layout);
-                //if (parameters[i].HasCommandOptions) EditorGUI.EndDisabledGroup();
-                
                 EditorGUILayout.EndHorizontal();
             }
         }
-
 
         protected virtual void ShowCustomVariables(SortedList<string, CustomVar> vars, ISceneAssistantLayout layout, string id = null)
         {
@@ -281,20 +248,20 @@ namespace NaninovelSceneAssistant
         //    if(sceneAssistantManager?.ObjectList?.Count > 0) sceneAssistantManager.DestroySceneAssistant();
         //}
 
-        public void SliderField(CommandParam param, float min, float max, Func<bool> condition = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.Slider((float)param.Value, min, max), param, condition);
+        public void SliderField(CommandParam param, float min, float max, Func<bool> condition = null, CommandParam toggleWith = null)
+            => WrapInLayout(() => param.Value = EditorGUILayout.Slider((float)param.Value, min, max), param, condition, toggleWith);
 
-        public void BoolField(CommandParam param, Func<bool> condition = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.Toggle((bool)param.Value), param, condition);
+        public void BoolField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
+            => WrapInLayout(() => param.Value = EditorGUILayout.Toggle((bool)param.Value), param, condition, toggleWith);
 
-        public void StringField(CommandParam param, Func<bool> condition = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.DelayedTextField((string)param.Value), param, condition);
+        public void StringField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
+            => WrapInLayout(() => param.Value = EditorGUILayout.DelayedTextField((string)param.Value), param, condition, toggleWith);
 
-        public void ColorField(CommandParam param, Func<bool> condition = null)
-        => WrapInLayout(() => param.Value = EditorGUILayout.ColorField((Color)param.Value), param, condition);
+        public void ColorField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
+        => WrapInLayout(() => param.Value = EditorGUILayout.ColorField((Color)param.Value), param, condition, toggleWith);
 
         //FloatField needs to be setup differently to support sliding when displaying label only.
-        public void FloatField(CommandParam param, float? min = null, float? max = null, Func<bool> condition = null)
+        public void FloatField(CommandParam param, float? min = null, float? max = null, Func<bool> condition = null, CommandParam toggleWith = null)
         {
             if (condition != null && !condition()) return;
 
@@ -302,6 +269,7 @@ namespace NaninovelSceneAssistant
             {
                 ShowParameterOptions(param);
                 param.Value = EditorGUILayout.FloatField(Mathf.Clamp((float)param.Value, min ?? float.MinValue, max ?? float.MaxValue));
+                if (toggleWith != null && param.Selected == toggleWith.Selected == true) toggleWith.Selected = false;
             }
             else
             {
@@ -318,28 +286,21 @@ namespace NaninovelSceneAssistant
             }
         }
 
-        public void IntField(CommandParam param, int? minValue = null, int? maxValue = null, Func<bool> condition = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.IntField((int)param.Value), param, condition);
+        public void IntField(CommandParam param, int? minValue = null, int? maxValue = null, Func<bool> condition = null, CommandParam toggleWith = null)
+            => WrapInLayout(() => param.Value = EditorGUILayout.IntField((int)param.Value), param, condition, toggleWith);
 
-        public void Vector2Field(CommandParam param, Func<bool> condition = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.Vector2Field("", (Vector2)param.Value), param, condition);
+        public void Vector2Field(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
+            => WrapInLayout(() => param.Value = EditorGUILayout.Vector2Field("", (Vector2)param.Value), param, condition, toggleWith);
 
-        public void Vector3Field(CommandParam param, Func<bool> condition = null)
-        {
-            WrapInLayout(() => param.Value = EditorGUILayout.Vector3Field("", (Vector3)param.Value), param, condition);
-            if (CurrentObject.HasPosValues && param.Name == "Position")
-            {
-                if (param.Selected == CurrentObject.Params.Find(x => x.Name == "Pos").Selected == true) CurrentObject.Params.Find(x => x.Name == "Pos").Selected = false;
-            }
-        }
+        public void Vector3Field(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null) => WrapInLayout(() => param.Value = EditorGUILayout.Vector3Field("", (Vector3)param.Value), param, condition, toggleWith);
     
-        public void Vector4Field(CommandParam param, Func<bool> condition = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.Vector4Field("", (Vector2)param.Value), param, condition);
-        public void EnumField(CommandParam param, Func<bool> condition = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.EnumPopup((Enum)param.Value), param, condition);
+        public void Vector4Field(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
+            => WrapInLayout(() => param.Value = EditorGUILayout.Vector4Field("", (Vector2)param.Value), param, condition, toggleWith);
+        public void EnumField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
+            => WrapInLayout(() => param.Value = EditorGUILayout.EnumPopup((Enum)param.Value), param, condition, toggleWith);
 
 
-        public void StringListField(CommandParam param, string[] stringValues, Func<bool> condition = null)
+        public void StringListField(CommandParam param, string[] stringValues, Func<bool> condition = null, CommandParam toggleWith = null)
         {
             if (condition != null && false) return;
             var stringIndex = stringValues.IndexOf(param.Value ?? "None");
@@ -347,12 +308,13 @@ namespace NaninovelSceneAssistant
 
             EditorGUI.BeginDisabledGroup(!param.Selected);
             stringIndex = EditorGUILayout.Popup(stringIndex, stringValues);
+            if (toggleWith != null && param.Selected == toggleWith.Selected == true) toggleWith.Selected = false;
             EditorGUI.EndDisabledGroup();
 
             if (stringValues[stringIndex] != "None") param.Value = stringValues[stringIndex];
         }
 
-        public void PosField(CommandParam param, Func<bool> condition = null)
+        public void PosField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
         {
             if (condition != null && false) return;
             var cameraConfiguration = Engine.GetConfiguration<CameraConfiguration>();
@@ -363,10 +325,7 @@ namespace NaninovelSceneAssistant
 
             EditorGUI.BeginDisabledGroup(!param.Selected);
             position = EditorGUILayout.Vector3Field("", position);
-            if (CurrentObject.HasPosValues)
-            {
-                if (param.Selected == CurrentObject.Params.Find(x => x.Name == "Position").Selected == true) CurrentObject.Params.Find(x => x.Name == "Position").Selected = false;
-            }
+            if(toggleWith != null && param.Selected == toggleWith.Selected == true) toggleWith.Selected = false;
 
             EditorGUI.EndDisabledGroup();
             
@@ -393,13 +352,13 @@ namespace NaninovelSceneAssistant
             EditorGUILayout.EndHorizontal();
         }
 
-        public void WrapInLayout(Action layoutField, CommandParam param, Func<bool> condition = null, string toggleWith = null)
+        public void WrapInLayout(Action layoutField, CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
         {
             if (condition != null && false) return;
             ShowParameterOptions(param);
             EditorGUI.BeginDisabledGroup(!param.Selected);
             layoutField();
-            if(!string.IsNullOrEmpty(toggleWith)) if (param.Selected == CurrentObject.Params.Find(x => x.Name == toggleWith).Selected == true) CurrentObject.Params.Find(x => x.Name == "Pos").Selected = false;
+            if (toggleWith != null && param.Selected == toggleWith.Selected == true) toggleWith.Selected = false;
             EditorGUI.EndDisabledGroup();
         }
 

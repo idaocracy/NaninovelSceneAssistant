@@ -76,62 +76,62 @@ namespace NaninovelSceneAssistant
             InitializeObject(CurrentObject);
         }
 
-        public void SliderField(CommandParam param, float minValue, float maxValue, Func<bool> condition = null)
+        public void SliderField(CommandParam param, float minValue, float maxValue, Func<bool> condition = null, CommandParam toggleWith = null)
         {
             var slider = Instantiate(sliderField, content.transform);
             slider.Init(param.Name, param);        }
 
-        public void Vector3Field(CommandParam param, Func<bool> condition = null)
+        public void Vector3Field(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void BoolField(CommandParam param, Func<bool> condition = null)
+        public void BoolField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void StringField(CommandParam value, Func<bool> condition = null)
+        public void StringField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void ColorField(CommandParam value, Func<bool> condition = null)
+        public void ColorField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void FloatField(CommandParam param, float? minValue = null, float? maxValue = null, Func<bool> condition = null)
+        public void FloatField(CommandParam param, float? minValue = null, float? maxValue = null, Func<bool> condition = null, CommandParam toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void Vector2Field(CommandParam param, Func<bool> condition = null)
+        public void Vector2Field(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void StringListField(CommandParam param, string[] stringValues, Func<bool> condition = null)
+        public void StringListField(CommandParam param, string[] stringValues, Func<bool> condition = null, CommandParam toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void IntField(CommandParam param, Func<bool> condition = null)
+        public void IntField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void EnumField(CommandParam param, Func<bool> condition = null)
+        public void EnumField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void Vector4Field(CommandParam param, Func<bool> condition = null)
+        public void Vector4Field(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void PosField(CommandParam param, Func<bool> condition = null)
+        public void PosField(CommandParam param, Func<bool> condition = null, CommandParam toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
@@ -146,7 +146,7 @@ namespace NaninovelSceneAssistant
             throw new System.NotImplementedException();
         }
 
-        public void IntField(CommandParam param, int? minValue, int? maxValue, Func<bool> condition = null)
+        public void IntField(CommandParam param, int? minValue, int? maxValue, Func<bool> condition = null, CommandParam toggleWith = null)
         {
             throw new NotImplementedException();
         }

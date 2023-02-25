@@ -78,19 +78,20 @@ namespace NaninovelSceneAssistant {
         public string Name { get; }
         public object Value { get => getValue(); set => setValue(value); }
         public bool Selected { get; set; } = true;
-        public bool HasCommandOptions { get; set; }
-        public object DefaultValue { get; set; }
+        public bool HasCommandOptions { get; }
+        public object DefaultValue { get; }
         public Action<ISceneAssistantLayout, CommandParam> OnLayout { get; private set; }
         private Func<object> getValue;
         private Action<object> setValue;
 
-        public CommandParam(string id, Func<object> getValue, Action<object> setValue, Action<ISceneAssistantLayout, CommandParam> onLayout, bool HasCommandOptions = true)
+        public CommandParam(string id, Func<object> getValue, Action<object> setValue, Action<ISceneAssistantLayout, CommandParam> onLayout, bool HasCommandOptions = true, object defaultValue = null)
         {
             Name = id;
             this.getValue = getValue;
             this.setValue = setValue;
             OnLayout = onLayout;
             this.HasCommandOptions = HasCommandOptions;
+            this.DefaultValue = defaultValue;
         }
 
         public string GetCommandValue() => FormatValue(Value);
