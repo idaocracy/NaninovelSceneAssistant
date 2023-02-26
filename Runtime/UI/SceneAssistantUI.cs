@@ -141,7 +141,7 @@ namespace NaninovelSceneAssistant
             throw new System.NotImplementedException();
         }
 
-        public void UnlockableField(UnlockableValue unlockable, int stateIndex, string[] states)
+        public void UnlockableField(UnlockableValue unlockable)
         {
             throw new System.NotImplementedException();
         }
@@ -162,6 +162,11 @@ namespace NaninovelSceneAssistant
         }
 
         public void IntSliderField(ParameterValue param, int minValue, int maxValue, Func<bool> condition = null, ParameterValue toggleWith = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void TypeListField<T>(ParameterValue param, string[] stringValues, T[] typeValues, Func<bool> condition = null, ParameterValue toggleWith = null)
         {
             throw new NotImplementedException();
         }

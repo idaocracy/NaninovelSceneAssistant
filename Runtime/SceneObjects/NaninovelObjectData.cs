@@ -169,23 +169,24 @@ namespace NaninovelSceneAssistant {
     {
         public string Name { get; }
         public bool Value { get => getValue(); set => setValue(value); }
-        public int stateIndex { get => getValue() ? 1 : 0; set => setValue(value == 1 ? true : false); }
-
-        private string[] States = new string[] { "Locked", "Unlocked" };
+        public enum UnlockableState { Unlocked, Locked };
+        public UnlockableState EnumValue { get; set; }
 
         private Func<bool> getValue;
         private Action<bool> setValue;
+        private UnlockableState enumValue;
 
         public UnlockableValue(string name)
         {
             Name = name;
             getValue = () => Engine.GetService<IUnlockableManager>().ItemUnlocked(name);
             setValue = (value) => Engine.GetService<IUnlockableManager>().SetItemUnlocked(name, value);
+            enumValue = Engine.GetService<IUnlockableManager>().ItemUnlocked(name) ? UnlockableState.Unlocked : UnlockableState.Locked;
         }
 
         public void DisplayField(ISceneAssistantLayout layout)
         {
-            layout.UnlockableField(this, stateIndex, States);
+            layout.UnlockableField(this);
         }
     }
 

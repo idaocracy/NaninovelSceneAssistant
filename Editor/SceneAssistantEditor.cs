@@ -322,9 +322,25 @@ namespace NaninovelSceneAssistant
             if (toggleWith != null && param.Selected == toggleWith.Selected == true) toggleWith.Selected = false;
             EditorGUI.EndDisabledGroup();
 
-            if (stringIndex > 0) param.Value = stringValues[stringIndex];
+            param.Value = stringValues[stringIndex];
+        }
+
+
+        public void TypeListField<T>(ParameterValue param, string[] stringValues, T[] typeValues, Func<bool> condition = null, ParameterValue toggleWith = null)
+        {
+            if (condition != null && condition() == false) return;
+            var stringIndex = stringValues.IndexOf(param.Value ?? "None");
+            ShowParameterOptions(param);
+
+            EditorGUI.BeginDisabledGroup(!param.Selected);
+            stringIndex = EditorGUILayout.Popup(stringIndex, stringValues);
+            if (toggleWith != null && param.Selected == toggleWith.Selected == true) toggleWith.Selected = false;
+            EditorGUI.EndDisabledGroup();
+
+            if (stringIndex > 0) param.Value = typeValues[stringIndex - 1];
             else param.Value = null;
         }
+
 
         public void PosField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
         {
@@ -355,12 +371,15 @@ namespace NaninovelSceneAssistant
             EditorGUILayout.EndHorizontal();
         }
 
-        public void UnlockableField(UnlockableValue unlockable, int stateIndex, string[] states)
+        public void UnlockableField(UnlockableValue unlockable)
         {
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(unlockable.Name);
-            stateIndex = EditorGUILayout.Popup(stateIndex, states);
-            unlockable.Value = stateIndex == 1 ? true : false;
+            unlockable.EnumValue = (UnlockableValue.UnlockableState)EditorGUILayout.EnumPopup(unlockable.EnumValue);
+
+            if (unlockable.EnumValue == UnlockableValue.UnlockableState.Unlocked) unlockable.Value = true;
+            else unlockable.Value = false;
+
             EditorGUILayout.EndHorizontal();
         }
 

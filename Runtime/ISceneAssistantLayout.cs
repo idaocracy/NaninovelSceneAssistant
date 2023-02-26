@@ -11,6 +11,7 @@ namespace NaninovelSceneAssistant {
     {
         void StringField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null);
         void StringListField(ParameterValue param, string[] stringValues, Func<bool> condition = null, ParameterValue toggleWith = null);
+        void TypeListField<T>(ParameterValue param, string[] stringValues, T[] typeValues, Func<bool> condition = null, ParameterValue toggleWith = null);
         void BoolField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null);
         void IntField(ParameterValue param, int? minValue, int? maxValue, Func<bool> condition = null, ParameterValue toggleWith = null);
         void FloatField(ParameterValue param, float? minValue = null, float? maxValue = null, Func<bool> condition = null, ParameterValue toggleWith = null);
@@ -24,7 +25,7 @@ namespace NaninovelSceneAssistant {
         void PosField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null);
         void EmptyField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null);
         void VariableField(VariableValue var);
-        void UnlockableField(UnlockableValue unlockable, int stateIndex, string[] states);
+        void UnlockableField(UnlockableValue unlockable);
     }
 
 
