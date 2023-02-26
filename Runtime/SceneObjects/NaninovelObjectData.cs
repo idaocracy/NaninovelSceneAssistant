@@ -7,19 +7,19 @@ using Naninovel;
 
 namespace NaninovelSceneAssistant {
 
-    public interface INaninovelObject
+    public interface INaninovelObjectData
     {
         string Id { get; }
         GameObject GameObject { get; }
         string GetCommandLine(bool inlined = false, bool paramsOnly = false);
-        string GetAllCommands(Dictionary<string, INaninovelObject> objectList, Dictionary<Type, bool> objectTypeList, bool selected = false);
+        string GetAllCommands(Dictionary<string, INaninovelObjectData> objectList, Dictionary<Type, bool> objectTypeList, bool selected = false);
         List<ParameterValue> Params { get; }
         bool HasPosValues { get; }
 
         SortedList<string, VariableValue> CustomVars { get; }
     }
 
-    public abstract class NaninovelObject<TEngineService> : INaninovelObject where TEngineService : class, IEngineService
+    public abstract class NaninovelObjectData<TEngineService> : INaninovelObjectData where TEngineService : class, IEngineService
     {
         protected virtual void Initialize()
         {
@@ -54,7 +54,7 @@ namespace NaninovelSceneAssistant {
             return inlined ? "[" + commandString + "]" : "@" + commandString;
         }
 
-        public string GetAllCommands(Dictionary<string, INaninovelObject> objectList, Dictionary<Type,bool> objectTypeList, bool selected = false)
+        public string GetAllCommands(Dictionary<string, INaninovelObjectData> objectList, Dictionary<Type,bool> objectTypeList, bool selected = false)
         {
             var allString = String.Empty;
 
@@ -92,10 +92,10 @@ namespace NaninovelSceneAssistant {
 
         public ParameterValue(string id, Func<object> getValue, Action<object> setValue, Action<ISceneAssistantLayout, ParameterValue> onLayout, bool isParameter = true, object defaultValue = null)
         {
-            Name = id;
+            this.Name = id;
             this.getValue = getValue;
             this.setValue = setValue;
-            OnLayout = onLayout;
+            this.OnLayout = onLayout;
             this.IsParameter = isParameter;
             this.DefaultValue = defaultValue;
         }
@@ -103,20 +103,19 @@ namespace NaninovelSceneAssistant {
         public string GetCommandValue() => FormatValue(Value);
         public object GetDefaultValue()
         {
-            if (Value == null) return null;
+            if (setValue == null || getValue == null) return default;
             else if (DefaultValue != null) return DefaultValue;
             else
             {
                 var value = Value.GetType();
                 if (value.IsValueType) return Activator.CreateInstance(value);
             }
-            return null;
+            return default;
         }
 
         public void DisplayField(ISceneAssistantLayout layout)
         {
             if (layout == null) return;
-
             OnLayout(layout, this);
         }
 
@@ -127,6 +126,7 @@ namespace NaninovelSceneAssistant {
             else if (value is Quaternion quaternion) return quaternion.eulerAngles.ToString("0.##").Replace(" ", "").Replace("(", "").Replace(")", "");
             else if (value is Color color) return "#" + ColorUtility.ToHtmlStringRGBA(color);
             else if (ValueIsDictionary(value, out var namedList)) return namedList;
+            else if (value is Texture texture && texture is null) return string.Empty;
             else return value?.ToString();
         }
 
@@ -161,7 +161,7 @@ namespace NaninovelSceneAssistant {
 
         public void DisplayField(ISceneAssistantLayout layout)
         {
-            layout.CustomVarField(this);
+            layout.VariableField(this);
         }
     }
 

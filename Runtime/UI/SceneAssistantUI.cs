@@ -16,7 +16,7 @@ namespace NaninovelSceneAssistant
 
         private SceneAssistantManager sceneAssistantManager;
 
-        protected INaninovelObject CurrentObject { get; set; }
+        protected INaninovelObjectData CurrentObject { get; set; }
         //protected string[] ObjectDropdown { get => sceneAssistantManager.ObjectList.Select(p => p.Id).ToArray(); }
         //protected string ClipboardString { get => clipboardString; set { clipboardString = value; EditorGUIUtility.systemCopyBuffer = value; if (logResults) Debug.Log(value); } }
 
@@ -28,7 +28,7 @@ namespace NaninovelSceneAssistant
         private ISceneAssistantLayout layout;
 
         //[SerializeField] private SliderField sliderField;
-        public void InitializeObject(INaninovelObject obj)
+        public void InitializeObject(INaninovelObjectData obj)
         {
             //foreach(var param in obj.Params)
             //{
@@ -76,7 +76,7 @@ namespace NaninovelSceneAssistant
             InitializeObject(CurrentObject);
         }
 
-        public void SliderField(ParameterValue param, float minValue, float maxValue, Func<bool> condition = null, ParameterValue toggleWith = null)
+        public void FloatSliderField(ParameterValue param, float minValue, float maxValue, Func<bool> condition = null, ParameterValue toggleWith = null)
         {
             var slider = Instantiate(sliderField, content.transform);
             slider.Init(param.Name, param);        }
@@ -136,7 +136,7 @@ namespace NaninovelSceneAssistant
             throw new System.NotImplementedException();
         }
 
-        public void CustomVarField(VariableValue var)
+        public void VariableField(VariableValue var)
         {
             throw new System.NotImplementedException();
         }
@@ -152,6 +152,16 @@ namespace NaninovelSceneAssistant
         }
 
         public void ShowValueOptions(ParameterValue param)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void EmptyField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void IntSliderField(ParameterValue param, int minValue, int maxValue, Func<bool> condition = null, ParameterValue toggleWith = null)
         {
             throw new NotImplementedException();
         }

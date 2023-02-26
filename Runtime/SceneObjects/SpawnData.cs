@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace NaninovelSceneAssistant
 {
-    public class SpawnData : NaninovelObject<SpawnManager>, INaninovelObject  
+    public class SpawnData : NaninovelObjectData<SpawnManager>, INaninovelObjectData  
     {
         public SpawnData(string id)
         {
@@ -41,10 +41,10 @@ namespace NaninovelSceneAssistant
                 tempParams.RemoveRange(0, 3);
             }
 
-            var paramsString = string.Join(",", tempParams.Select(p => p.GetCommandValue().ToString()));
+            var paramsString = string.Join(",", tempParams.Select(p => p.GetCommandValue().ToString() ?? string.Empty));
 
             if (paramsOnly) return paramsString;
-            var commandString = CommandNameAndId + " params:" + paramsString; ;
+            var commandString = CommandNameAndId + " params:" + paramsString; 
 
             return inlined ? "[" + commandString + "]" : "@" + commandString;
         }
@@ -81,8 +81,7 @@ namespace NaninovelSceneAssistant
 
             if (spawnSceneAssistant?.GetParams() != null)
             {
-                //todo find out why the params button is not appearing
-                Params.Add(new ParameterValue("Params", () => string.Join(",", spawnSceneAssistant.GetParams().Select(p => p.GetCommandValue()).ToList()), v => { }, (i,p) => { }));
+                Params.Add(new ParameterValue("Params", () => string.Join(",", spawnSceneAssistant.GetParams().Select(p => p.GetCommandValue()).ToList()), v => { }, (i,p) => i.EmptyField(p)));
                 Params = Params.Concat(spawnSceneAssistant.GetParams()).ToList();
             }
         }

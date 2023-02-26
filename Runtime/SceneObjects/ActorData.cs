@@ -9,7 +9,7 @@ using Codice.CM.SEIDInfo;
 
 namespace NaninovelSceneAssistant
 {
-    public abstract class ActorData<TService, TActor, TMeta, TConfig> : NaninovelObject<TService>, INaninovelObject
+    public abstract class ActorData<TService, TActor, TMeta, TConfig> : NaninovelObjectData<TService>, INaninovelObjectData
         where TService : class, IActorManager
         where TActor : IActor
         where TMeta : ActorMetadata

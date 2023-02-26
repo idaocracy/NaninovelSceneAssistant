@@ -19,11 +19,13 @@ namespace NaninovelSceneAssistant
         private IStateManager stateManager;
         private IReadOnlyCollection<IActorManager> actorServices;
 
-        public Dictionary<string, INaninovelObject> ObjectList { get; protected set; } = new Dictionary<string, INaninovelObject>();
+        public Dictionary<string, INaninovelObjectData> ObjectList { get; protected set; } = new Dictionary<string, INaninovelObjectData>();
         public Dictionary<Type, bool> ObjectTypeList { get; protected set; } = new Dictionary<Type, bool>();
         public SortedList<string, VariableValue> CustomVarList { get; protected set; } = new SortedList<string, VariableValue> { };
         public SortedList<string, UnlockableValue> UnlockablesList { get; protected set; } = new SortedList<string, UnlockableValue> { };
         public IReadOnlyCollection<string> ScriptsList { get; protected set; }
+
+        public Action OnSceneAssistantReset;
 
         public SceneAssistantManager(SceneAssistantConfiguration config, ISpawnManager spawnManager, IScriptPlayer scriptPlayer, ICustomVariableManager variableManager, IUnlockableManager unlockableManager,
                 IStateManager stateManager, IScriptManager scriptManager)
@@ -113,6 +115,8 @@ namespace NaninovelSceneAssistant
             RefreshSpawnList();
             RefreshActorList();
             RefreshObjectTypeList();
+
+            OnSceneAssistantReset?.Invoke();
         }
 
         protected virtual void RefreshActorList()
@@ -140,19 +144,20 @@ namespace NaninovelSceneAssistant
 
         public virtual UniTask HandlePlayedCommand(Command command = null)
         {
-            if (command is ModifyCharacter) RefreshActorList();
-            if (command is ModifyBackground) RefreshActorList();
-            if (command is ModifyTextPrinter) RefreshActorList();
-            if (command is AddChoice) RefreshActorList();
-            if (command is Naninovel.Commands.Spawn) RefreshSpawnList();
-            if (command is DestroySpawned) RefreshSpawnList();
-            if (command is DestroyAllSpawned) RefreshSpawnList();
+            RefreshObjectList();
+            //if (command is ModifyCharacter) RefreshActorList();
+            //if (command is ModifyBackground) RefreshActorList();
+            //if (command is ModifyTextPrinter) RefreshActorList();
+            //if (command is AddChoice) RefreshActorList();
+            //if (command is Naninovel.Commands.Spawn) RefreshSpawnList();
+            //if (command is DestroySpawned) RefreshSpawnList();
+            //if (command is DestroyAllSpawned) RefreshSpawnList();
 
-            if (command is HideAllActors) RefreshActorList();
-            if (command is HideAllCharacters) RefreshActorList();
-            if (command is HideActors) RefreshActorList();
-            if (command is HidePrinter) RefreshActorList();
-            if (command is ClearChoiceHandler) RefreshActorList();
+            //if (command is HideAllActors) RefreshActorList();
+            //if (command is HideAllCharacters) RefreshActorList();
+            //if (command is HideActors) RefreshActorList();
+            //if (command is HidePrinter) RefreshActorList();
+            //if (command is ClearChoiceHandler) RefreshActorList();
 
             RefreshObjectTypeList();
 

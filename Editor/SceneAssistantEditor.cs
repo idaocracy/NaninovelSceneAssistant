@@ -14,7 +14,7 @@ namespace NaninovelSceneAssistant
     {
         private ISceneAssistantLayout layout { get => this; }
         public string[] Tabs { get; protected set; }
-        protected INaninovelObject CurrentObject => sceneAssistantManager.ObjectList.Values.ToArray()[objectIndex];
+        protected INaninovelObjectData CurrentObject => sceneAssistantManager.ObjectList.Values.ToArray()[objectIndex];
         protected string[] ObjectDropdown => sceneAssistantManager.ObjectList.Keys.ToArray();
         protected Dictionary<Type, bool> TypeList => sceneAssistantManager.ObjectTypeList;
         protected string ClipboardString { get => clipboardString; set { clipboardString = value; EditorGUIUtility.systemCopyBuffer = value; if (logResults) Debug.Log(value); } }
@@ -56,6 +56,7 @@ namespace NaninovelSceneAssistant
             scriptPlayer = Engine.GetService<IScriptPlayer>();
             stateManager = Engine.GetService<StateManager>();
             sceneAssistantManager.InitializeSceneAssistant();
+            sceneAssistantManager.OnSceneAssistantReset += () => objectIndex = 0;
         }
 
         public void OnGUI()
@@ -97,17 +98,19 @@ namespace NaninovelSceneAssistant
             GUILayout.Space(10);
             GUILayout.BeginVertical();
 
-            DrawCommandButtons();
+            ShowCommandButtons();
             GUILayout.Space(5);
             ShowTypeOptions();
 
             EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
-            DrawIdField();
+            ShowIdField();
 
             EditorGUILayout.Space(10);
 
             ShowCommandParameters(CurrentObject.Params, layout);
+
+            EditorGUILayout.Space(5);
 
             ShowOptionButtons();
 
@@ -127,6 +130,7 @@ namespace NaninovelSceneAssistant
         {
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
+
             if (GUILayout.Button("Select all", EditorStyles.miniButton)) CurrentObject.Params.ForEach(p => p.Selected = true);
             if (GUILayout.Button("Deselect all", EditorStyles.miniButton)) CurrentObject.Params.ForEach(p => p.Selected = false);
             if (GUILayout.Button("Default", EditorStyles.miniButton)) CurrentObject.Params.Where(p => p.Value != null).ToList().ForEach(p => p.Value = p.GetDefaultValue());
@@ -139,7 +143,7 @@ namespace NaninovelSceneAssistant
 
         }
 
-        protected virtual void DrawCommandButtons()
+        protected virtual void ShowCommandButtons()
         {
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
@@ -152,7 +156,7 @@ namespace NaninovelSceneAssistant
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
         }
-        private void DrawIdField()
+        private void ShowIdField()
         {
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
@@ -248,11 +252,16 @@ namespace NaninovelSceneAssistant
         //    if(sceneAssistantManager?.ObjectList?.Count > 0) sceneAssistantManager.DestroySceneAssistant();
         //}
 
-        public void SliderField(ParameterValue param, float min, float max, Func<bool> condition = null, ParameterValue toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.Slider((float)param.Value, min, max), param, condition, toggleWith);
+
 
         public void BoolField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
             => WrapInLayout(() => param.Value = EditorGUILayout.Toggle((bool)param.Value), param, condition, toggleWith);
+
+        public void IntField(ParameterValue param, int? minValue = null, int? maxValue = null, Func<bool> condition = null, ParameterValue toggleWith = null)
+            => WrapInLayout(() => param.Value = EditorGUILayout.IntField((int)param.Value), param, condition, toggleWith);
+
+        public void IntSliderField(ParameterValue param, int min, int max, Func<bool> condition = null, ParameterValue toggleWith = null)
+            => WrapInLayout(() => param.Value = EditorGUILayout.IntSlider((int)param.Value, min, max), param, condition, toggleWith);
 
         public void StringField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
             => WrapInLayout(() => param.Value = EditorGUILayout.DelayedTextField((string)param.Value), param, condition, toggleWith);
@@ -286,9 +295,8 @@ namespace NaninovelSceneAssistant
             }
         }
 
-        public void IntField(ParameterValue param, int? minValue = null, int? maxValue = null, Func<bool> condition = null, ParameterValue toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.IntField((int)param.Value), param, condition, toggleWith);
-
+        public void FloatSliderField(ParameterValue param, float min, float max, Func<bool> condition = null, ParameterValue toggleWith = null)
+            => WrapInLayout(() => param.Value = EditorGUILayout.Slider((float)param.Value, min, max), param, condition, toggleWith);
         public void Vector2Field(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
             => WrapInLayout(() => param.Value = EditorGUILayout.Vector2Field("", (Vector2)param.Value), param, condition, toggleWith);
 
@@ -296,13 +304,16 @@ namespace NaninovelSceneAssistant
             => WrapInLayout(() => param.Value = EditorGUILayout.Vector3Field("", (Vector3)param.Value), param, condition, toggleWith);
     
         public void Vector4Field(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.Vector4Field("", (Vector2)param.Value), param, condition, toggleWith);
+            => WrapInLayout(() => param.Value = EditorGUILayout.Vector4Field("", (Vector4)param.Value), param, condition, toggleWith);
         public void EnumField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
             => WrapInLayout(() => param.Value = EditorGUILayout.EnumPopup((Enum)param.Value), param, condition, toggleWith);
 
+        public void EmptyField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
+            => WrapInLayout(null, param, condition, toggleWith);
+
         public void StringListField(ParameterValue param, string[] stringValues, Func<bool> condition = null, ParameterValue toggleWith = null)
         {
-            if (condition != null && false) return;
+            if (condition != null && condition() == false) return;
             var stringIndex = stringValues.IndexOf(param.Value ?? "None");
             ShowParameterOptions(param);
 
@@ -311,12 +322,13 @@ namespace NaninovelSceneAssistant
             if (toggleWith != null && param.Selected == toggleWith.Selected == true) toggleWith.Selected = false;
             EditorGUI.EndDisabledGroup();
 
-            if (stringValues[stringIndex] != "None") param.Value = stringValues[stringIndex];
+            if (stringIndex > 0) param.Value = stringValues[stringIndex];
+            else param.Value = null;
         }
 
         public void PosField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
         {
-            if (condition != null && false) return;
+            if (condition != null && condition() == false) return;
             var cameraConfiguration = Engine.GetConfiguration<CameraConfiguration>();
             ShowParameterOptions(param);
             var position = cameraConfiguration.WorldToSceneSpace((Vector3)param.Value);
@@ -335,7 +347,7 @@ namespace NaninovelSceneAssistant
             param.Value = position;
         }
 
-        public void CustomVarField(VariableValue var)
+        public void VariableField(VariableValue var)
         {
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(var.Name);
@@ -354,11 +366,11 @@ namespace NaninovelSceneAssistant
 
         public void WrapInLayout(Action layoutField, ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
         {
-            if (condition != null && false) return;
+            if (condition != null && condition() == false) return;
             ShowParameterOptions(param);
             EditorGUI.BeginDisabledGroup(!param.Selected);
-            layoutField();
-            if (toggleWith != null && param.Selected == toggleWith.Selected == true) toggleWith.Selected = false;
+            if(layoutField != null) layoutField();
+            if(toggleWith != null && param.Selected == toggleWith.Selected == true) toggleWith.Selected = false;
             EditorGUI.EndDisabledGroup();
         }
 
