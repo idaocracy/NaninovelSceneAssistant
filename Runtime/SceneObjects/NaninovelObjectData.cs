@@ -170,7 +170,7 @@ namespace NaninovelSceneAssistant {
         public string Name { get; }
         public bool Value { get => getValue(); set => setValue(value); }
         public enum UnlockableState { Unlocked, Locked };
-        public UnlockableState EnumValue { get; set; }
+        public UnlockableState EnumValue { get => enumValue; set => enumValue = value; }
 
         private Func<bool> getValue;
         private Action<bool> setValue;
