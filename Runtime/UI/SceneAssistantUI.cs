@@ -76,62 +76,62 @@ namespace NaninovelSceneAssistant
             InitializeObject(CurrentObject);
         }
 
-        public void FloatSliderField(ParameterValue param, float minValue, float maxValue, Func<bool> condition = null, ParameterValue toggleWith = null)
+        public void FloatSliderField(ParameterValue param, float minValue, float maxValue, ParameterValue toggleWith = null)
         {
             var slider = Instantiate(sliderField, content.transform);
             slider.Init(param.Name, param);        }
 
-        public void Vector3Field(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
+        public void Vector3Field(ParameterValue param, ParameterValue toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void BoolField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
+        public void BoolField(ParameterValue param, ParameterValue toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void StringField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
+        public void StringField(ParameterValue param, ParameterValue toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void ColorField(ParameterValue param, bool includeAlpha = true, Func<bool> condition = null, ParameterValue toggleWith = null)
+        public void ColorField(ParameterValue param, bool includeAlpha = true, ParameterValue toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void FloatField(ParameterValue param, float? minValue = null, float? maxValue = null, Func<bool> condition = null, ParameterValue toggleWith = null)
+        public void FloatField(ParameterValue param, float? minValue = null, float? maxValue = null, ParameterValue toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void Vector2Field(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
+        public void Vector2Field(ParameterValue param, ParameterValue toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void StringListField(ParameterValue param, string[] stringValues, Func<bool> condition = null, ParameterValue toggleWith = null)
+        public void StringListField(ParameterValue param, string[] stringValues, ParameterValue toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void IntField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
+        public void IntField(ParameterValue param, ParameterValue toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void EnumField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
+        public void EnumField(ParameterValue param, ParameterValue toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void Vector4Field(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
+        public void Vector4Field(ParameterValue param, ParameterValue toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
 
-        public void PosField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
+        public void PosField(ParameterValue param, ParameterValue toggleWith = null)
         {
             throw new System.NotImplementedException();
         }
@@ -146,7 +146,7 @@ namespace NaninovelSceneAssistant
             throw new System.NotImplementedException();
         }
 
-        public void IntField(ParameterValue param, int? minValue, int? maxValue, Func<bool> condition = null, ParameterValue toggleWith = null)
+        public void IntField(ParameterValue param, int? minValue, int? maxValue, ParameterValue toggleWith = null)
         {
             throw new NotImplementedException();
         }
@@ -156,22 +156,22 @@ namespace NaninovelSceneAssistant
             throw new NotImplementedException();
         }
 
-        public void EmptyField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
+        public void EmptyField(ParameterValue param, ParameterValue toggleWith = null)
         {
             throw new NotImplementedException();
         }
 
-        public void IntSliderField(ParameterValue param, int minValue, int maxValue, Func<bool> condition = null, ParameterValue toggleWith = null)
+        public void IntSliderField(ParameterValue param, int minValue, int maxValue, ParameterValue toggleWith = null)
         {
             throw new NotImplementedException();
         }
 
-        public void TypeListField<T>(ParameterValue param, string[] stringValues, T[] typeValues, Func<bool> condition = null, ParameterValue toggleWith = null)
+        public void TypeListField<T>(ParameterValue param, string[] stringValues, T[] typeValues, ParameterValue toggleWith = null)
         {
             throw new NotImplementedException();
         }
 
-        public void TypeListField<T>(ParameterValue param, Dictionary<string, T> values, Func<bool> condition = null, ParameterValue toggleWith = null)
+        public void TypeListField<T>(ParameterValue param, Dictionary<string, T> values, ParameterValue toggleWith = null)
         {
             throw new NotImplementedException();
         }

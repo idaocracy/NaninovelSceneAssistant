@@ -3,10 +3,8 @@ using Naninovel.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace NaninovelSceneAssistant
 {
@@ -260,25 +258,25 @@ namespace NaninovelSceneAssistant
 
 
 
-        public void BoolField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.Toggle((bool)param.Value), param, condition, toggleWith);
+        public void BoolField(ParameterValue param, ParameterValue toggleWith = null)
+            => WrapInLayout(() => param.Value = EditorGUILayout.Toggle((bool)param.Value), param, toggleWith);
 
-        public void IntField(ParameterValue param, int? minValue = null, int? maxValue = null, Func<bool> condition = null, ParameterValue toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.IntField((int)param.Value), param, condition, toggleWith);
+        public void IntField(ParameterValue param, int? minValue = null, int? maxValue = null, ParameterValue toggleWith = null)
+            => WrapInLayout(() => param.Value = EditorGUILayout.IntField((int)param.Value), param, toggleWith);
 
-        public void IntSliderField(ParameterValue param, int min, int max, Func<bool> condition = null, ParameterValue toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.IntSlider((int)param.Value, min, max), param, condition, toggleWith);
+        public void IntSliderField(ParameterValue param, int min, int max, ParameterValue toggleWith = null)
+            => WrapInLayout(() => param.Value = EditorGUILayout.IntSlider((int)param.Value, min, max), param, toggleWith);
 
-        public void StringField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.DelayedTextField((string)param.Value), param, condition, toggleWith);
+        public void StringField(ParameterValue param, ParameterValue toggleWith = null)
+            => WrapInLayout(() => param.Value = EditorGUILayout.DelayedTextField((string)param.Value), param, toggleWith);
 
-        public void ColorField(ParameterValue param, bool includeAlpha = true, Func<bool> condition = null, ParameterValue toggleWith = null)
-        => WrapInLayout(() => param.Value = EditorGUILayout.ColorField(GUIContent.none, (Color)param.Value, true, includeAlpha, false), param, condition, toggleWith);
+        public void ColorField(ParameterValue param, bool includeAlpha = true, ParameterValue toggleWith = null)
+        => WrapInLayout(() => param.Value = EditorGUILayout.ColorField(GUIContent.none, (Color)param.Value, true, includeAlpha, false), param,toggleWith);
 
         //FloatField needs to be setup differently to support sliding when displaying label only.
-        public void FloatField(ParameterValue param, float? min = null, float? max = null, Func<bool> condition = null, ParameterValue toggleWith = null)
+        public void FloatField(ParameterValue param, float? min = null, float? max = null, ParameterValue toggleWith = null)
         {
-            if (condition != null && !condition()) return;
+            if (param.Condition != null && !param.Condition()) return;
 
             if (param.IsParameter)
             {
@@ -301,25 +299,25 @@ namespace NaninovelSceneAssistant
             }
         }
 
-        public void FloatSliderField(ParameterValue param, float min, float max, Func<bool> condition = null, ParameterValue toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.Slider((float)param.Value, min, max), param, condition, toggleWith);
-        public void Vector2Field(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.Vector2Field("", (Vector2)param.Value), param, condition, toggleWith);
+        public void FloatSliderField(ParameterValue param, float min, float max, ParameterValue toggleWith = null)
+            => WrapInLayout(() => param.Value = EditorGUILayout.Slider((float)param.Value, min, max), param, toggleWith);
+        public void Vector2Field(ParameterValue param, ParameterValue toggleWith = null)
+            => WrapInLayout(() => param.Value = EditorGUILayout.Vector2Field("", (Vector2)param.Value), param, toggleWith);
 
-        public void Vector3Field(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null) 
-            => WrapInLayout(() => param.Value = EditorGUILayout.Vector3Field("", (Vector3)param.Value), param, condition, toggleWith);
+        public void Vector3Field(ParameterValue param, ParameterValue toggleWith = null) 
+            => WrapInLayout(() => param.Value = EditorGUILayout.Vector3Field("", (Vector3)param.Value), param, toggleWith);
     
-        public void Vector4Field(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.Vector4Field("", (Vector4)param.Value), param, condition, toggleWith);
-        public void EnumField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.EnumPopup((Enum)param.Value), param, condition, toggleWith);
+        public void Vector4Field(ParameterValue param, ParameterValue toggleWith = null)
+            => WrapInLayout(() => param.Value = EditorGUILayout.Vector4Field("", (Vector4)param.Value), param, toggleWith);
+        public void EnumField(ParameterValue param, ParameterValue toggleWith = null)
+            => WrapInLayout(() => param.Value = EditorGUILayout.EnumPopup((Enum)param.Value), param, toggleWith);
 
-        public void EmptyField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
-            => WrapInLayout(null, param, condition, toggleWith);
+        public void EmptyField(ParameterValue param, ParameterValue toggleWith = null)
+            => WrapInLayout(null, param, toggleWith);
 
-        public void StringListField(ParameterValue param, string[] stringValues, Func<bool> condition = null, ParameterValue toggleWith = null)
+        public void StringListField(ParameterValue param, string[] stringValues, ParameterValue toggleWith = null)
         {
-            if (condition != null && condition() == false) return;
+            if (param.Condition != null && param.Condition() == false) return;
             var stringIndex = stringValues.IndexOf(param.Value ?? "None");
             ShowParameterOptions(param);
 
@@ -332,9 +330,9 @@ namespace NaninovelSceneAssistant
         }
 
 
-        public void TypeListField<T>(ParameterValue param, Dictionary<string, T> values, Func<bool> condition = null, ParameterValue toggleWith = null)
+        public void TypeListField<T>(ParameterValue param, Dictionary<string, T> values, ParameterValue toggleWith = null)
         {
-            if (condition != null && condition() == false) return;
+            if (param.Condition != null && param.Condition() == false) return;
 
             var stringIndex = Array.IndexOf(values.Values.ToArray(), param.Value ?? values["None"]);
             ShowParameterOptions(param);
@@ -348,9 +346,9 @@ namespace NaninovelSceneAssistant
         }
 
 
-        public void PosField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
+        public void PosField(ParameterValue param, ParameterValue toggleWith = null)
         {
-            if (condition != null && condition() == false) return;
+            if (param.Condition != null && param.Condition() == false) return;
             var cameraConfiguration = Engine.GetConfiguration<CameraConfiguration>();
             ShowParameterOptions(param);
             var position = cameraConfiguration.WorldToSceneSpace((Vector3)param.Value);
@@ -389,9 +387,9 @@ namespace NaninovelSceneAssistant
             EditorGUILayout.EndHorizontal();
         }
 
-        public void WrapInLayout(Action layoutField, ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null)
+        public void WrapInLayout(Action layoutField, ParameterValue param, ParameterValue toggleWith = null)
         {
-            if (condition != null && condition() == false) return;
+            if (param.Condition != null && param.Condition() == false) return;
             ShowParameterOptions(param);
             EditorGUI.BeginDisabledGroup(!param.Selected);
             if(layoutField != null) layoutField();

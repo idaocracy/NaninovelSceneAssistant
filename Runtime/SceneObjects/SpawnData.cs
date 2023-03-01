@@ -37,11 +37,15 @@ namespace NaninovelSceneAssistant
 
             if (IsTransformable)
             {
-                for (int i = 0; i <= 2; i++) tempString = tempString + tempParams[i].Name.ToLower() + ":" + tempParams[i].Value + " ";
+                for (int i = 0; i <= 2; i++)
+                {
+                    if (!tempParams[i].Selected || tempParams[i].Condition == null || !tempParams[i].Condition())
+                    tempString = tempString + tempParams[i].Name.ToLower() + ":" + tempParams[i].Value + " ";
+                }
                 tempParams.RemoveRange(0, 3);
             }
 
-            var paramsString = string.Join(",", tempParams.Select(p => p.GetCommandValue().ToString() ?? string.Empty));
+            var paramsString = string.Join(",", tempParams.Where(p => p.Condition != null || p.Condition() || p.IsParameter).Select(p => p.GetCommandValue().ToString() ?? string.Empty));
 
             if (paramsOnly) return paramsString;
             var commandString = CommandNameAndId + " params:" + paramsString; 
@@ -81,7 +85,7 @@ namespace NaninovelSceneAssistant
 
             if (spawnSceneAssistant?.GetParams() != null)
             {
-                Params.Add(new ParameterValue("Params", () => string.Join(",", spawnSceneAssistant.GetParams().Select(p => p.GetCommandValue()).ToList()), v => { }, (i,p) => i.EmptyField(p)));
+                Params.Add(new ParameterValue("Params", () => string.Join(",", spawnSceneAssistant.GetParams().Where(p => p.Condition == null || p.Condition()).Select(p => p.GetCommandValue()).ToList()), v => { }, (i,p) => i.EmptyField(p)));
                 Params = Params.Concat(spawnSceneAssistant.GetParams()).ToList();
             }
         }

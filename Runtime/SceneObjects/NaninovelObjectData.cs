@@ -45,7 +45,7 @@ namespace NaninovelSceneAssistant {
             }
 
             var paramString = string.Join(" ", Params.Where(p => p.GetCommandValue() != null
-                && p.Selected && p.IsParameter).Select(p => p.Name.ToLower() + ":" + p.GetCommandValue()));
+                && p.Selected && p.IsParameter && (p.Condition == null || p.Condition() == true)).Select(p => p.Name.ToLower() + ":" + p.GetCommandValue()));
 
             if (paramsOnly) return paramString;
 
@@ -83,27 +83,30 @@ namespace NaninovelSceneAssistant {
         //True if a command parameter matches the name of this instance (e.g position, rotation, etc),
         //set to false if the parameter is part of a list (e.g all the values within params with the exception of the one called Params)
         public bool IsParameter { get; }
-        private object DefaultValue { get; }
+        private object defaultValue { get; }
+
+        public Func<bool> Condition;
         public Action<ISceneAssistantLayout, ParameterValue> OnLayout { get; private set; }
 
         private Func<object> getValue;
         private Action<object> setValue;
 
 
-        public ParameterValue(string id, Func<object> getValue, Action<object> setValue, Action<ISceneAssistantLayout, ParameterValue> onLayout, bool isParameter = true, object defaultValue = null)
+        public ParameterValue(string id, Func<object> getValue, Action<object> setValue, Action<ISceneAssistantLayout, ParameterValue> onLayout, bool isParameter = true, object defaultValue = null, Func<bool> condition = null)
         {
             this.Name = id;
             this.getValue = getValue;
             this.setValue = setValue;
             this.OnLayout = onLayout;
             this.IsParameter = isParameter;
-            this.DefaultValue = defaultValue;
+            this.defaultValue = defaultValue;
+            this.Condition = condition;
         }
 
         public string GetCommandValue() => FormatValue(Value);
         public object GetDefaultValue()
         {
-            if (DefaultValue != null) return DefaultValue;
+            if (defaultValue != null) return defaultValue;
             else
             {
                 var value = Value.GetType();
