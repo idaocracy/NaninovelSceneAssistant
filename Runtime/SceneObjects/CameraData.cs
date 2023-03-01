@@ -26,21 +26,13 @@ namespace NaninovelSceneAssistant
 
         private void AddCameraComponentParams()
         {
-            Params.Add(new ParameterValue("Toggle", () => GetNamedValues(), null, (i, p) => i.EmptyField(p)));
+            Params.Add(new ParameterValue("Toggle", () => CameraComponents.ToDictionary(c => c.GetType().Name, e => e.enabled.ToString().ToLower()), null, (i, p) => i.EmptyField(p)));
 
             foreach (var component in CameraComponents)
             {
                 Params.Add(new ParameterValue(component.GetType().Name, 
                     () => component.enabled, v => component.enabled = (bool)v, (l, p) => l.BoolField(p), isParameter:false));
             }
-
-        }
-
-        private Dictionary<string,string> GetNamedValues() 
-        {
-            var namedBools = new Dictionary<string, string>();
-            foreach (var component in CameraComponents) namedBools.Add(component.GetType().Name, component.enabled.ToString().ToLower());
-            return namedBools;
         }
 
     }

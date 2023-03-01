@@ -170,6 +170,11 @@ namespace NaninovelSceneAssistant
         {
             throw new NotImplementedException();
         }
+
+        public void TypeListField<T>(ParameterValue param, Dictionary<string, T> values, Func<bool> condition = null, ParameterValue toggleWith = null)
+        {
+            throw new NotImplementedException();
+        }
     }
 
 

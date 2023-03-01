@@ -11,7 +11,7 @@ namespace NaninovelSceneAssistant {
     {
         void StringField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null);
         void StringListField(ParameterValue param, string[] stringValues, Func<bool> condition = null, ParameterValue toggleWith = null);
-        void TypeListField<T>(ParameterValue param, string[] stringValues, T[] typeValues, Func<bool> condition = null, ParameterValue toggleWith = null);
+        void TypeListField<T>(ParameterValue param, Dictionary<string, T> values, Func<bool> condition = null, ParameterValue toggleWith = null);
         void BoolField(ParameterValue param, Func<bool> condition = null, ParameterValue toggleWith = null);
         void IntField(ParameterValue param, int? minValue, int? maxValue, Func<bool> condition = null, ParameterValue toggleWith = null);
         void FloatField(ParameterValue param, float? minValue = null, float? maxValue = null, Func<bool> condition = null, ParameterValue toggleWith = null);

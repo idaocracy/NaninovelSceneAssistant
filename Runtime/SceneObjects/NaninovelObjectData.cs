@@ -77,8 +77,7 @@ namespace NaninovelSceneAssistant {
     {
         public string Name { get; }
 
-        //todo find out why an exception is thrown on applying default values
-        public object Value { get => getValue(); set => setValue(value); }
+        public object Value { get => getValue() ?? null; set { if (getValue() != null) setValue(value); } }
         public bool Selected { get; set; } = true;
 
         //True if a command parameter matches the name of this instance (e.g position, rotation, etc),
@@ -89,6 +88,7 @@ namespace NaninovelSceneAssistant {
 
         private Func<object> getValue;
         private Action<object> setValue;
+
 
         public ParameterValue(string id, Func<object> getValue, Action<object> setValue, Action<ISceneAssistantLayout, ParameterValue> onLayout, bool isParameter = true, object defaultValue = null)
         {
@@ -103,8 +103,7 @@ namespace NaninovelSceneAssistant {
         public string GetCommandValue() => FormatValue(Value);
         public object GetDefaultValue()
         {
-            if (setValue == null || getValue == null) return default;
-            else if (DefaultValue != null) return DefaultValue;
+            if (DefaultValue != null) return DefaultValue;
             else
             {
                 var value = Value.GetType();
@@ -130,17 +129,41 @@ namespace NaninovelSceneAssistant {
             else return value?.ToString();
         }
 
-        private static bool ValueIsDictionary(object value, out string namedList)
+        private static bool ValueIsDictionary(object value, out string result)
         {
-            namedList = string.Empty;
+            result = string.Empty;
 
-            if(value is Dictionary<string, string> namedValues){
-                var namedStrings = new List<string>();
-                foreach (var item in namedValues) namedStrings.Add(item.Key + "." + item.Value);
-                namedList = string.Join(",", namedStrings);
+            if (IsDictionary(out result)) return true; 
+            else if(IsList(out result)) return true;
+            else return false;
+
+            bool IsDictionary(out string namedValues)
+            {
+                namedValues = string.Empty;
+
+                if (value != null && value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))
+                {
+                    var namedList = value as Dictionary<string, string>;
+                    var namedStrings = new List<string>();
+                    foreach(var item in namedList) namedStrings.Add(item.Key.ToString() + "." + FormatValue(item.Value));
+                    namedValues = string.Join(",", namedStrings);
+                }
+                
+                return !string.IsNullOrEmpty(namedValues);
             }
 
-            return !string.IsNullOrEmpty(namedList);
+            bool IsList(out string values)
+            {
+                values = string.Empty;
+
+                if (value != null && value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    values = string.Join(",", value as List<string>);
+                }
+
+                return !string.IsNullOrEmpty(values);
+            }
+
         }
     }
 

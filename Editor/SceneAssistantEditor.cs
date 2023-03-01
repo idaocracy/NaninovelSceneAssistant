@@ -56,7 +56,13 @@ namespace NaninovelSceneAssistant
             scriptPlayer = Engine.GetService<IScriptPlayer>();
             stateManager = Engine.GetService<StateManager>();
             sceneAssistantManager.InitializeSceneAssistant();
-            sceneAssistantManager.OnSceneAssistantReset += () => objectIndex = 0;
+            sceneAssistantManager.OnSceneAssistantReset += HandleReset;
+        }
+
+        private static void HandleReset()
+        {
+            if (sceneAssistantManager.ObjectList.Count >= objectIndex) return;
+            else objectIndex = 0; 
         }
 
         public void OnGUI()
@@ -326,19 +332,19 @@ namespace NaninovelSceneAssistant
         }
 
 
-        public void TypeListField<T>(ParameterValue param, string[] stringValues, T[] typeValues, Func<bool> condition = null, ParameterValue toggleWith = null)
+        public void TypeListField<T>(ParameterValue param, Dictionary<string, T> values, Func<bool> condition = null, ParameterValue toggleWith = null)
         {
             if (condition != null && condition() == false) return;
-            var stringIndex = stringValues.IndexOf(param.Value ?? "None");
+
+            var stringIndex = Array.IndexOf(values.Values.ToArray(), param.Value ?? values["None"]);
             ShowParameterOptions(param);
 
             EditorGUI.BeginDisabledGroup(!param.Selected);
-            stringIndex = EditorGUILayout.Popup(stringIndex, stringValues);
+            stringIndex = EditorGUILayout.Popup(stringIndex, values.Keys.ToArray());
             if (toggleWith != null && param.Selected == toggleWith.Selected == true) toggleWith.Selected = false;
             EditorGUI.EndDisabledGroup();
 
-            if (stringIndex > 0) param.Value = typeValues[stringIndex - 1];
-            else param.Value = null;
+            param.Value = (T)values.FirstOrDefault(s => s.Key == values.Keys.ToArray()[stringIndex]).Value;
         }
 
 
