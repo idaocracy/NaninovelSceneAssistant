@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using Naninovel;
 using System.Linq;
+using Naninovel.Metadata;
+using UnityEngine.UIElements;
+using Naninovel.Commands;
 
 namespace NaninovelSceneAssistant
 {
@@ -16,11 +19,13 @@ namespace NaninovelSceneAssistant
 
         protected SpawnedObject Spawned { get => Engine.GetService<SpawnManager>().GetSpawned(Id); }
         public override string Id => id;
+        public static string TypeId => "Spawn";
         protected Transform Transform => Spawned.Transform; 
         public override GameObject GameObject => Spawned.GameObject; 
         protected ISceneAssistantSpawn spawnSceneAssistant => GameObject.GetComponent<ISceneAssistantSpawn>() ?? null; 
         protected override string CommandNameAndId => "spawn " + Id;
         protected bool IsTransformable => spawnSceneAssistant?.IsTransformable ?? true;
+        protected CameraConfiguration CameraConfiguration { get => Engine.GetConfiguration<CameraConfiguration>(); }
 
         private string id;
 
@@ -37,19 +42,19 @@ namespace NaninovelSceneAssistant
 
             if (IsTransformable)
             {
-                for (int i = 0; i <= 2; i++)
+                for (int i = 0; i <= 3; i++)
                 {
-                    if (!tempParams[i].Selected || tempParams[i].Condition == null || !tempParams[i].Condition())
-                    tempString = tempString + tempParams[i].Name.ToLower() + ":" + tempParams[i].Value + " ";
+                    if (!tempParams[i].Selected) continue;
+                    tempString = tempString + tempParams[i].Name.ToLower() + ":" + tempParams[i].GetCommandValue() + " ";
                 }
-                tempParams.RemoveRange(0, 3);
+                tempParams.RemoveRange(0, 4);
             }
 
-            var paramsString = string.Join(",", tempParams.Where(p => p.Condition != null || p.Condition() || p.IsParameter).Select(p => p.GetCommandValue().ToString() ?? string.Empty));
+            var paramsString = string.Join(",", tempParams.Where(p => p.GetCommandValue() != null).Select(p => p.GetCommandValue() ?? string.Empty));
 
             if (paramsOnly) return paramsString;
-            var commandString = CommandNameAndId + " params:" + paramsString; 
 
+            var commandString = CommandNameAndId + " " + tempString + " params:" + paramsString;
             return inlined ? "[" + commandString + "]" : "@" + commandString;
         }
 
@@ -74,7 +79,11 @@ namespace NaninovelSceneAssistant
 
         protected void AddTransformParams()
         {
-            Params.Add(new ParameterValue("Position", () => Transform.localPosition, v => Transform.localPosition = (Vector3)v, (i,p) => i.Vector3Field(p)));
+            ParameterValue pos = null;
+            ParameterValue position;
+
+            Params.Add(position = new ParameterValue("Position", () => Transform.localPosition, v => Transform.localPosition = (Vector3)v, (i, p) =>  i.Vector3Field(p, toggleWith: pos)));
+            Params.Add(pos = new ParameterValue("Pos", () => Transform.localPosition, v => Transform.localPosition = (Vector3)v, (i, p) => i.PosField(p, CameraConfiguration, toggleWith: position)));
             Params.Add(new ParameterValue("Rotation", () => Transform.localRotation.eulerAngles, v => Transform.localRotation = Quaternion.Euler((Vector3)v), (i,p) => i.Vector3Field(p)));
             Params.Add(new ParameterValue("Scale", () => Transform.localScale, v => Transform.localScale = (Vector3)v, (i, p) => i.Vector3Field(p)));
         }
@@ -85,7 +94,7 @@ namespace NaninovelSceneAssistant
 
             if (spawnSceneAssistant?.GetParams() != null)
             {
-                Params.Add(new ParameterValue("Params", () => string.Join(",", spawnSceneAssistant.GetParams().Where(p => p.Condition == null || p.Condition()).Select(p => p.GetCommandValue()).ToList()), v => { }, (i,p) => i.EmptyField(p)));
+                Params.Add(new ParameterValue("Params", () => string.Join(",", spawnSceneAssistant.GetParams().Where(p => p.Condition == null || p.Condition()).Select(p => p.GetFormattedValue()).ToList()), v => { }, (i,p) => i.EmptyField(p)));
                 Params = Params.Concat(spawnSceneAssistant.GetParams()).ToList();
             }
         }

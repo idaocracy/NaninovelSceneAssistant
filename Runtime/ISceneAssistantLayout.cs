@@ -22,7 +22,7 @@ namespace NaninovelSceneAssistant {
         void Vector2Field(ParameterValue param,  ParameterValue toggleWith = null);
         void Vector3Field(ParameterValue param,  ParameterValue toggleWith = null);
         void Vector4Field(ParameterValue param,  ParameterValue toggleWith = null);
-        void PosField(ParameterValue param,  ParameterValue toggleWith = null);
+        void PosField(ParameterValue param, CameraConfiguration cameraConfiguration, ParameterValue toggleWith = null);
         void EmptyField(ParameterValue param,  ParameterValue toggleWith = null);
         void VariableField(VariableValue var);
         void UnlockableField(UnlockableValue unlockable);

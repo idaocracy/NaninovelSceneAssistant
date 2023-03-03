@@ -19,18 +19,19 @@ namespace NaninovelSceneAssistant
         {
             this.id = id;
             Initialize();
-            AddVars();
+            AddActorVariables();
         }
-
         public override string Id => id;
         protected TActor Actor => (TActor)EngineService.GetActor(Id); 
         protected TMeta Metadata => Config.GetMetadataOrDefault(Id); 
         protected TConfig Config  => Engine.GetConfiguration<TConfig>(); 
         public override GameObject GameObject => GetGameObject();
+        protected CameraConfiguration CameraConfiguration { get => Engine.GetConfiguration<CameraConfiguration>(); }
+
 
         private string id;
 
-        async UniTask<List<string>> GetAppearanceList()
+        private async UniTask<List<string>> GetAppearanceList()
         {
             var resourceProviderManager = Engine.GetService<IResourceProviderManager>();
             var appearanceList = new List<string>();
@@ -51,17 +52,17 @@ namespace NaninovelSceneAssistant
 
         protected string GetDefaultAppearance()
         {
-            var texturePaths = GetAppearanceList().Result;
+            var appearancePaths = GetAppearanceList().Result;
 
-            if (texturePaths != null && texturePaths.Count > 0)
+            if (appearancePaths != null && appearancePaths.Count > 0)
             {
-                if (texturePaths.Any(t => t.EqualsFast(Id))) return texturePaths.First(t => t.EqualsFast(Id));
-                if (texturePaths.Any(t => t.EqualsFast("Default"))) return texturePaths.First(t => t.EqualsFast("Default"));
+                if (appearancePaths.Any(t => t.EqualsFast(Id))) return appearancePaths.First(t => t.EqualsFast(Id));
+                if (appearancePaths.Any(t => t.EqualsFast("Default"))) return appearancePaths.First(t => t.EqualsFast("Default"));
             }
-            return texturePaths.FirstOrDefault();
+            return appearancePaths.FirstOrDefault();
         }
 
-        protected virtual void AddBaseParams(bool includeAppearance = true, bool includeColor = true, bool includeTransform = true)  
+        protected virtual void AddBaseParameters(bool includeAppearance = true, bool includeTint = true, bool includeTransform = true, bool includeZPos = true)  
         {
             if (includeAppearance)
             {
@@ -75,18 +76,19 @@ namespace NaninovelSceneAssistant
                 ParameterValue pos = null;
                 ParameterValue position = null;
 
-                Params.Add(position = new ParameterValue("Position", () => Actor.Position, v => Actor.Position = (Vector3)v, (i,p) => i.Vector3Field(p, toggleWith:pos)));
-                Params.Add(pos = new ParameterValue("Pos", () => Actor.Position, v => Actor.Position = (Vector3)v, (i, p) => i.PosField(p, toggleWith: position)));
+                //todo use Vector 2 values for printers
+                Params.Add(position = new ParameterValue("Position", () => Actor.Position, v => Actor.Position = (Vector3)v, (i, p) => { if (includeZPos) i.Vector3Field(p, toggleWith: pos); else i.Vector2Field(p, toggleWith: pos);}));
+                Params.Add(pos = new ParameterValue("Pos", () => Actor.Position, v => Actor.Position = (Vector3)v, (i, p) => { if (includeZPos) i.PosField(p, CameraConfiguration, toggleWith: position); else i.Vector2Field(p, toggleWith: position); }));
                 Params.Add(new ParameterValue("Rotation", () => Actor.Rotation.eulerAngles, v => Actor.Rotation = Quaternion.Euler((Vector3)v), (i, p) => i.Vector3Field(p)));
                 Params.Add(new ParameterValue("Scale", () => Actor.Scale, v => Actor.Scale = (Vector3)v, (i, p) => i.Vector3Field(p), defaultValue: Vector3.one));
             }
 
-            if (includeColor) Params.Add(new ParameterValue("Tint", () => Actor.TintColor, v => Actor.TintColor = (Color)v, (i, p) => i.ColorField(p), defaultValue: Color.white));
+            if (includeTint) Params.Add(new ParameterValue("Tint", () => Actor.TintColor, v => Actor.TintColor = (Color)v, (i, p) => i.ColorField(p), defaultValue: Color.white));
         }
 
-        protected virtual void AddVars()
+        protected virtual void AddActorVariables()
         {
-            foreach(var variable in customVariableManager.GetAllVariables())
+            foreach(var variable in Engine.GetService<ICustomVariableManager>().GetAllVariables())
             {
                 if (variable.Name.Contains(Id))
                 {
@@ -96,14 +98,14 @@ namespace NaninovelSceneAssistant
         }
     }
 
-
     public class CharacterData : ActorData<CharacterManager, ICharacterActor, CharacterMetadata, CharactersConfiguration>
     {
         public CharacterData(string id) : base(id) { }
+        public static string TypeId => "Character";
         protected override string CommandNameAndId => "char " + Id;
         protected override void AddParams()
         {
-            AddBaseParams();
+            AddBaseParameters();
             Params.Add(new ParameterValue("Look", () => Actor.LookDirection, v => Actor.LookDirection = (CharacterLookDirection)v, (i, p) => i.EnumField(p)));
         }
     }
@@ -111,32 +113,37 @@ namespace NaninovelSceneAssistant
     public class BackgroundData : ActorData<BackgroundManager, IBackgroundActor, BackgroundMetadata, BackgroundsConfiguration>
     {
         public BackgroundData(string id) : base(id) { }
+        public static string TypeId => "Background";
         protected override string CommandNameAndId => "back " + "id:" + Id;
         protected override void AddParams()
         {
-            AddBaseParams();
+            AddBaseParameters();
         }
     }
 
     public class TextPrinterData : ActorData<TextPrinterManager, ITextPrinterActor, TextPrinterMetadata, TextPrintersConfiguration>
     {
         public TextPrinterData(string id) : base(id) { }
+        public static string TypeId => "Text Printer";
         protected override string CommandNameAndId => "printer " + Id;
         protected override void AddParams()
         {
-            AddBaseParams();
+            AddBaseParameters(includeZPos:false);
         }
     }
 
     public class ChoiceHandlerData : ActorData<ChoiceHandlerManager, IChoiceHandlerActor, ChoiceHandlerMetadata, ChoiceHandlersConfiguration>
     {
         public ChoiceHandlerData(string id) : base(id) { }
-        protected override string CommandNameAndId => "choice ";
+        public static string TypeId => "ChoiceHandler";
+        protected override string CommandNameAndId => "choice";
+        protected List<ChoiceHandlerButton> ChoiceHandlerButtons => GameObject.GetComponentsInChildren<ChoiceHandlerButton>().ToList();
+
         protected override void AddParams()
         {
-            foreach(var choice in GameObject.GetComponentsInChildren<ChoiceHandlerButton>())
+            foreach(var choice in ChoiceHandlerButtons)
             {
-                Params.Add(new ParameterValue(choice.ChoiceState.Summary, () => (Vector2)choice.transform.localPosition, v => choice.transform.localPosition = (Vector2)v, (i, p) => i.Vector2Field(p)));
+                Params.Add(new ParameterValue(choice.ChoiceState.Summary + " pos", () => (Vector2)choice.transform.localPosition, v => choice.transform.localPosition = (Vector2)v, (i, p) => i.Vector2Field(p)));
             }
         }
     }

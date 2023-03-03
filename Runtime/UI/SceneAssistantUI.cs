@@ -175,6 +175,11 @@ namespace NaninovelSceneAssistant
         {
             throw new NotImplementedException();
         }
+
+        public void PosField(ParameterValue param, CameraConfiguration cameraConfiguration, ParameterValue toggleWith = null)
+        {
+            throw new NotImplementedException();
+        }
     }
 
 
