@@ -11,9 +11,7 @@ namespace NaninovelSceneAssistant
         public abstract bool IsTransformable { get; }
         public virtual string CommandId => GetType().Name;
         public abstract List<ParameterValue> GetParams();
-
     }
-
 
 #if UNITY_EDITOR
 
@@ -21,8 +19,8 @@ namespace NaninovelSceneAssistant
     public abstract class SpawnObjectEditor : Editor
     {
         protected SceneAssistantSpawnObject spawnObject;
-        private bool logResult;
-        private bool showDefaultValues;
+        private static bool logResult;
+        private static bool showDefaultValues;
         protected ISceneAssistantSpawn sceneAssistant;
         private SceneAssistantManager sceneAssistantManager;
         private SpawnData spawnData;
@@ -92,7 +90,6 @@ namespace NaninovelSceneAssistant
                 if (logResult) Debug.Log(spawnString);
             }
         }
-
     }
 
 #endif

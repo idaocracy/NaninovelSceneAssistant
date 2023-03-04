@@ -1,11 +1,8 @@
 ﻿using Naninovel;
 using UnityEngine;
-using UnityEditor;
 using Naninovel.UI;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using Codice.CM.SEIDInfo;
 
 namespace NaninovelSceneAssistant
 {
