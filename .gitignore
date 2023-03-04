@@ -73,3 +73,5 @@ crashlytics-build.properties
 
 # UI folder while it's being worked on
 /Runtime/UI/
+
+git rm --cached /Runtime/UI/
