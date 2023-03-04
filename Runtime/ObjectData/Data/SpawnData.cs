@@ -104,6 +104,7 @@ namespace NaninovelSceneAssistant
     public interface ISceneAssistantSpawn : ISceneAssistantObject
     {
         bool IsTransformable { get; }
+        string SpawnId { get; }
     }
 
     public interface ISceneAssistantObject
