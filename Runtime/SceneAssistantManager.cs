@@ -10,7 +10,6 @@ namespace NaninovelSceneAssistant
     [InitializeAtRuntime]
     public class SceneAssistantManager : IEngineService
     {
-        public virtual SceneAssistantConfiguration Configuration { get; }
         private ISpawnManager spawnManager;
         private IScriptPlayer scriptPlayer;
         private IScriptManager scriptManager;
@@ -28,10 +27,9 @@ namespace NaninovelSceneAssistant
 
         public bool Initialised { get; protected set; } = false;
 
-        public SceneAssistantManager(SceneAssistantConfiguration config, ISpawnManager spawnManager, IScriptPlayer scriptPlayer, ICustomVariableManager variableManager, IUnlockableManager unlockableManager,
+        public SceneAssistantManager(ISpawnManager spawnManager, IScriptPlayer scriptPlayer, ICustomVariableManager variableManager, IUnlockableManager unlockableManager,
                 IStateManager stateManager, IScriptManager scriptManager)
         {
-            Configuration = config;
             this.spawnManager = spawnManager;
             this.scriptPlayer = scriptPlayer;
             this.variableManager = variableManager;
