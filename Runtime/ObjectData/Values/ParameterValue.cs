@@ -21,7 +21,6 @@ public class ParameterValue
     private Action<object> setValue;
     private object defaultValue;
 
-
     public ParameterValue(string id, Func<object> getValue, Action<object> setValue, Action<ISceneAssistantLayout, ParameterValue> onLayout, bool isParameter = true, object defaultValue = null, Func<bool> condition = null)
     {
         this.Name = id;
@@ -52,12 +51,13 @@ public class ParameterValue
 
     public void DisplayField(ISceneAssistantLayout layout) => OnLayout(layout, this);
 
+    public static string GetFormattedName(string name) => char.ToLower(name[0]) + name.Substring(1);
+
     public string GetFormattedValue()
     {
         if (Name == "Pos") return GetPosValue();
         else if (Value is Vector2 || Value is Vector3 || Value is Vector4) return Value.ToString().Replace(" ", "").Replace("(", "").Replace(")", "");
         else if (Value is Quaternion quaternion) return quaternion.eulerAngles.ToString("0.##").Replace(" ", "").Replace("(", "").Replace(")", "");
-        //else if (value is Vector3 vector && OnLayout == )
         else if (Value is bool) return Value.ToString().ToLower();
         else if (Value is Color color) return "#" + ColorUtility.ToHtmlStringRGBA(color);
         else if (ValueIsDictionary(Value, out var namedList)) return namedList;
@@ -75,8 +75,6 @@ public class ParameterValue
 
     private bool ValueIsDictionary(object value, out string result)
     {
-        result = string.Empty;
-
         if (IsDictionary(out result)) return true;
         else if (IsList(out result)) return true;
         else return false;

@@ -180,6 +180,16 @@ namespace NaninovelSceneAssistant
         {
             throw new NotImplementedException();
         }
+
+        public void Vector3Field(ParameterValue param, bool ignoreZPos = false, ParameterValue toggleWith = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void PosField(ParameterValue param, CameraConfiguration cameraConfiguration, bool includeZPos = true, ParameterValue toggleWith = null)
+        {
+            throw new NotImplementedException();
+        }
     }
 
 

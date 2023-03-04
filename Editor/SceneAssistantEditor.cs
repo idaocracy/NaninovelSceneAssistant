@@ -1,11 +1,11 @@
 ﻿using Naninovel;
+using Naninovel.Commands;
 using Naninovel.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using static Naninovel.FountainConverter;
 
 namespace NaninovelSceneAssistant
 {
@@ -13,7 +13,7 @@ namespace NaninovelSceneAssistant
     {
         private static SceneAssistantEditor sceneAssistantEditor;
         private ISceneAssistantLayout sceneAssistantLayout { get => this; }
-        public string[] Tabs { get; protected set; } = new string[] { "Objects", "Custom Variables", "Unlockables", "Scripts" };
+        public string[] Tabs { get; protected set; } = new string[] { "Objects", "Variables", "Unlockables", "Scripts", "Debug" };
         protected INaninovelObjectData CurrentObject => sceneAssistantManager.ObjectList.Values.ToArray()[objectIndex];
         protected static string ClipboardString { get => clipboardString; set { clipboardString = value; EditorGUIUtility.systemCopyBuffer = value; if (logResults) Debug.Log(value); } }
 
@@ -27,6 +27,7 @@ namespace NaninovelSceneAssistant
         private static Vector2 scrollPos;
         private static float textAreaHeight;
         private static bool logResults;
+        private static PlaybackSpot currentPrintSpot;
 
         [MenuItem("Naninovel/New Scene Assistant", false, 360)]
         public static void ShowWindow() {
@@ -64,6 +65,7 @@ namespace NaninovelSceneAssistant
 
         private static void HandleCommandExecuted(Command command)
         {
+            if (command is PrintText printText) currentPrintSpot = printText.PlaybackSpot;
             if (sceneAssistantEditor != null) sceneAssistantEditor.Repaint();
         }
 
@@ -96,7 +98,10 @@ namespace NaninovelSceneAssistant
                     DrawUnlockables(sceneAssistant.UnlockablesList, layout);
                     break;
                 case 3:
-                    DrawScripts(sceneAssistant.ScriptsList, layout);
+                    DrawScripts(sceneAssistant.ScriptsList);
+                    break;
+                case 4:
+                    DrawDebug();
                     break;
             }
 
@@ -260,7 +265,7 @@ namespace NaninovelSceneAssistant
             EditorGUILayout.EndScrollView();
         }
 
-        protected virtual void DrawScripts(IReadOnlyCollection<string> scripts, ISceneAssistantLayout layout)
+        protected virtual void DrawScripts(IReadOnlyCollection<string> scripts)
         {
             if (scripts == null) return;
             GUILayout.Space(5);
@@ -306,6 +311,14 @@ namespace NaninovelSceneAssistant
         //{
         //    if(sceneAssistantManager?.ObjectList?.Count > 0) sceneAssistantManager.DestroySceneAssistant();
         //}
+
+        protected virtual void DrawDebug()
+        {
+            //todo optimize this list
+            EditorGUILayout.LabelField($"Current script: {scriptPlayer.PlayedScript.Name}");
+            EditorGUILayout.LabelField($"Current line number & inline index: {currentPrintSpot.LineNumber}.{currentPrintSpot.InlineIndex}");
+            EditorGUILayout.LabelField($"Currently loaded actors: {string.Join(",", Engine.FindAllServices<IActorManager>().Select(e => e.GetAllActors().ToList().Select(a => a.Id).ToList()))}");
+        }
 
         public void BoolField(ParameterValue param, ParameterValue toggleWith = null)
             => WrapInLayout(() => param.Value = EditorGUILayout.Toggle((bool)param.Value), param, toggleWith);
@@ -353,8 +366,8 @@ namespace NaninovelSceneAssistant
         public void Vector2Field(ParameterValue param, ParameterValue toggleWith = null)
             => WrapInLayout(() => param.Value = EditorGUILayout.Vector2Field("", (Vector2)param.Value), param, toggleWith);
 
-        public void Vector3Field(ParameterValue param, ParameterValue toggleWith = null) 
-            => WrapInLayout(() => param.Value = EditorGUILayout.Vector3Field("", (Vector3)param.Value), param, toggleWith);
+        public void Vector3Field(ParameterValue param, bool includeZPos = true, ParameterValue toggleWith = null) 
+            => WrapInLayout(() => { if (includeZPos) param.Value = EditorGUILayout.Vector3Field("", (Vector3)param.Value); else param.Value = (Vector3)EditorGUILayout.Vector2Field("", (Vector3)param.Value); }, param, toggleWith);
     
         public void Vector4Field(ParameterValue param, ParameterValue toggleWith = null)
             => WrapInLayout(() => param.Value = EditorGUILayout.Vector4Field("", (Vector4)param.Value), param, toggleWith);
@@ -394,7 +407,7 @@ namespace NaninovelSceneAssistant
         }
 
 
-        public void PosField(ParameterValue param, CameraConfiguration cameraConfiguration, ParameterValue toggleWith = null)
+        public void PosField(ParameterValue param, CameraConfiguration cameraConfiguration, bool includeZPos = true, ParameterValue toggleWith = null)
         {
             if (param.Condition != null && param.Condition() == false) return;
             DrawValueInfo(param);
@@ -404,8 +417,9 @@ namespace NaninovelSceneAssistant
 
             EditorGUI.BeginDisabledGroup(!param.Selected);
 
-            position = EditorGUILayout.Vector3Field("", position);
-            if(toggleWith != null && param.Selected == toggleWith.Selected == true) toggleWith.Selected = false;
+            if(includeZPos) position = EditorGUILayout.Vector3Field("", position);
+            else position = EditorGUILayout.Vector2Field("", position);
+            if (toggleWith != null && param.Selected == toggleWith.Selected == true) toggleWith.Selected = false;
 
             EditorGUI.EndDisabledGroup();
             
@@ -470,6 +484,11 @@ namespace NaninovelSceneAssistant
                 GUILayout.Space(25f);
                 GUILayout.Label(param.Name, new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter}, GUILayout.Width(150));
             }
+        }
+
+        public void Vector3Field(ParameterValue param, ParameterValue toggleWith = null)
+        {
+            throw new NotImplementedException();
         }
     }
 

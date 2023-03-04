@@ -6,6 +6,7 @@ using System.Linq;
 using Naninovel.Metadata;
 using UnityEngine.UIElements;
 using Naninovel.Commands;
+using Naninovel.Parsing;
 
 namespace NaninovelSceneAssistant
 {
@@ -42,19 +43,22 @@ namespace NaninovelSceneAssistant
 
             if (IsTransformable)
             {
-                for (int i = 0; i <= 3; i++)
+                foreach (var parameter in tempParams)
                 {
-                    if (!tempParams[i].Selected) continue;
-                    tempString = tempString + tempParams[i].Name.ToLower() + ":" + tempParams[i].GetCommandValue() + " ";
+                    if(parameter.Name == "Position" || parameter.Name == "Pos" || parameter.Name == "Rotation" || parameter.Name == "Scale")
+                    {
+                        if (!parameter.Selected) continue;
+                        tempString = tempString + ParameterValue.GetFormattedName(parameter.Name) + ":" + parameter.GetCommandValue() + " ";
+                        tempParams.Remove(parameter);
+                    }
                 }
-                tempParams.RemoveRange(0, 4);
             }
 
             var paramsString = string.Join(",", tempParams.Where(p => p.GetCommandValue() != null).Select(p => p.GetCommandValue() ?? string.Empty));
 
             if (paramsOnly) return paramsString;
 
-            var commandString = CommandNameAndId + " " + tempString + " params:" + paramsString;
+            var commandString = CommandNameAndId + " " + tempString + "params:" + paramsString;
             return inlined ? "[" + commandString + "]" : "@" + commandString;
         }
 
@@ -66,12 +70,9 @@ namespace NaninovelSceneAssistant
                 return null;
             }
 
-            var paramString = string.Join(" ", Params.Where(p => p.GetCommandValue() != null
-                && p.Selected && p.IsParameter).Select(p => p.Name.ToLower() + ":" + p.GetCommandValue()));
-
+            var paramString = string.Join(" ", Params.Where(p => p.Selected && p.Name != "Params").Select(p => ParameterValue.GetFormattedName(p.Name) + ":" + p.GetFormattedValue()));
             if (paramsOnly) return paramString;
-
-            var commandString = spawnSceneAssistant.CommandId + " " + paramString;
+            var commandString = ParameterValue.GetFormattedName(spawnSceneAssistant.CommandId) + " " + paramString;
 
             return inlined ? "[" + commandString + "]" : "@" + commandString;
         }
@@ -80,7 +81,7 @@ namespace NaninovelSceneAssistant
         protected void AddTransformParams()
         {
             ParameterValue pos = null;
-            ParameterValue position;
+            ParameterValue position = null;
 
             Params.Add(position = new ParameterValue("Position", () => Transform.localPosition, v => Transform.localPosition = (Vector3)v, (i, p) =>  i.Vector3Field(p, toggleWith: pos)));
             Params.Add(pos = new ParameterValue("Pos", () => Transform.localPosition, v => Transform.localPosition = (Vector3)v, (i, p) => i.PosField(p, CameraConfiguration, toggleWith: position)));

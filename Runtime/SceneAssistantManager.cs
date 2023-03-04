@@ -18,7 +18,6 @@ namespace NaninovelSceneAssistant
         private IUnlockableManager unlockableManager;
         private IStateManager stateManager;
         private IReadOnlyCollection<IActorManager> actorServices;
-
         public Dictionary<string, INaninovelObjectData> ObjectList { get; protected set; } = new Dictionary<string, INaninovelObjectData>();
         public Dictionary<Type, bool> ObjectTypeList { get; protected set; } = new Dictionary<Type, bool>();
         public SortedList<string, VariableValue> CustomVarList { get; protected set; } = new SortedList<string, VariableValue> { };
@@ -26,6 +25,8 @@ namespace NaninovelSceneAssistant
         public IReadOnlyCollection<string> ScriptsList { get; protected set; }
 
         public Action OnSceneAssistantReset;
+
+        public bool Initialised { get; protected set; } = false;
 
         public SceneAssistantManager(SceneAssistantConfiguration config, ISpawnManager spawnManager, IScriptPlayer scriptPlayer, ICustomVariableManager variableManager, IUnlockableManager unlockableManager,
                 IStateManager stateManager, IScriptManager scriptManager)
@@ -52,6 +53,7 @@ namespace NaninovelSceneAssistant
         public void DestroyService()
         {
             if (ObjectList.Count > 0) DestroySceneAssistant();
+            Initialised = false;
         }
 
         public async void InitializeSceneAssistant()
@@ -69,6 +71,8 @@ namespace NaninovelSceneAssistant
             stateManager.OnRollbackFinished += RefreshLists;
 
             scriptPlayer.AddPostExecutionTask(HandlePlayedCommand);
+
+            Initialised = true; 
         }
 
         private void HandleOnGameLoadFinished(GameSaveLoadArgs obj) => RefreshLists();

@@ -28,7 +28,6 @@ namespace NaninovelSceneAssistant
         public override GameObject GameObject => GetGameObject();
         protected CameraConfiguration CameraConfiguration { get => Engine.GetConfiguration<CameraConfiguration>(); }
 
-
         private string id;
 
         private async UniTask<List<string>> GetAppearanceList()
@@ -77,8 +76,8 @@ namespace NaninovelSceneAssistant
                 ParameterValue position = null;
 
                 //todo use Vector 2 values for printers
-                Params.Add(position = new ParameterValue("Position", () => Actor.Position, v => Actor.Position = (Vector3)v, (i, p) => { if (includeZPos) i.Vector3Field(p, toggleWith: pos); else i.Vector2Field(p, toggleWith: pos);}));
-                Params.Add(pos = new ParameterValue("Pos", () => Actor.Position, v => Actor.Position = (Vector3)v, (i, p) => { if (includeZPos) i.PosField(p, CameraConfiguration, toggleWith: position); else i.Vector2Field(p, toggleWith: position); }));
+                Params.Add(position = new ParameterValue("Position", () => Actor.Position, v => Actor.Position = (Vector3)v, (i, p) => i.Vector3Field(p, includeZPos, toggleWith: pos)));
+                Params.Add(pos = new ParameterValue("Pos", () => Actor.Position, v => Actor.Position = (Vector3)v, (i, p) => i.PosField(p, CameraConfiguration, includeZPos, toggleWith: position)));
                 Params.Add(new ParameterValue("Rotation", () => Actor.Rotation.eulerAngles, v => Actor.Rotation = Quaternion.Euler((Vector3)v), (i, p) => i.Vector3Field(p)));
                 Params.Add(new ParameterValue("Scale", () => Actor.Scale, v => Actor.Scale = (Vector3)v, (i, p) => i.Vector3Field(p), defaultValue: Vector3.one));
             }
