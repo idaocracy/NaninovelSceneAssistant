@@ -72,4 +72,4 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
 # UI folder while it's being worked on
-Runtime/UI
+/[Aa]ssets/Runtime/UI
