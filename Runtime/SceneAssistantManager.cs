@@ -1,9 +1,7 @@
 ﻿using Naninovel;
-using Naninovel.Commands;
 using System.Collections.Generic;
 using System;
 using System.Linq;
-using UnityEditor;
 
 namespace NaninovelSceneAssistant
 {
@@ -38,44 +36,53 @@ namespace NaninovelSceneAssistant
             this.scriptManager = scriptManager;
         }
 
-        public virtual UniTask InitializeServiceAsync()
+        public virtual UniTask InitializeServiceAsync() => UniTask.CompletedTask;
+
+        public virtual void ResetService() => ResetLists();
+
+        public virtual void DestroyService()
         {
-            return UniTask.CompletedTask;
+            if (Initialised) DestroySceneAssistant();
         }
 
-        public void ResetService()
-        {            
-
-        }
-
-        public void DestroyService()
-        {
-            if (ObjectList.Count > 0) DestroySceneAssistant();
-            Initialised = false;
-        }
-
-        public async void InitializeSceneAssistant()
+        public virtual async void InitializeSceneAssistant()
         {
             actorServices = Engine.FindAllServices<IActorManager>();
-
-            RefreshLists();
             ScriptsList = await scriptManager.LocateScriptsAsync();
 
+            ResetLists();
             variableManager.OnVariableUpdated += HandleVariableUpdated;
             unlockableManager.OnItemUpdated += HandleUnlockableUpdated;
 
             stateManager.OnGameLoadFinished += HandleOnGameLoadFinished;
-            stateManager.OnResetFinished += RefreshLists;
-            stateManager.OnRollbackFinished += RefreshLists;
+            stateManager.OnResetFinished += ResetLists;
+            stateManager.OnRollbackFinished += ResetLists;
 
             scriptPlayer.AddPostExecutionTask(HandlePlayedCommand);
 
             Initialised = true; 
         }
+        public virtual void DestroySceneAssistant()
+        {
+            if (Initialised)
+            {
+                ObjectList.Clear();
+                CustomVarList.Clear();
+                UnlockablesList.Clear();
 
-        private void HandleOnGameLoadFinished(GameSaveLoadArgs obj) => RefreshLists();
+                variableManager.OnVariableUpdated -= HandleVariableUpdated;
+                unlockableManager.OnItemUpdated -= HandleUnlockableUpdated;
+                stateManager.OnGameLoadFinished -= HandleOnGameLoadFinished;
+                stateManager.OnResetFinished -= ResetLists;
+                stateManager.OnRollbackFinished -= ResetLists;
 
-        protected void RefreshLists()
+                Initialised = false;
+            }
+        }
+
+        private void HandleOnGameLoadFinished(GameSaveLoadArgs obj) => ResetLists();
+
+        protected virtual void ResetLists()
         {
             ObjectList.Clear();
             RefreshObjectList();
@@ -97,14 +104,6 @@ namespace NaninovelSceneAssistant
         {
             if (UnlockablesList.ContainsKey(args.Id)) UnlockablesList[args.Id].Value = args.Unlocked;
             else UnlockablesList.Add(args.Id, new UnlockableValue(args.Id));
-        }
-
-        public void DestroySceneAssistant()
-        {
-            scriptPlayer.RemovePostExecutionTask(HandlePlayedCommand);
-            unlockableManager.OnItemUpdated -= HandleUnlockableUpdated;
-            variableManager.OnVariableUpdated -= HandleVariableUpdated;
-            ObjectList.Clear();
         }
 
         protected virtual void RefreshObjectList()
@@ -147,20 +146,6 @@ namespace NaninovelSceneAssistant
         public virtual UniTask HandlePlayedCommand(Command command = null)
         {
             RefreshObjectList();
-            //if (command is ModifyCharacter) RefreshActorList();
-            //if (command is ModifyBackground) RefreshActorList();
-            //if (command is ModifyTextPrinter) RefreshActorList();
-            //if (command is AddChoice) RefreshActorList();
-            //if (command is Naninovel.Commands.Spawn) RefreshSpawnList();
-            //if (command is DestroySpawned) RefreshSpawnList();
-            //if (command is DestroyAllSpawned) RefreshSpawnList();
-
-            //if (command is HideAllActors) RefreshActorList();
-            //if (command is HideAllCharacters) RefreshActorList();
-            //if (command is HideActors) RefreshActorList();
-            //if (command is HidePrinter) RefreshActorList();
-            //if (command is ClearChoiceHandler) RefreshActorList();
-
             RefreshObjectTypeList();
 
             return UniTask.CompletedTask;

@@ -7,7 +7,6 @@ using Naninovel;
 public class ParameterValue
 {
     public string Name { get; }
-
     public object Value { get => getValue() ?? null; set { if (getValue != null && setValue != null) setValue(value); } }
     public bool Selected { get; set; } = true;
 

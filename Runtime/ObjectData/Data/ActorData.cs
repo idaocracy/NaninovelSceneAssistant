@@ -16,7 +16,6 @@ namespace NaninovelSceneAssistant
         {
             this.id = id;
             Initialize();
-            AddActorVariables();
         }
         public override string Id => id;
         protected TActor Actor => (TActor)EngineService.GetActor(Id); 
@@ -80,17 +79,6 @@ namespace NaninovelSceneAssistant
             }
 
             if (includeTint) Params.Add(new ParameterValue("Tint", () => Actor.TintColor, v => Actor.TintColor = (Color)v, (i, p) => i.ColorField(p), defaultValue: Color.white));
-        }
-
-        protected virtual void AddActorVariables()
-        {
-            foreach(var variable in Engine.GetService<ICustomVariableManager>().GetAllVariables())
-            {
-                if (variable.Name.Contains(Id))
-                {
-                    CustomVars.Add(variable.Name, new VariableValue(variable.Name));
-                }
-            }
         }
     }
 

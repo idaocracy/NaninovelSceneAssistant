@@ -1,5 +1,4 @@
 ﻿using Naninovel;
-using Naninovel.Commands;
 using Naninovel.UI;
 using System;
 using System.Collections.Generic;
@@ -9,11 +8,10 @@ using UnityEngine;
 
 namespace NaninovelSceneAssistant
 {
-    public class SceneAssistantEditor : EditorWindow, ISceneAssistantLayout
+    public partial class SceneAssistantEditor : EditorWindow
     {
         private static SceneAssistantEditor sceneAssistantEditor;
-        private ISceneAssistantLayout sceneAssistantLayout { get => this; }
-        public string[] Tabs { get; protected set; } = new string[] { "Objects", "Variables", "Unlockables", "Scripts", "Debug" };
+        public string[] Tabs { get; protected set; } = new string[] { "Objects", "Variables", "Unlockables", "Scripts"};
         protected INaninovelObjectData CurrentObject => sceneAssistantManager.ObjectList.Values.ToArray()[objectIndex];
         protected static string ClipboardString { get => clipboardString; set { clipboardString = value; EditorGUIUtility.systemCopyBuffer = value; if (logResults) Debug.Log(value); } }
 
@@ -27,26 +25,31 @@ namespace NaninovelSceneAssistant
         private static Vector2 scrollPos;
         private static float textAreaHeight;
         private static bool logResults;
-        private static PlaybackSpot currentPrintSpot;
 
         [MenuItem("Naninovel/New Scene Assistant", false, 360)]
-        public static void ShowWindow() {
+        public static void ShowWindow()
+        {
             sceneAssistantEditor = GetWindow<SceneAssistantEditor>("Naninovel Scene Assistant");
         }
 
         private void Awake()
         {
             EditorGUIUtility.labelWidth = 150;
-            if (Engine.Initialized) SetupSceneAssistant();
+            if (Engine.Initialized) SetupAndInitializeSceneAssistant();
         }
 
         [InitializeOnEnterPlayMode]
         private static void DetectEngineInitialization()
         {
-            if (HasOpenInstances<SceneAssistantEditor>()) Engine.OnInitializationFinished += SetupSceneAssistant;
+            if (HasOpenInstances<SceneAssistantEditor>()) Engine.OnInitializationFinished += SetupAndInitializeSceneAssistant;
         }
 
-        private static void SetupSceneAssistant()
+        private void OnDestroy()
+        {
+            if (sceneAssistantManager != null && sceneAssistantManager.Initialised) sceneAssistantManager.DestroySceneAssistant();
+        }
+
+        private static void SetupAndInitializeSceneAssistant()
         {
             sceneAssistantManager = Engine.GetService<SceneAssistantManager>();
             scriptPlayer = Engine.GetService<IScriptPlayer>();
@@ -60,12 +63,11 @@ namespace NaninovelSceneAssistant
         private static void HandleReset()
         {
             if (sceneAssistantManager.ObjectList.Count >= objectIndex) return;
-            else objectIndex = 0; 
+            else objectIndex = 0;
         }
 
         private static void HandleCommandExecuted(Command command)
         {
-            if (command is PrintText printText) currentPrintSpot = printText.PlaybackSpot;
             if (sceneAssistantEditor != null) sceneAssistantEditor.Repaint();
         }
 
@@ -100,9 +102,6 @@ namespace NaninovelSceneAssistant
                 case 3:
                     DrawScripts(sceneAssistant.ScriptsList);
                     break;
-                case 4:
-                    DrawDebug();
-                    break;
             }
 
         }
@@ -111,7 +110,7 @@ namespace NaninovelSceneAssistant
         {
             EditorGUI.BeginChangeCheck();
 
-            scrollPos = EditorGUILayout.BeginScrollView(scrollPos); 
+            scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
             GUILayout.BeginHorizontal();
             GUILayout.Space(10);
             GUILayout.BeginVertical();
@@ -140,7 +139,7 @@ namespace NaninovelSceneAssistant
 
             EditorGUILayout.EndScrollView();
 
-            if(EditorGUI.EndChangeCheck()) GUI.FocusControl(null); 
+            if (EditorGUI.EndChangeCheck()) GUI.FocusControl(null);
         }
 
         protected virtual void DrawCommandOptions()
@@ -149,14 +148,14 @@ namespace NaninovelSceneAssistant
             GUILayout.FlexibleSpace();
             GUILayout.BeginVertical();
             if (DrawButton("Copy command (@)")) ClipboardString = CurrentObject.GetCommandLine();
-            if (DrawButton("Copy command ([])")) ClipboardString = CurrentObject.GetCommandLine(inlined:true);
+            if (DrawButton("Copy command ([])")) ClipboardString = CurrentObject.GetCommandLine(inlined: true);
             if (DrawButton("Copy all")) ClipboardString = CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList);
-            if (DrawButton("Copy selected")) ClipboardString = CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, selected:true);
+            if (DrawButton("Copy selected")) ClipboardString = CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, selected: true);
             GUILayout.EndVertical();
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
         }
-        private void DrawIdField()
+        protected void DrawIdField()
         {
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
@@ -169,13 +168,13 @@ namespace NaninovelSceneAssistant
             GUILayout.EndHorizontal();
         }
 
-        private void DrawTypeOptions()
+        protected virtual void DrawTypeOptions()
         {
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
             var list = sceneAssistantManager.ObjectTypeList.Keys.ToList();
 
-            foreach(var type in list)
+            foreach (var type in list)
             {
                 var typeText = type.GetProperty("TypeId").GetValue(null).ToString() ?? type.Name;
                 float typeTextWidth = EditorStyles.label.CalcSize(new GUIContent(typeText)).x;
@@ -191,7 +190,7 @@ namespace NaninovelSceneAssistant
         {
             if (parameters == null || parameters.Count == 0 || layout == null) return;
 
-            for( int i=0; i < parameters.Count; i++)
+            for (int i = 0; i < parameters.Count; i++)
             {
                 EditorGUILayout.BeginHorizontal();
                 parameters[i].DisplayField(layout);
@@ -307,189 +306,5 @@ namespace NaninovelSceneAssistant
             }
         }
 
-        //private void OnDestroy()
-        //{
-        //    if(sceneAssistantManager?.ObjectList?.Count > 0) sceneAssistantManager.DestroySceneAssistant();
-        //}
-
-        protected virtual void DrawDebug()
-        {
-            //todo optimize this list
-            EditorGUILayout.LabelField($"Current script: {scriptPlayer.PlayedScript.Name}");
-            EditorGUILayout.LabelField($"Current line number & inline index: {currentPrintSpot.LineNumber}.{currentPrintSpot.InlineIndex}");
-            EditorGUILayout.LabelField($"Currently loaded actors: {string.Join(",", Engine.FindAllServices<IActorManager>().Select(e => e.GetAllActors().ToList().Select(a => a.Id).ToList()))}");
-        }
-
-        public void BoolField(ParameterValue param, ParameterValue toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.Toggle((bool)param.Value), param, toggleWith);
-
-        public void IntField(ParameterValue param, int? minValue = null, int? maxValue = null, ParameterValue toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.IntField((int)param.Value), param, toggleWith);
-
-        public void IntSliderField(ParameterValue param, int min, int max, ParameterValue toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.IntSlider((int)param.Value, min, max), param, toggleWith);
-
-        public void StringField(ParameterValue param, ParameterValue toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.DelayedTextField((string)param.Value), param, toggleWith);
-
-        public void ColorField(ParameterValue param, bool includeAlpha = true, ParameterValue toggleWith = null)
-        => WrapInLayout(() => param.Value = EditorGUILayout.ColorField(GUIContent.none, (Color)param.Value, true, includeAlpha, false), param,toggleWith);
-
-        //FloatField needs to be setup differently to support sliding when displaying label only.
-        public void FloatField(ParameterValue param, float? min = null, float? max = null, ParameterValue toggleWith = null)
-        {
-            if (param.Condition != null && !param.Condition()) return;
-
-            if (param.IsParameter)
-            {
-                DrawValueInfo(param);
-                param.Value = EditorGUILayout.FloatField(Mathf.Clamp((float)param.Value, min ?? float.MinValue, max ?? float.MaxValue));
-                if (toggleWith != null && param.Selected == toggleWith.Selected == true) toggleWith.Selected = false;
-            }
-            else
-            {
-                GUILayout.Space(25f);
-                EditorGUI.BeginDisabledGroup(!param.Selected);
-
-                TextAnchor orginalAlignment = EditorStyles.label.alignment;
-                EditorStyles.label.alignment = TextAnchor.MiddleCenter;
-
-                param.Value = EditorGUILayout.FloatField(param.Name, Mathf.Clamp((float)param.Value, min ?? float.MinValue, max ?? float.MaxValue));
-
-                EditorStyles.label.alignment = orginalAlignment;
-                EditorGUI.EndDisabledGroup();
-            }
-        }
-
-        public void FloatSliderField(ParameterValue param, float min, float max, ParameterValue toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.Slider((float)param.Value, min, max), param, toggleWith);
-        public void Vector2Field(ParameterValue param, ParameterValue toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.Vector2Field("", (Vector2)param.Value), param, toggleWith);
-
-        public void Vector3Field(ParameterValue param, bool includeZPos = true, ParameterValue toggleWith = null) 
-            => WrapInLayout(() => { if (includeZPos) param.Value = EditorGUILayout.Vector3Field("", (Vector3)param.Value); else param.Value = (Vector3)EditorGUILayout.Vector2Field("", (Vector3)param.Value); }, param, toggleWith);
-    
-        public void Vector4Field(ParameterValue param, ParameterValue toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.Vector4Field("", (Vector4)param.Value), param, toggleWith);
-        public void EnumField(ParameterValue param, ParameterValue toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.EnumPopup((Enum)param.Value), param, toggleWith);
-
-        public void EmptyField(ParameterValue param, ParameterValue toggleWith = null)
-            => WrapInLayout(null, param, toggleWith);
-
-        public void StringListField(ParameterValue param, string[] stringValues, ParameterValue toggleWith = null)
-        {
-            if (param.Condition != null && param.Condition() == false) return;
-            var stringIndex = stringValues.IndexOf(param.Value);
-            DrawValueInfo(param);
-
-            EditorGUI.BeginDisabledGroup(!param.Selected);
-            stringIndex = EditorGUILayout.Popup(stringIndex, stringValues);
-            if (toggleWith != null && param.Selected == toggleWith.Selected == true) toggleWith.Selected = false;
-            EditorGUI.EndDisabledGroup();
-
-            param.Value = stringValues[stringIndex];
-        }
-
-        public void TypeListField<T>(ParameterValue param, Dictionary<string, T> values, ParameterValue toggleWith = null)
-        {
-            if (param.Condition != null && param.Condition() == false) return;
-
-            var stringIndex = Array.IndexOf(values.Values.ToArray(), param.Value ?? values["None"]);
-            DrawValueInfo(param);
-
-            EditorGUI.BeginDisabledGroup(!param.Selected);
-            stringIndex = EditorGUILayout.Popup(stringIndex, values.Keys.ToArray());
-            if (toggleWith != null && param.Selected == toggleWith.Selected == true) toggleWith.Selected = false;
-            EditorGUI.EndDisabledGroup();
-
-            param.Value = (T)values.FirstOrDefault(s => s.Key == values.Keys.ToArray()[stringIndex]).Value;
-        }
-
-
-        public void PosField(ParameterValue param, CameraConfiguration cameraConfiguration, bool includeZPos = true, ParameterValue toggleWith = null)
-        {
-            if (param.Condition != null && param.Condition() == false) return;
-            DrawValueInfo(param);
-            var position = cameraConfiguration.WorldToSceneSpace((Vector3)param.Value);
-            position.x *= 100;
-            position.y *= 100;
-
-            EditorGUI.BeginDisabledGroup(!param.Selected);
-
-            if(includeZPos) position = EditorGUILayout.Vector3Field("", position);
-            else position = EditorGUILayout.Vector2Field("", position);
-            if (toggleWith != null && param.Selected == toggleWith.Selected == true) toggleWith.Selected = false;
-
-            EditorGUI.EndDisabledGroup();
-            
-            position.x /= 100;
-            position.y /= 100;
-            position = cameraConfiguration.SceneToWorldSpace(position);
-            param.Value = position;
-        }
-
-        public void VariableField(VariableValue var)
-        {
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(var.Name, GUILayout.Width(150));
-            var.Value = EditorGUILayout.DelayedTextField(var.Value);
-            EditorGUILayout.EndHorizontal();
-        }
-
-        public void UnlockableField(UnlockableValue unlockable)
-        {
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(unlockable.Name, GUILayout.Width(150));
-            unlockable.EnumValue = (UnlockableValue.UnlockableState)EditorGUILayout.EnumPopup(unlockable.EnumValue);
-
-            if (unlockable.EnumValue == UnlockableValue.UnlockableState.Unlocked) unlockable.Value = true;
-            else unlockable.Value = false;
-
-            EditorGUILayout.EndHorizontal();
-        }
-
-        public void WrapInLayout(Action layoutField, ParameterValue param, ParameterValue toggleWith = null)
-        {
-            if (param.Condition != null && param.Condition() == false) return;
-            DrawValueInfo(param);
-            EditorGUI.BeginDisabledGroup(!param.Selected);
-            if(layoutField != null) layoutField();
-            if(toggleWith != null && param.Selected == toggleWith.Selected == true) toggleWith.Selected = false;
-            EditorGUI.EndDisabledGroup();
-        }
-
-        public static bool DrawButton(string label)
-        {
-            if (GUILayout.Button(label, GUILayout.Width(150))) return true;
-            else return false;
-        }
-
-        private static void DrawSearchField()
-        {
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Search: ", GUILayout.Width(50));
-            search = GUILayout.TextField(search);
-            GUILayout.EndHorizontal();
-        }
-        public void DrawValueInfo(ParameterValue param)
-        {
-            if (param.IsParameter)
-            {
-                param.Selected = EditorGUILayout.Toggle(param.Selected, GUILayout.Width(20f));
-                if (DrawButton(param.Name)) ClipboardString = param.GetCommandValue();
-            }
-            else
-            {
-                GUILayout.Space(25f);
-                GUILayout.Label(param.Name, new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter}, GUILayout.Width(150));
-            }
-        }
-
-        public void Vector3Field(ParameterValue param, ParameterValue toggleWith = null)
-        {
-            throw new NotImplementedException();
-        }
     }
-
 }

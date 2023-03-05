@@ -1,8 +1,9 @@
-﻿#if UNITY_POST_PROCESSING_STACK_V2
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
-using UnityEditor;
 using Naninovel;
+#if UNITY_EDITOR 
+using UnityEditor;
+#endif
 
 namespace NaninovelSceneAssistant
 {
@@ -18,13 +19,12 @@ namespace NaninovelSceneAssistant
         private SceneAssistantManager sceneAssistantManager;
 
         protected virtual void Awake() => sceneAssistantManager = Engine.GetService<SceneAssistantManager>();
-
         protected virtual void OnEnable() => sceneAssistantManager.OnSceneAssistantReset += GetSpawnData;
         protected virtual void OnDisable() => sceneAssistantManager.OnSceneAssistantReset -= GetSpawnData;
         protected virtual void GetSpawnData() => ObjectSpawnData = sceneAssistantManager.ObjectList[SpawnId] as SpawnData;
     }
 
-#if UNITY_EDITOR
+#if UNITY_EDITOR 
 
     [CustomEditor(typeof(SceneAssistantSpawnObject))]
     public abstract class SpawnObjectEditor : Editor
@@ -94,5 +94,3 @@ namespace NaninovelSceneAssistant
 
 #endif
 }
-
-#endif
