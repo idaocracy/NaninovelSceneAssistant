@@ -16,20 +16,31 @@ namespace NaninovelSceneAssistant {
         SortedList<string, VariableValue> CustomVars { get; }
     }
 
-    public abstract class NaninovelObjectData<TEngineService> : INaninovelObjectData where TEngineService : class, IEngineService
+    public abstract class NaninovelObjectData<TService, TState, TConfig> : INaninovelObjectData 
+        where TService : class, IEngineService
+        where TState : class, new()
+        where TConfig : Configuration
     {
         protected virtual void Initialize()
         {
             AddParams();
+            stateManager = Engine.GetService<IStateManager>(); 
         }
 
-        protected static TEngineService EngineService { get => Engine.GetService<TEngineService>(); }
+        protected TService Service { get => Engine.GetService<TService>(); }
+        protected virtual TState State { get => GameState.GetState<TState>(); }
+        protected TConfig Config { get => Engine.GetConfiguration<TConfig>(); }
+        protected GameStateMap GameState => stateManager.PeekRollbackStack(); 
+
         public abstract string Id { get; }
         public abstract GameObject GameObject { get; }
+
         public virtual List<ParameterValue> Params { get; protected set; } = new List<ParameterValue>();
         public virtual SortedList<string, VariableValue> CustomVars { get; protected set; } = new SortedList<string, VariableValue>();
         protected abstract string CommandNameAndId { get; }
         protected abstract void AddParams();
+
+        protected IStateManager stateManager;
 
         public virtual string GetCommandLine(bool inlined = false, bool paramsOnly = false)
         {

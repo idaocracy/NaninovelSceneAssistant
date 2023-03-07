@@ -10,7 +10,7 @@ using Naninovel.Parsing;
 
 namespace NaninovelSceneAssistant
 {
-    public class SpawnData : NaninovelObjectData<SpawnManager>, INaninovelObjectData  
+    public class SpawnData : NaninovelObjectData<ISpawnManager, SpawnManager.GameState, SpawnConfiguration>, INaninovelObjectData
     {
         public SpawnData(string id)
         {
@@ -23,10 +23,11 @@ namespace NaninovelSceneAssistant
         public static string TypeId => "Spawn";
         protected Transform Transform => Spawned.Transform; 
         public override GameObject GameObject => Spawned.GameObject; 
-        protected ISceneAssistantSpawn spawnSceneAssistant => GameObject.GetComponent<ISceneAssistantSpawn>() ?? null; 
+        protected ISceneAssistantSpawn SpawnSceneAssistant => GameObject.GetComponent<ISceneAssistantSpawn>() ?? null; 
         protected override string CommandNameAndId => "spawn " + Id;
-        protected bool IsTransformable => spawnSceneAssistant?.IsTransformable ?? true;
+        protected bool IsTransformable => SpawnSceneAssistant?.IsTransformable ?? true;
         protected CameraConfiguration CameraConfiguration { get => Engine.GetConfiguration<CameraConfiguration>(); }
+        protected SpawnedObjectState SpawnedState => State.SpawnedObjects.FirstOrDefault(s => s.Path == Id);
 
         private string id;
 
@@ -72,7 +73,7 @@ namespace NaninovelSceneAssistant
 
             var paramString = string.Join(" ", Params.Where(p => p.Selected && p.Name != "Params").Select(p => ParameterValue.GetFormattedName(p.Name) + ":" + p.GetFormattedValue()));
             if (paramsOnly) return paramString;
-            var commandString = ParameterValue.GetFormattedName(spawnSceneAssistant.CommandId) + " " + paramString;
+            var commandString = ParameterValue.GetFormattedName(SpawnSceneAssistant.CommandId) + " " + paramString;
 
             return inlined ? "[" + commandString + "]" : "@" + commandString;
         }
@@ -83,20 +84,20 @@ namespace NaninovelSceneAssistant
             ParameterValue pos = null;
             ParameterValue position = null;
 
-            Params.Add(position = new ParameterValue("Position", () => Transform.localPosition, v => Transform.localPosition = (Vector3)v, (i, p) =>  i.Vector3Field(p, toggleWith: pos)));
-            Params.Add(pos = new ParameterValue("Pos", () => Transform.localPosition, v => Transform.localPosition = (Vector3)v, (i, p) => i.PosField(p, CameraConfiguration, toggleWith: position)));
-            Params.Add(new ParameterValue("Rotation", () => Transform.localRotation.eulerAngles, v => Transform.localRotation = Quaternion.Euler((Vector3)v), (i,p) => i.Vector3Field(p)));
-            Params.Add(new ParameterValue("Scale", () => Transform.localScale, v => Transform.localScale = (Vector3)v, (i, p) => i.Vector3Field(p)));
+            Params.Add(position = new ParameterValue("Position", () => Transform.localPosition, v => Transform.localPosition = (Vector3)v, () => SpawnedState.Position, (i, p) =>  i.Vector3Field(p, toggleWith: pos)));
+            Params.Add(pos = new ParameterValue("Pos", () => Transform.localPosition, v => Transform.localPosition = (Vector3)v, () => SpawnedState.Position, (i, p) => i.PosField(p, CameraConfiguration, toggleWith: position)));
+            Params.Add(new ParameterValue("Rotation", () => Transform.localRotation.eulerAngles, v => Transform.localRotation = Quaternion.Euler((Vector3)v), () => SpawnedState.Rotation.eulerAngles, (i,p) => i.Vector3Field(p)));
+            Params.Add(new ParameterValue("Scale", () => Transform.localScale, v => Transform.localScale = (Vector3)v, () => SpawnedState.Scale, (i, p) => i.Vector3Field(p)));
         }
 
         protected override void AddParams()
         {
-            if(spawnSceneAssistant == null || spawnSceneAssistant.IsTransformable) AddTransformParams();
+            if(SpawnSceneAssistant == null || SpawnSceneAssistant.IsTransformable) AddTransformParams();
 
-            if (spawnSceneAssistant?.GetParams() != null)
+            if (SpawnSceneAssistant?.GetParams() != null)
             {
-                Params.Add(new ParameterValue("Params", () => string.Join(",", spawnSceneAssistant.GetParams().Where(p => p.Condition == null || p.Condition()).Select(p => p.GetFormattedValue()).ToList()), v => { }, (i,p) => i.EmptyField(p)));
-                Params = Params.Concat(spawnSceneAssistant.GetParams()).ToList();
+                Params.Add(new ParameterValue("Params", () => string.Join(",", SpawnSceneAssistant.GetParams().Where(p => p.Condition == null || p.Condition()).Select(p => p.GetFormattedValue()).ToList()), null, null, (i,p) => i.EmptyField(p)));
+                Params = Params.Concat(SpawnSceneAssistant.GetParams()).ToList();
             }
         }
     }

@@ -6,12 +6,12 @@ using System.Linq;
 
 namespace NaninovelSceneAssistant
 {
-    public abstract class ActorData<TService, TActor, TMeta, TConfig> : NaninovelObjectData<TService>, INaninovelObjectData
+    public abstract class ActorData<TService, TActor, TMeta, TState, TConfig> : NaninovelObjectData<TService, TState, TConfig>, INaninovelObjectData
         where TService : class, IActorManager
         where TActor : IActor
+        where TState : ActorState<TActor>, new()
         where TMeta : ActorMetadata
         where TConfig : ActorManagerConfiguration<TMeta>
-
     {
         public ActorData(string id) : base()
         {
@@ -20,12 +20,11 @@ namespace NaninovelSceneAssistant
         }
 
         public override string Id => id;
-        protected TActor Actor => (TActor)EngineService.GetActor(Id); 
-        protected TMeta Metadata => Config.GetMetadataOrDefault(Id); 
-        protected TConfig Config  => Engine.GetConfiguration<TConfig>();
+        protected TActor Actor => (TActor)Service.GetActor(Id);
+        protected override TState State => GameState.GetState<ActorManager<TActor, TState, TMeta, TConfig>.GameState>().ActorsMap[Id];
+        protected TMeta Metadata => Config.GetMetadataOrDefault(Id);
         public override GameObject GameObject => GetGameObject();
         protected CameraConfiguration CameraConfiguration { get => Engine.GetConfiguration<CameraConfiguration>(); }
-
         private string id;
 
         private async UniTask<List<string>> GetAppearanceList()
@@ -44,12 +43,6 @@ namespace NaninovelSceneAssistant
         protected GameObject GetGameObject()
         {
             var monoActor = Actor as MonoBehaviourActor<TMeta>;
-
-            var state = Engine.GetService<IStateManager>().PeekRollbackStack()?.GetState<ActorManager<ICharacterActor, CharacterState, CharacterMetadata, CharactersConfiguration>.GameState>()
-            ?.ActorsMap.FirstOrDefault(s => s.Key.Equals(Id)).Value;
-
-            Debug.Log(state.Appearance);
-
             return monoActor.GameObject;
         }
 
@@ -70,8 +63,9 @@ namespace NaninovelSceneAssistant
             if (includeAppearance)
             {
                 var appearances = GetAppearanceList().Result;
-                if(appearances.Count > 0) Params.Add(new ParameterValue("Appearance", () => Actor.Appearance ?? GetDefaultAppearance(), v => Actor.Appearance = (string)v, (i, p) => i.StringListField(p, appearances.ToArray())));
-                else Params.Add(new ParameterValue("Appearance", () => Actor.Appearance, v => Actor.Appearance = (string)v, (i, p) => i.StringField(p)));
+                if(appearances.Count > 0) 
+                    Params.Add(new ParameterValue("Appearance", () => Actor.Appearance ?? GetDefaultAppearance(), v => Actor.Appearance = (string)v, () => State.Appearance, (i, p) => i.StringListField(p, appearances.ToArray())));
+                else Params.Add(new ParameterValue("Appearance", () => Actor.Appearance, v => Actor.Appearance = (string)v, () => State.Appearance, (i, p) => i.StringField(p)));
             }
 
             if (includeTransform)
@@ -79,18 +73,17 @@ namespace NaninovelSceneAssistant
                 ParameterValue pos = null;
                 ParameterValue position = null;
 
-                //todo use Vector 2 values for printers
-                Params.Add(position = new ParameterValue("Position", () => Actor.Position, v => Actor.Position = (Vector3)v, (i, p) => i.Vector3Field(p, includeZPos, toggleWith: pos)));
-                Params.Add(pos = new ParameterValue("Pos", () => Actor.Position, v => Actor.Position = (Vector3)v, (i, p) => i.PosField(p, CameraConfiguration, includeZPos, toggleWith: position)));
-                Params.Add(new ParameterValue("Rotation", () => Actor.Rotation.eulerAngles, v => Actor.Rotation = Quaternion.Euler((Vector3)v), (i, p) => i.Vector3Field(p)));
-                Params.Add(new ParameterValue("Scale", () => Actor.Scale, v => Actor.Scale = (Vector3)v, (i, p) => i.Vector3Field(p), defaultValue: Vector3.one));
+                Params.Add(position = new ParameterValue("Position", () => Actor.Position, v => Actor.Position = (Vector3)v, () => State.Position, (i, p) => i.Vector3Field(p, includeZPos, toggleWith: pos)));
+                Params.Add(pos = new ParameterValue("Pos", () => Actor.Position, v => Actor.Position = (Vector3)v, () => State.Position, (i, p) => i.PosField(p, CameraConfiguration, includeZPos, toggleWith: position)));
+                Params.Add(new ParameterValue("Rotation", () => Actor.Rotation.eulerAngles, v => Actor.Rotation = Quaternion.Euler((Vector3)v), () => State.Rotation.eulerAngles, (i, p) => i.Vector3Field(p)));
+                Params.Add(new ParameterValue("Scale", () => Actor.Scale, v => Actor.Scale = (Vector3)v, () => State.Scale, (i, p) => i.Vector3Field(p), defaultValue: Vector3.one));
             }
 
-            if (includeTint) Params.Add(new ParameterValue("Tint", () => Actor.TintColor, v => Actor.TintColor = (Color)v, (i, p) => i.ColorField(p), defaultValue: Color.white));
+            if (includeTint) Params.Add(new ParameterValue("Tint", () => Actor.TintColor, v => Actor.TintColor = (Color)v, () => State.TintColor, (i, p) => i.ColorField(p), defaultValue: Color.white));
         }
     }
 
-    public class CharacterData : ActorData<CharacterManager, ICharacterActor, CharacterMetadata, CharactersConfiguration>
+    public class CharacterData : ActorData<CharacterManager, ICharacterActor, CharacterMetadata, CharacterState, CharactersConfiguration> 
     {
         public CharacterData(string id) : base(id) { }
         public static string TypeId => "Character";
@@ -98,11 +91,11 @@ namespace NaninovelSceneAssistant
         protected override void AddParams()
         {
             AddBaseParameters();
-            Params.Add(new ParameterValue("Look", () => Actor.LookDirection, v => Actor.LookDirection = (CharacterLookDirection)v, (i, p) => i.EnumField(p)));
+            Params.Add(new ParameterValue("Look", () => Actor.LookDirection, v => Actor.LookDirection = (CharacterLookDirection)v, () => State.LookDirection, (i, p) => i.EnumField(p)));
         }
     }
 
-    public class BackgroundData : ActorData<BackgroundManager, IBackgroundActor, BackgroundMetadata, BackgroundsConfiguration>
+    public class BackgroundData : ActorData<BackgroundManager, IBackgroundActor, BackgroundMetadata, BackgroundState, BackgroundsConfiguration>
     {
         public BackgroundData(string id) : base(id) { }
         public static string TypeId => "Background";
@@ -113,7 +106,7 @@ namespace NaninovelSceneAssistant
         }
     }
 
-    public class TextPrinterData : ActorData<TextPrinterManager, ITextPrinterActor, TextPrinterMetadata, TextPrintersConfiguration>
+    public class TextPrinterData : ActorData<TextPrinterManager, ITextPrinterActor, TextPrinterMetadata, TextPrinterState, TextPrintersConfiguration>
     {
         public TextPrinterData(string id) : base(id) { }
         public static string TypeId => "Text Printer";
@@ -124,7 +117,7 @@ namespace NaninovelSceneAssistant
         }
     }
 
-    public class ChoiceHandlerData : ActorData<ChoiceHandlerManager, IChoiceHandlerActor, ChoiceHandlerMetadata, ChoiceHandlersConfiguration>
+    public class ChoiceHandlerData : ActorData<ChoiceHandlerManager, IChoiceHandlerActor, ChoiceHandlerMetadata, ChoiceHandlerState, ChoiceHandlersConfiguration>
     {
         public ChoiceHandlerData(string id) : base(id) { }
         public static string TypeId => "ChoiceHandler";
@@ -148,7 +141,7 @@ namespace NaninovelSceneAssistant
         {
             foreach(var choice in ChoiceHandlerButtons)
             {
-                Params.Add(new ParameterValue(choice.ChoiceState.Summary + " pos", () => (Vector2)choice.transform.localPosition, v => choice.transform.localPosition = (Vector2)v, (i, p) => i.Vector2Field(p)));
+                Params.Add(new ParameterValue(choice.ChoiceState.Summary + " pos", () => (Vector2)choice.transform.localPosition, v => choice.transform.localPosition = (Vector2)v, () => State.Position, (i, p) => i.Vector2Field(p)));
             }
         }
     }

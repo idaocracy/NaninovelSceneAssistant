@@ -58,9 +58,10 @@ namespace NaninovelSceneAssistant
                 EditorGUI.EndDisabledGroup();
 
                 param.Value = stringValues[stringIndex];
-            }
+                if (!param.Selected && toggleWith == null) param.Value = param.GetStateValue();
+        }
 
-            public void TypeListField<T>(ParameterValue param, Dictionary<string, T> values, ParameterValue toggleWith = null)
+        public void TypeListField<T>(ParameterValue param, Dictionary<string, T> values, ParameterValue toggleWith = null)
             {
                 if (param.Condition != null && param.Condition() == false) return;
 
@@ -73,7 +74,8 @@ namespace NaninovelSceneAssistant
                 EditorGUI.EndDisabledGroup();
 
                 param.Value = (T)values.FirstOrDefault(s => s.Key == values.Keys.ToArray()[stringIndex]).Value;
-            }
+                if (!param.Selected && toggleWith == null) param.Value = param.GetStateValue();
+        }
 
 
             public void PosField(ParameterValue param, CameraConfiguration cameraConfiguration, bool includeZPos = true, ParameterValue toggleWith = null)
@@ -96,7 +98,8 @@ namespace NaninovelSceneAssistant
                 position.y /= 100;
                 position = cameraConfiguration.SceneToWorldSpace(position);
                 param.Value = position;
-            }
+                if (!param.Selected && toggleWith == null) param.Value = param.GetStateValue();
+        }
 
             public void VariableField(VariableValue var)
             {
@@ -123,7 +126,8 @@ namespace NaninovelSceneAssistant
                 if (param.Condition != null && param.Condition() == false) return;
                 DrawValueInfo(param);
                 EditorGUI.BeginDisabledGroup(!param.Selected);
-                if (layoutField != null) layoutField();
+                layoutField();
+                if (!param.Selected && toggleWith == null) param.Value = param.GetStateValue();
                 CheckToggles(param, toggleWith);
                 EditorGUI.EndDisabledGroup();
             }
@@ -136,6 +140,7 @@ namespace NaninovelSceneAssistant
                 {
                     DrawValueInfo(param);
                     layoutField();
+                    if (!param.Selected && toggleWith == null) param.Value = param.GetStateValue();
                     CheckToggles(param, toggleWith);
                 }
                 else
@@ -145,6 +150,7 @@ namespace NaninovelSceneAssistant
                     TextAnchor orginalAlignment = EditorStyles.label.alignment;
                     EditorStyles.label.alignment = TextAnchor.MiddleCenter;
                     layoutField();
+                    if (!param.Selected && toggleWith == null) param.Value = param.GetStateValue();
                     EditorStyles.label.alignment = orginalAlignment;
                     EditorGUI.EndDisabledGroup();
                 }

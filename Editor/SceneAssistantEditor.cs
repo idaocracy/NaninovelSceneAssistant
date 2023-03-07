@@ -204,13 +204,11 @@ namespace NaninovelSceneAssistant
             if (GUILayout.Button("Default", EditorStyles.miniButton)) CurrentObject.Params.Where(p => p.Value != null).ToList().ForEach(p => p.Value = p.GetDefaultValue());
             if (stateManager.Configuration.EnableStateRollback) 
             { 
-                if (GUILayout.Button("Rollback", EditorStyles.miniButton)) Rollback();
+                if (GUILayout.Button("Rollback", EditorStyles.miniButton)) CurrentObject.Params.Where(p => p.Value != null).ToList().ForEach(p => p.Value = p.GetStateValue());
             }
 
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
-
-            async void Rollback() => await Engine.GetService<IStateManager>().RollbackAsync(s => s.PlayerRollbackAllowed);
         }
 
         protected virtual void DrawCommandTextArea()

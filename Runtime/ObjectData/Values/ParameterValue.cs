@@ -18,20 +18,20 @@ public class ParameterValue
 
     private Func<object> getValue;
     private Action<object> setValue;
+    private Func<object> state;
     private object defaultValue;
-    private object stateValue;
 
-    public ParameterValue(string id, Func<object> getValue, Action<object> setValue, Action<ISceneAssistantLayout, ParameterValue> onLayout, 
-        bool isParameter = true, object defaultValue = null, Func<bool> condition = null, object stateValue = null)
+    public ParameterValue(string id, Func<object> getValue, Action<object> setValue, Func<object> state, Action<ISceneAssistantLayout, ParameterValue> onLayout, 
+        bool isParameter = true, object defaultValue = null, Func<bool> condition = null)
     {
         this.Name = id;
         this.getValue = getValue;
         this.setValue = setValue;
+        this.state = state; 
         this.OnLayout = onLayout;
         this.IsParameter = isParameter;
         this.defaultValue = defaultValue;
         this.Condition = condition;
-        this.stateValue = stateValue;
     }
 
     public string GetCommandValue()
@@ -49,6 +49,14 @@ public class ParameterValue
             if (value.IsValueType) return Activator.CreateInstance(value);
         }
         return default;
+    }
+
+    public object GetStateValue()
+    {
+        if (state == null) return Value;
+
+        return state();
+
     }
 
     public void DisplayField(ISceneAssistantLayout layout) => OnLayout(layout, this);
