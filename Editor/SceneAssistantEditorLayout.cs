@@ -157,7 +157,12 @@ namespace NaninovelSceneAssistant
 
             public static bool DrawButton(string label)
             {
-                if (GUILayout.Button(label, GUILayout.Width(150))) return true;
+                if (GUILayout.Button(label, GUILayout.Width(150)))
+                {
+                    //This will take away focus from the clipoard text field if selected at the time. 
+                    GUI.FocusControl(null);
+                    return true;
+                }
                 else return false;
             }
 

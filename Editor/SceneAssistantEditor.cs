@@ -26,7 +26,7 @@ namespace NaninovelSceneAssistant
         private static float textAreaHeight;
         private static bool logResults;
 
-        [MenuItem("Naninovel/New Scene Assistant", false, 360)]
+        [MenuItem("Naninovel/Scene Assistant", false, 360)]
         public static void ShowWindow()
         {
             sceneAssistantEditor = GetWindow<SceneAssistantEditor>("Naninovel Scene Assistant");
@@ -108,8 +108,6 @@ namespace NaninovelSceneAssistant
 
         protected virtual void DrawSceneAssistant(ISceneAssistantLayout layout)
         {
-            EditorGUI.BeginChangeCheck();
-
             scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
             GUILayout.BeginHorizontal();
             GUILayout.Space(10);
@@ -138,8 +136,6 @@ namespace NaninovelSceneAssistant
             GUILayout.EndHorizontal();
 
             EditorGUILayout.EndScrollView();
-
-            if (EditorGUI.EndChangeCheck()) GUI.FocusControl(null);
         }
 
         protected virtual void DrawCommandOptions()
@@ -155,6 +151,7 @@ namespace NaninovelSceneAssistant
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
         }
+
         protected void DrawIdField()
         {
             GUILayout.BeginHorizontal();
@@ -205,13 +202,15 @@ namespace NaninovelSceneAssistant
             if (GUILayout.Button("Select all", EditorStyles.miniButton)) CurrentObject.Params.ForEach(p => p.Selected = true);
             if (GUILayout.Button("Deselect all", EditorStyles.miniButton)) CurrentObject.Params.ForEach(p => p.Selected = false);
             if (GUILayout.Button("Default", EditorStyles.miniButton)) CurrentObject.Params.Where(p => p.Value != null).ToList().ForEach(p => p.Value = p.GetDefaultValue());
-            if (GUILayout.Button("Rollback", EditorStyles.miniButton)) Rollback();
+            if (stateManager.Configuration.EnableStateRollback) 
+            { 
+                if (GUILayout.Button("Rollback", EditorStyles.miniButton)) Rollback();
+            }
 
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
             async void Rollback() => await Engine.GetService<IStateManager>().RollbackAsync(s => s.PlayerRollbackAllowed);
-
         }
 
         protected virtual void DrawCommandTextArea()

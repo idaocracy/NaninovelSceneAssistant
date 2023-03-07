@@ -16,11 +16,14 @@ namespace NaninovelSceneAssistant
         protected override string CommandNameAndId => "camera";
         protected List<MonoBehaviour> CameraComponents => CameraManager.Camera.GetComponents<MonoBehaviour>().Where(c => c.GetType() != typeof(UnityEngine.Camera)).ToList();
 
-
         protected override void AddParams()
         {
+            ParameterValue rotation = null;
+            ParameterValue roll = null;
+
             Params.Add(new ParameterValue("Offset", () => CameraManager.Offset, v => CameraManager.Offset = (Vector3)v, (i,p) => i.Vector3Field(p)));
-            Params.Add(new ParameterValue("Rotation", () => CameraManager.Rotation.eulerAngles, v => CameraManager.Rotation = Quaternion.Euler((Vector3)v), (i,p) => i.Vector3Field(p)));
+            Params.Add(rotation = new ParameterValue("Rotation", () => CameraManager.Rotation.eulerAngles, v => CameraManager.Rotation = Quaternion.Euler((Vector3)v), (i,p) => i.Vector3Field(p, toggleWith: roll)));
+            Params.Add(roll = new ParameterValue("Roll", () => CameraManager.Rotation.eulerAngles.z, v => CameraManager.Rotation = Quaternion.Euler(0, 0, (float)v), (i,p) => i.FloatField(p, toggleWith:rotation)));
             Params.Add(new ParameterValue("Zoom", () => CameraManager.Zoom, v => CameraManager.Zoom = (float)v, (i,p) => i.FloatSliderField(p, 0f, 1f), defaultValue:0f));
             Params.Add(new ParameterValue("Orthographic", () => CameraManager.Orthographic, v => CameraManager.Orthographic = (bool)v, (i,p) => i.BoolField(p), defaultValue:true));
             AddCameraComponentParams();
@@ -28,6 +31,8 @@ namespace NaninovelSceneAssistant
 
         private void AddCameraComponentParams()
         {
+            if (CameraComponents.Count <= 0) return;
+
             Params.Add(new ParameterValue("Toggle", () => CameraComponents.ToDictionary(c => c.GetType().Name, e => e.enabled.ToString().ToLower()), null, (i, p) => i.EmptyField(p)));
 
             foreach (var component in CameraComponents)

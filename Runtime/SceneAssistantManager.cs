@@ -38,7 +38,10 @@ namespace NaninovelSceneAssistant
 
         public virtual UniTask InitializeServiceAsync() => UniTask.CompletedTask;
 
-        public virtual void ResetService() => ResetLists();
+        public virtual void ResetService()
+        {
+            if(Initialised) ResetLists();
+        }
 
         public virtual void DestroyService()
         {

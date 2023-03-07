@@ -11,16 +11,18 @@ namespace NaninovelSceneAssistant
         where TActor : IActor
         where TMeta : ActorMetadata
         where TConfig : ActorManagerConfiguration<TMeta>
+
     {
         public ActorData(string id) : base()
         {
             this.id = id;
             Initialize();
         }
+
         public override string Id => id;
         protected TActor Actor => (TActor)EngineService.GetActor(Id); 
         protected TMeta Metadata => Config.GetMetadataOrDefault(Id); 
-        protected TConfig Config  => Engine.GetConfiguration<TConfig>(); 
+        protected TConfig Config  => Engine.GetConfiguration<TConfig>();
         public override GameObject GameObject => GetGameObject();
         protected CameraConfiguration CameraConfiguration { get => Engine.GetConfiguration<CameraConfiguration>(); }
 
@@ -42,6 +44,12 @@ namespace NaninovelSceneAssistant
         protected GameObject GetGameObject()
         {
             var monoActor = Actor as MonoBehaviourActor<TMeta>;
+
+            var state = Engine.GetService<IStateManager>().PeekRollbackStack()?.GetState<ActorManager<ICharacterActor, CharacterState, CharacterMetadata, CharactersConfiguration>.GameState>()
+            ?.ActorsMap.FirstOrDefault(s => s.Key.Equals(Id)).Value;
+
+            Debug.Log(state.Appearance);
+
             return monoActor.GameObject;
         }
 
@@ -122,6 +130,19 @@ namespace NaninovelSceneAssistant
         public static string TypeId => "ChoiceHandler";
         protected override string CommandNameAndId => "choice";
         protected List<ChoiceHandlerButton> ChoiceHandlerButtons => GameObject.GetComponentsInChildren<ChoiceHandlerButton>().ToList();
+
+        public override string GetCommandLine(bool inlined = false, bool paramsOnly = false)
+        {
+            var choiceList = new List<string>();
+
+            foreach (var param in Params)
+            {
+                var choiceString = CommandNameAndId + param.Name + ":" + param.GetCommandValue();
+                choiceList.Add(inlined ? "[" + choiceString + "]" : "@" + choiceString);
+            }
+
+            return string.Join("\n", choiceList);
+        }
 
         protected override void AddParams()
         {

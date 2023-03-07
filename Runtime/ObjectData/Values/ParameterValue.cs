@@ -19,8 +19,10 @@ public class ParameterValue
     private Func<object> getValue;
     private Action<object> setValue;
     private object defaultValue;
+    private object stateValue;
 
-    public ParameterValue(string id, Func<object> getValue, Action<object> setValue, Action<ISceneAssistantLayout, ParameterValue> onLayout, bool isParameter = true, object defaultValue = null, Func<bool> condition = null)
+    public ParameterValue(string id, Func<object> getValue, Action<object> setValue, Action<ISceneAssistantLayout, ParameterValue> onLayout, 
+        bool isParameter = true, object defaultValue = null, Func<bool> condition = null, object stateValue = null)
     {
         this.Name = id;
         this.getValue = getValue;
@@ -29,6 +31,7 @@ public class ParameterValue
         this.IsParameter = isParameter;
         this.defaultValue = defaultValue;
         this.Condition = condition;
+        this.stateValue = stateValue;
     }
 
     public string GetCommandValue()
