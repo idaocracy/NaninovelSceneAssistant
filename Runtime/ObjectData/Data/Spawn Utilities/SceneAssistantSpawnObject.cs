@@ -12,7 +12,7 @@ namespace NaninovelSceneAssistant
         public abstract bool IsTransformable { get; }
         public abstract string CommandId { get; }
         public string SpawnId => GetType().Name;
-        public abstract List<ParameterValue> GetParams();
+        public abstract List<ICommandData> GetParams();
 
         public SpawnData ObjectSpawnData { get; private set; }
 
@@ -83,12 +83,15 @@ namespace NaninovelSceneAssistant
 
         public void DrawButton(string name, bool isSpawnEffect = false, bool inlined = false, bool paramsOnly = false, bool logResult = false)
         {
-            if (GUILayout.Button(paramsOnly ? "params" : (inlined ? "[" + (isSpawnEffect ? ParameterValue.GetFormattedName(name)  : "spawn") + "]" : "@" + (isSpawnEffect ? ParameterValue.GetFormattedName(name) : "spawn")), GUILayout.Height(30), GUILayout.MaxWidth(150)))
+            if (GUILayout.Button(paramsOnly ? "params" : (inlined ? "[" + (isSpawnEffect ? FormatName()  : "spawn") + "]" : "@" + (isSpawnEffect ? FormatName() : "spawn")), GUILayout.Height(30), GUILayout.MaxWidth(150)))
             {
                 var spawnString = isSpawnEffect ? spawnObject.ObjectSpawnData.GetSpawnEffectLine(inlined, paramsOnly) : spawnObject.ObjectSpawnData.GetCommandLine(inlined, paramsOnly);
                 EditorGUIUtility.systemCopyBuffer = spawnString;
                 if (logResult) Debug.Log(spawnString);
             }
+
+            string FormatName() => char.ToLower(name[0]) + name.Substring(1);
+
         }
     }
 

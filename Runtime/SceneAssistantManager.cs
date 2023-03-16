@@ -88,8 +88,14 @@ namespace NaninovelSceneAssistant
 
         protected virtual void ResetLists()
         {
+            foreach (var obj in ObjectList)
+            {
+                if (obj.Value is IDisposable disposable) disposable.Dispose();
+            }
+            
+
             ObjectList.Clear();
-            RefreshObjectList();
+            ResetObjectList();
 
             CustomVarList.Clear();
             foreach (var variable in variableManager.GetAllVariables()) CustomVarList.Add(variable.Name, new VariableValue(variable.Name));
@@ -110,7 +116,7 @@ namespace NaninovelSceneAssistant
             else UnlockablesList.Add(args.Id, new UnlockableValue(args.Id));
         }
 
-        protected virtual void RefreshObjectList()
+        protected virtual void ResetObjectList()
         {
             if (!ObjectExists(typeof(CameraData)))
             {
@@ -149,7 +155,7 @@ namespace NaninovelSceneAssistant
 
         public virtual UniTask HandlePlayedCommand(Command command = null)
         {
-            RefreshObjectList();
+            ResetObjectList();
             RefreshObjectTypeList();
 
             return UniTask.CompletedTask;

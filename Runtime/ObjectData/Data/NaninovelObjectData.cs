@@ -11,31 +11,26 @@ namespace NaninovelSceneAssistant {
         string Id { get; }
         GameObject GameObject { get; }
         string GetCommandLine(bool inlined = false, bool paramsOnly = false);
-        string GetAllCommands(Dictionary<string, INaninovelObjectData> objectList, Dictionary<Type, bool> objectTypeList, bool selected = false);
-        List<ParameterValue> Params { get; }
+        List<string> GetAllCommands(Dictionary<string, INaninovelObjectData> objectList, Dictionary<Type, bool> objectTypeList, bool inlined = false, bool selected = false);
+        List<ICommandData> Params { get; }
         SortedList<string, VariableValue> CustomVars { get; }
     }
 
-    public abstract class NaninovelObjectData<TService, TState, TConfig> : INaninovelObjectData 
+    public abstract class NaninovelObjectData<TService, TConfig> : INaninovelObjectData, IDisposable 
         where TService : class, IEngineService
-        where TState : class, new()
         where TConfig : Configuration
     {
         protected virtual void Initialize()
         {
+            stateManager = Engine.GetService<IStateManager>();
             AddParams();
-            stateManager = Engine.GetService<IStateManager>(); 
         }
 
         protected TService Service { get => Engine.GetService<TService>(); }
-        protected virtual TState State { get => GameState.GetState<TState>(); }
         protected TConfig Config { get => Engine.GetConfiguration<TConfig>(); }
-        protected GameStateMap GameState => stateManager.PeekRollbackStack(); 
-
         public abstract string Id { get; }
         public abstract GameObject GameObject { get; }
-
-        public virtual List<ParameterValue> Params { get; protected set; } = new List<ParameterValue>();
+        public virtual List<ICommandData> Params { get; protected set; } = new List<ICommandData>();
         public virtual SortedList<string, VariableValue> CustomVars { get; protected set; } = new SortedList<string, VariableValue>();
         protected abstract string CommandNameAndId { get; }
         protected abstract void AddParams();
@@ -50,24 +45,32 @@ namespace NaninovelSceneAssistant {
                 return null; 
             }
 
-            var paramString = string.Join(" ", Params.Where(p => p.GetCommandValue() != null).Select(p => p.Name.ToLower() + ":" + p.GetCommandValue()));
+            var paramString = string.Join(" ", Params.Where(p => p.GetCommandValue() != null).Select(p => p.GetCommandValue()));
             if (paramsOnly) return paramString;
             var commandString = CommandNameAndId + " " + paramString;
 
             return inlined ? "[" + commandString + "]" : "@" + commandString;
         }
 
-        public string GetAllCommands(Dictionary<string, INaninovelObjectData> objectList, Dictionary<Type,bool> objectTypeList, bool selectedOnly = false)
+        public List<string> GetAllCommands(Dictionary<string, INaninovelObjectData> objectList, Dictionary<Type,bool> objectTypeList, bool inlined = false, bool selectedOnly = false)
         {
-            var allString = String.Empty;
+            var list = new List<string>();
 
             foreach (var obj in objectList.Values)
             {
                 if (selectedOnly && !objectTypeList[obj.GetType()]) continue;
-                else allString = allString + obj.GetCommandLine() + "\n";
+                list.Add(obj.GetCommandLine(inlined));
             }
 
-            return allString;
+            return list;
+        }
+
+        public void Dispose()
+        {
+            foreach(var data in Params)
+            {
+                if (data is IDisposable disposable) disposable.Dispose();
+            }
         }
     }
 
