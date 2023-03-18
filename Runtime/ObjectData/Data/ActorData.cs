@@ -1,9 +1,9 @@
 ﻿using Naninovel;
-using UnityEngine;
 using Naninovel.UI;
+using UnityEngine;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System;
 
 namespace NaninovelSceneAssistant
 {
@@ -20,10 +20,11 @@ namespace NaninovelSceneAssistant
         }
 
         public override string Id => id;
+        public override GameObject GameObject => GetGameObject();
         protected TActor Actor => (TActor)Service.GetActor(Id);
         protected TMeta Metadata => Config.GetMetadataOrDefault(Id);
-        public override GameObject GameObject => GetGameObject();
-        protected CameraConfiguration CameraConfiguration { get => Engine.GetConfiguration<CameraConfiguration>(); }
+        protected virtual float? DefaultZOffset { get; }
+
         private string id;
 
         private async UniTask<List<string>> GetAppearanceList()
@@ -63,22 +64,22 @@ namespace NaninovelSceneAssistant
             {
                 var appearances = GetAppearanceList().Result;
                 if(appearances.Count > 0) 
-                    Params.Add(new CommandData<string>("Appearance", () => Actor.Appearance ?? GetDefaultAppearance(), v => Actor.Appearance = (string)v, (i, p) => i.StringListField(p, appearances.ToArray())));
-                else Params.Add(new CommandData<string>("Appearance", () => Actor.Appearance, v => Actor.Appearance = (string)v, (i, p) => i.StringField(p)));
+                    CommandParameters.Add(new CommandParameterData<string>("Appearance", () => Actor.Appearance ?? GetDefaultAppearance(), v => Actor.Appearance = (string)v, (i, p) => i.StringListField(p, appearances.ToArray()), defaultValue: GetDefaultAppearance()));
+                else CommandParameters.Add(new CommandParameterData<string>("Appearance", () => Actor.Appearance, v => Actor.Appearance = (string)v, (i, p) => i.StringField(p)));
             }
 
             if (includeTransform)
             {
-                ICommandData pos = null;
-                ICommandData position = null;
+                ICommandParameterData pos = null;
+                ICommandParameterData position = null;
 
-                Params.Add(position = new CommandData<Vector3>("Position", () => Actor.Position, v => Actor.Position = v, (i, p) => i.Vector3Field(p, toggleWith: pos)));
-                Params.Add(pos = new CommandData<Vector3>("Pos", () => Actor.Position, v => Actor.Position = v, (i, p) => i.PosField(p, CameraConfiguration, position)));
-                Params.Add(new CommandData<Vector3>("Rotation", () => Actor.Rotation.eulerAngles, v => Actor.Rotation = Quaternion.Euler(v), (i, p) => i.Vector3Field(p)));
-                Params.Add(new CommandData<Vector3>("Scale", () => Actor.Scale, v => Actor.Scale = v, (i, p) => i.Vector3Field(p), defaultValue: Vector3.one));
+                CommandParameters.Add(position = new CommandParameterData<Vector3>("Position", () => Actor.Position, v => Actor.Position = v, (i, p) => i.Vector3Field(p, toggleWith: pos), defaultValue: new Vector3(0,-5.4f, DefaultZOffset ?? 0)));
+                CommandParameters.Add(pos = new CommandParameterData<Vector3>("Pos", () => Actor.Position, v => Actor.Position = v, (i, p) => i.PosField(p, CameraConfiguration, position), defaultValue: new Vector3(0, -5.4f, DefaultZOffset ?? 0)));
+                CommandParameters.Add(new CommandParameterData<Vector3>("Rotation", () => Actor.Rotation.eulerAngles, v => Actor.Rotation = Quaternion.Euler(v), (i, p) => i.Vector3Field(p)));
+                CommandParameters.Add(new CommandParameterData<Vector3>("Scale", () => Actor.Scale, v => Actor.Scale = v, (i, p) => i.Vector3Field(p), defaultValue: Vector3.one));
             }
 
-            if (includeTint) Params.Add(new CommandData<Color>("Tint", () => Actor.TintColor, v => Actor.TintColor = v, (i, p) => i.ColorField(p), defaultValue: Color.white));
+            if (includeTint) CommandParameters.Add(new CommandParameterData<Color>("Tint", () => Actor.TintColor, v => Actor.TintColor = v, (i, p) => i.ColorField(p), defaultValue: Color.white));
         }
     }
 
@@ -87,10 +88,11 @@ namespace NaninovelSceneAssistant
         public CharacterData(string id) : base(id) { }
         public static string TypeId => "Character";
         protected override string CommandNameAndId => "char " + Id;
-        protected override void AddParams()
+        protected override float? DefaultZOffset => Config.ZOffset;
+        protected override void AddCommandParameters()
         {
             AddBaseParameters();
-            //Params.Add(new CommandData<Enum>("Look", () => Actor.LookDirection, v => Actor.LookDirection = (CharacterLookDirection)v, (i, p) => i.EnumField(p)));
+            CommandParameters.Add(new CommandParameterData<Enum>("Look", () => Actor.LookDirection, v => Actor.LookDirection = (CharacterLookDirection)v, (i, p) => i.EnumField(p), defaultValue: Metadata.BakedLookDirection));
         }
     }
 
@@ -99,7 +101,8 @@ namespace NaninovelSceneAssistant
         public BackgroundData(string id) : base(id) { }
         public static string TypeId => "Background";
         protected override string CommandNameAndId => "back " + "id:" + Id;
-        protected override void AddParams()
+        protected override float? DefaultZOffset => Config.ZOffset;
+        protected override void AddCommandParameters()
         {
             AddBaseParameters();
         }
@@ -110,39 +113,43 @@ namespace NaninovelSceneAssistant
         public TextPrinterData(string id) : base(id) { }
         public static string TypeId => "Text Printer";
         protected override string CommandNameAndId => "printer " + Id;
-        protected override void AddParams()
+        protected override void AddCommandParameters()
         {
             AddBaseParameters(includeZPos:false);
         }
     }
 
-    public class ChoiceHandlerData : ActorData<ChoiceHandlerManager, IChoiceHandlerActor, ChoiceHandlerMetadata, ChoiceHandlersConfiguration>
+    public class ChoiceHandlerData : ActorData<ChoiceHandlerManager, IChoiceHandlerActor, ChoiceHandlerMetadata, ChoiceHandlersConfiguration>, IDynamicCommandParameter
     {
         public ChoiceHandlerData(string id) : base(id) { }
         public static string TypeId => "ChoiceHandler";
         protected override string CommandNameAndId => "choice";
-        protected List<ChoiceHandlerButton> ChoiceHandlerButtons => GameObject.GetComponentsInChildren<ChoiceHandlerButton>().ToList();
+        protected List<ChoiceHandlerButton> ChoiceHandlerButtons => GameObject.GetComponentsInChildren<ChoiceHandlerButton>()?.ToList();
 
-        public override string GetCommandLine(bool inlined = false, bool paramsOnly = false)
+        public override string GetCommandLine( bool inlined = false, bool paramsOnly = false)
         {
             var choiceList = new List<string>();
 
-            foreach (var param in Params)
+            //todo fix this
+            foreach (var param in CommandParameters)
             {
-                var choiceString = CommandNameAndId + param.GetCommandValue();
+                var choiceString = CommandNameAndId + " " + param.GetCommandValue() + " handler:" + Id;
                 choiceList.Add(inlined ? "[" + choiceString + "]" : "@" + choiceString);
             }
 
             return string.Join("\n", choiceList);
         }
 
-        protected override void AddParams()
+        protected override void AddCommandParameters()
         {
             foreach(var choice in ChoiceHandlerButtons)
             {
-                Params.Add(new CommandData<Vector2>(choice.ChoiceState.Summary + " pos", () => (Vector2)choice.transform.localPosition, v => choice.transform.localPosition = v, (i, p) => i.Vector2Field(p)));
+                if (CommandParameters.Exists(p => p.Name.Equals(choice.ChoiceState.Summary + " pos"))) continue;
+                CommandParameters.Add(new CommandParameterData<Vector2>(choice.ChoiceState.Summary + " pos", () => (Vector2)choice.transform.localPosition, v => choice.transform.localPosition = v, (i, p) => i.Vector2Field(p)));
             }
         }
+
+        public void UpdateCommandParameters() => AddCommandParameters();
     }
 
 }

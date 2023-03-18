@@ -2,7 +2,7 @@
 using NaninovelSceneAssistant;
 using System;
 
-public class UnlockableValue
+public class UnlockableData
 {
     public string Name { get; }
     public bool Value { get => getValue(); set => setValue(value); }
@@ -14,7 +14,7 @@ public class UnlockableValue
     private UnlockableState enumValue;
     private IUnlockableManager unlockableManager;
 
-    public UnlockableValue(string name)
+    public UnlockableData(string name)
     {
         Name = name;
         unlockableManager = Engine.GetService<IUnlockableManager>();

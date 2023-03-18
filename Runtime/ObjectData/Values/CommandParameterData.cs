@@ -1,79 +1,81 @@
 ﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
 using Naninovel;
-using System.Linq;
-using Codice.CM.Common.Replication;
-using UnityEditor;
 
 namespace NaninovelSceneAssistant
 {
-    public interface ICommandData
+    public interface ICommandParameterData
     {
         string Name { get; }
         bool Selected { get; set; }
         Func<bool> HasCondition { get; }
 
-        bool Changed { get; set; }
         string GetCommandValue(bool paramOnly = false);
         void GetLayout(ISceneAssistantLayout layout);
         void ResetDefault();
         void ResetState();
     }
 
-    public abstract class CommandData
+    public abstract class CommandParameterData
     {
-        public CommandData(string name, Func<bool> getCondition = default)
+        public CommandParameterData(string name, Func<bool> getCondition = default)
         {
             Name = name;
             HasCondition = getCondition;
+
+            ScriptPlayer = Engine.GetService<IScriptPlayer>();
+            StateManager = Engine.GetService<IStateManager>();
         }
         public string Name { get; }
-        public bool Selected { get; set; } = true;
+        public virtual bool Selected { get; set; } = true;
         public Func<bool> HasCondition { get; }
         public abstract string GetCommandValue(bool paramOnly = false);
         public abstract void GetLayout(ISceneAssistantLayout layout);
         public abstract void ResetDefault();
         public abstract void ResetState();
 
-        public bool Changed { get; set; }
+        public static bool ExcludeState;
+
+        protected IScriptPlayer ScriptPlayer;
+        protected IStateManager StateManager;
     }
 
-    public interface ICommandData<T> : ICommandData
+    public interface ICommandParameterData<T> : ICommandParameterData
     {
         T Value { get; set; }
         T State { get; }
         T Default { get; }
     }
 
-    public class CommandData<T> : CommandData, ICommandData<T>, IDisposable
+    public class CommandParameterData<T> : CommandParameterData, ICommandParameterData<T>, IDisposable
     {
-        public T Value { get => getValue();  set { if(CanUpdate) setValue(value); } }
+        public T Value { 
+            get => getValue();  
+            set 
+            { 
+                if((CanUpdate && ScriptPlayer.Playing) || !ScriptPlayer.Playing) setValue(value); 
+            } 
+        }
         public T State { get; private set; }
-        public T Default { get => defaultValue; }
+        public T Default { get; }
 
-        protected Action<ISceneAssistantLayout, ICommandData<T>> getLayout;
         protected Func<T> getValue;
         protected Action<T> setValue;
-        protected T defaultValue;
-        protected IScriptPlayer ScriptPlayer;
-        protected IStateManager StateManager;
+        protected Action<ISceneAssistantLayout, ICommandParameterData<T>> getLayout;
+
         protected static bool CanUpdate;
 
-        public CommandData(string name, Func<T> getValue, Action<T> setValue, 
-        Action<ISceneAssistantLayout, ICommandData<T>> getLayout, T defaultValue = default, Func<bool> getCondition = null) : base(name, getCondition) 
+        public CommandParameterData(string name, Func<T> getValue, Action<T> setValue, Action<ISceneAssistantLayout, ICommandParameterData<T>> getLayout, 
+            T defaultValue = default, Func<bool> getCondition = null) : base(name, getCondition) 
         {
             this.getValue = getValue;
             this.setValue = setValue;
             this.getLayout = getLayout;
-            this.defaultValue = defaultValue;
+            this.Default = defaultValue;
 
-            ScriptPlayer = Engine.GetService<IScriptPlayer>();
-            StateManager = Engine.GetService<IStateManager>();
             ScriptPlayer.AddPreExecutionTask(HandleCommandStarted);
             ScriptPlayer.AddPostExecutionTask(HandleCommandFinished);
             StateManager.AddOnGameSerializeTask(HandleSerialization);
-            State = getValue();
+            State = Value;
         }
 
         private void HandleSerialization(GameStateMap stateMap)
@@ -89,7 +91,7 @@ namespace NaninovelSceneAssistant
 
         private UniTask HandleCommandFinished(Command command)
         {
-            State = getValue();
+            State = Value;
             CanUpdate = true;
             return UniTask.CompletedTask;
         }
@@ -100,10 +102,9 @@ namespace NaninovelSceneAssistant
         public override void ResetState() => Value = State;
         public void Dispose()
         {
-            // todo set up disposing behaviour 
-            if(Name.Equals("Offset")) Debug.Log("Disposed");
             ScriptPlayer.RemovePreExecutionTask(HandleCommandStarted);
             ScriptPlayer.RemovePostExecutionTask(HandleCommandFinished);
+            StateManager.RemoveOnGameSerializeTask(HandleSerialization);
         }
     }
 

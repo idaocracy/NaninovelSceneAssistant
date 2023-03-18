@@ -1,4 +1,5 @@
-﻿using Naninovel;
+﻿using Codice.Client.BaseCommands.BranchExplorer;
+using Naninovel;
 using Naninovel.UI;
 using System;
 using System.Collections.Generic;
@@ -19,17 +20,21 @@ namespace NaninovelSceneAssistant
         protected static string ClipboardString { get => clipboardString; set { clipboardString = value; EditorGUIUtility.systemCopyBuffer = value; if (logResults) Debug.Log(value); } }
         protected ScriptImporterEditor[] VisualEditors => Resources.FindObjectsOfTypeAll<ScriptImporterEditor>();
 
+        protected bool ExcludeState { get => CommandParameterData.ExcludeState; set => CommandParameterData.ExcludeState = value; } 
+
         private static SceneAssistantManager sceneAssistantManager;
         private static IScriptPlayer scriptPlayer;
         private static IStateManager stateManager;
         private static ScriptsConfiguration scriptsConfiguration;
+
         private static int objectIndex;
         private static int tabIndex;
         private static string clipboardString;
         private static string search;
         private static Vector2 scrollPos;
         private static bool logResults;
-        private static bool isFocused;
+        private static bool pauseOnHover;
+        private static bool isHovered;
         private static bool commandPlaying;
 
         [MenuItem("Naninovel/Scene Assistant", false, 360)]
@@ -69,41 +74,27 @@ namespace NaninovelSceneAssistant
 
         }
 
-        private static void HandleReset()
-        {
-            if (sceneAssistantManager.ObjectList.Count >= objectIndex) return;
-            else objectIndex = 0;
-        }
+        private static void HandleReset() => objectIndex = 0;
 
         private static UniTask HandleCommandStarted(Command command)
         {
-            if (sceneAssistantEditor != null)
-            {
-                commandPlaying = true;
-                sceneAssistantEditor.Repaint();
-            }
+            if (sceneAssistantEditor != null) sceneAssistantEditor.Repaint();
             return UniTask.CompletedTask;
         }
 
         private static UniTask HandleCommandExecuted(Command command)
         {
-            if (sceneAssistantEditor != null)
-            {
-                commandPlaying = false;
-                sceneAssistantEditor.Repaint();
-            }
+            if (sceneAssistantEditor != null) sceneAssistantEditor.Repaint();
             return UniTask.CompletedTask;
         }
 
         public void OnGUI()
         {
-            EditorGUI.BeginDisabledGroup(commandPlaying);
             if (Engine.Initialized && sceneAssistantManager?.ObjectList.Count > 0)
             {
                 ShowTabs(sceneAssistantManager, sceneAssistantLayout);
             }
             else EditorGUILayout.LabelField("Naninovel is not initialized.");
-            EditorGUI.EndDisabledGroup();
         }
 
         protected virtual void ShowTabs(SceneAssistantManager sceneAssistant, ISceneAssistantLayout layout)
@@ -111,11 +102,8 @@ namespace NaninovelSceneAssistant
             GUILayout.Space(10f);
             EditorGUI.BeginChangeCheck();
             tabIndex = GUILayout.Toolbar(tabIndex, Tabs, EditorStyles.toolbarButton);
-            if (EditorGUI.EndChangeCheck())
-            {
-                search = string.Empty;
-                CurrentObject.Params.ForEach(s => s.Changed = true);
-            }
+            if (EditorGUI.EndChangeCheck()) search = string.Empty;
+
             GUILayout.Space(5f);
 
             switch (tabIndex)
@@ -153,7 +141,7 @@ namespace NaninovelSceneAssistant
 
             EditorGUILayout.Space(10);
 
-            DrawCommandParameters(CurrentObject.Params, layout);
+            DrawCommandParameters(CurrentObject.CommandParameters, layout);
 
             EditorGUILayout.Space(5);
 
@@ -167,14 +155,14 @@ namespace NaninovelSceneAssistant
 
             EditorGUILayout.EndScrollView();
 
-            if (EditorWindow.mouseOverWindow == sceneAssistantEditor && !isFocused)
+            if (EditorWindow.mouseOverWindow == sceneAssistantEditor && !isHovered)
             { 
-                scriptPlayer.SetWaitingForInputEnabled(true);
-                isFocused = true;
+                if(pauseOnHover) scriptPlayer.SetWaitingForInputEnabled(true);
+                isHovered = true;
             }
-            if (EditorWindow.mouseOverWindow != sceneAssistantEditor && isFocused)
+            if (EditorWindow.mouseOverWindow != sceneAssistantEditor && isHovered)
             {
-                isFocused = false;
+                isHovered = false;
             }
         }
 
@@ -182,86 +170,78 @@ namespace NaninovelSceneAssistant
         {
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
-            GUILayout.BeginVertical();
-            
-            if (scriptsConfiguration.EnableVisualEditor && scriptPlayer.PlayedScript != null)
-            {
-                EditorGUILayout.LabelField("Visual editor", EditorStyles.centeredGreyMiniLabel, GUILayout.Width(160));
-                if (VisualEditors.Length == 0)
-                {
-                    if (GUILayout.Button("Open Visual Editor", GUILayout.Width(145)))
-                    {
-                        EditorGUIUtility.PingObject(scriptPlayer.PlayedScript);
-                        Selection.activeObject = scriptPlayer.PlayedScript;
-                    }
-                }
-                else
-                {
-                    GUILayout.BeginHorizontal();
-                    if (GUILayout.Button("Insert command @", GUILayout.Width(130), GUILayout.Height(20))) ClipboardString = InsertCommandLine(CurrentObject.GetCommandLine());
-                    if (GUILayout.Button("[]", GUILayout.Width(25), GUILayout.Height(20))) ClipboardString = InsertGenericLine(CurrentObject.GetCommandLine(inlined:true));
-                    GUILayout.EndHorizontal();
-
-                    GUILayout.BeginHorizontal();
-                    if (GUILayout.Button("Insert all @", GUILayout.Width(130), GUILayout.Height(20)))
-                    {
-                        foreach (var command in CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList)) InsertCommandLine(command);
-                        ClipboardString = string.Join("\n", CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList));
-                    }
-
-                    if (GUILayout.Button("[]", GUILayout.Width(25), GUILayout.Height(20)))
-                    {
-                        foreach (var command in CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, inlined:true)) InsertGenericLine(command);
-                        ClipboardString = string.Join("", CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, inlined:true));
-                    }
-                    GUILayout.EndHorizontal();
-
-                    GUILayout.BeginHorizontal();
-                    if (GUILayout.Button("Insert selected @", GUILayout.Width(130), GUILayout.Height(20)))
-                    {
-                        foreach (var command in CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, selected:true)) InsertCommandLine(command);
-                        ClipboardString = string.Join("\n", CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, selected:true));
-                    }
-
-                    if (GUILayout.Button("[]", GUILayout.Width(25), GUILayout.Height(20)))
-                    {
-                        foreach (var command in CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, inlined:true, selected:true)) InsertGenericLine(command);
-                        ClipboardString = string.Join("", CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, inlined:true, selected:true));
-                    }
-                    GUILayout.EndHorizontal();
-                }
-            }
-            GUILayout.EndVertical();
+            DrawVisualEditorOptions();
 
             GUILayout.Space(20);
-            GUILayout.BeginVertical();
-
-            EditorGUILayout.LabelField("Clipboard", EditorStyles.centeredGreyMiniLabel, GUILayout.Width(160));
-
-            GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Copy command @", GUILayout.Width(130), GUILayout.Height(20))) ClipboardString = CurrentObject.GetCommandLine();
-            if (GUILayout.Button("[]", GUILayout.Width(25), GUILayout.Height(20))) ClipboardString = CurrentObject.GetCommandLine(inlined:true);
-            GUILayout.EndHorizontal();
-
-            GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Copy all @", GUILayout.Width(130), GUILayout.Height(20))) ClipboardString = string.Join("\n", CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList));
-            if (GUILayout.Button("[]", GUILayout.Width(25), GUILayout.Height(20))) ClipboardString = string.Join("", CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, inlined:true));
-            GUILayout.EndHorizontal();
-
-            GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Copy selected @", GUILayout.Width(130), GUILayout.Height(20))) ClipboardString = string.Join("\n", CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, selected:true));
-            if (GUILayout.Button("[]", GUILayout.Width(25), GUILayout.Height(20))) ClipboardString = string.Join("", CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, inlined: true, selected:true));
-            GUILayout.EndHorizontal();
-
-            GUILayout.EndVertical();
+            DrawClipboardOptions();
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
         }
 
+        private void DrawVisualEditorOptions()
+        {
+            if (!scriptsConfiguration.EnableVisualEditor || scriptPlayer.PlayedScript == null) return;
+            
+            GUILayout.BeginVertical();
+            
+            EditorGUILayout.LabelField("Visual editor", EditorStyles.centeredGreyMiniLabel, GUILayout.Width(160));
+            if (VisualEditors.Length == 0)
+            {
+                if (GUILayout.Button("Open Visual Editor", GUILayout.Width(145)))
+                {
+                    EditorGUIUtility.PingObject(scriptPlayer.PlayedScript);
+                    Selection.activeObject = scriptPlayer.PlayedScript;
+                }
+            }
+            else
+            {
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button("Insert command @", GUILayout.Width(130), GUILayout.Height(20))) ClipboardString = InsertCommandLine(CurrentObject.GetCommandLine());
+                if (GUILayout.Button("[]", GUILayout.Width(25), GUILayout.Height(20))) ClipboardString = InsertGenericLine(CurrentObject.GetCommandLine(inlined: true));
+                GUILayout.EndHorizontal();
+
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button("Insert all @", GUILayout.Width(130), GUILayout.Height(20)))
+                {
+                    foreach (var command in CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList)) InsertCommandLine(command);
+                    ClipboardString = string.Join("\n", CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList));
+                }
+
+                if (GUILayout.Button("[]", GUILayout.Width(25), GUILayout.Height(20)))
+                {
+                    foreach (var command in CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, inlined: true)) InsertGenericLine(command);
+                    ClipboardString = string.Join("", CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, inlined: true));
+                }
+                GUILayout.EndHorizontal();
+
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button("Insert selected @", GUILayout.Width(130), GUILayout.Height(20)))
+                {
+                    foreach (var command in CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, selected: true)) InsertCommandLine(command);
+                    ClipboardString = string.Join("\n", CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, selected: true));
+                }
+
+                if (GUILayout.Button("[]", GUILayout.Width(25), GUILayout.Height(20)))
+                {
+                    foreach (var command in CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, inlined: true, selected: true)) InsertGenericLine(command);
+                    ClipboardString = string.Join("", CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, inlined: true, selected: true));
+                }
+                GUILayout.EndHorizontal();
+                
+            }
+            GUILayout.EndVertical();
+        }
+
         protected string InsertCommandLine(string content)
         {
-            var command = CommandLineView.CreateDefault(scriptPlayer.PlayedIndex, content.Remove("@"), new VisualElement(), true);
-            VisualEditors[0].VisualEditor.InsertLine(command, scriptPlayer.PlayedIndex);
+            var contents = content.Split('\n') ?? new string[] { content };
+
+            foreach(var str in contents)
+            {
+                var command = CommandLineView.CreateDefault(scriptPlayer.PlayedIndex, str.Remove("@"), new VisualElement(), true);
+                VisualEditors[0].VisualEditor.InsertLine(command, scriptPlayer.PlayedIndex);
+            }
+
             return content;
         }
 
@@ -270,6 +250,30 @@ namespace NaninovelSceneAssistant
             var genericTextLine = new GenericTextLineView(scriptPlayer.PlayedIndex, content, new VisualElement());
             VisualEditors[0].VisualEditor.InsertLine(genericTextLine, scriptPlayer.PlayedIndex);
             return content;
+        }
+
+        private static void DrawClipboardOptions()
+        {
+            GUILayout.BeginVertical();
+
+            EditorGUILayout.LabelField("Clipboard", EditorStyles.centeredGreyMiniLabel, GUILayout.Width(160));
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Copy command @", GUILayout.Width(130), GUILayout.Height(20))) ClipboardString = CurrentObject.GetCommandLine();
+            if (GUILayout.Button("[]", GUILayout.Width(25), GUILayout.Height(20))) ClipboardString = CurrentObject.GetCommandLine(inlined: true);
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Copy all @", GUILayout.Width(130), GUILayout.Height(20))) ClipboardString = string.Join("\n", CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList));
+            if (GUILayout.Button("[]", GUILayout.Width(25), GUILayout.Height(20))) ClipboardString = string.Join("", CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, inlined: true));
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Copy selected @", GUILayout.Width(130), GUILayout.Height(20))) ClipboardString = string.Join("\n", CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, selected: true));
+            if (GUILayout.Button("[]", GUILayout.Width(25), GUILayout.Height(20))) ClipboardString = string.Join("", CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, inlined: true, selected: true));
+            GUILayout.EndHorizontal();
+
+            GUILayout.EndVertical();
         }
 
         protected void DrawIdField()
@@ -303,7 +307,7 @@ namespace NaninovelSceneAssistant
             GUILayout.EndHorizontal();
         }
 
-        protected virtual void DrawCommandParameters(List<ICommandData> parameters, ISceneAssistantLayout layout)
+        protected virtual void DrawCommandParameters(List<ICommandParameterData> parameters, ISceneAssistantLayout layout)
         {
             if (parameters == null || parameters.Count == 0 || layout == null) return;
 
@@ -317,11 +321,11 @@ namespace NaninovelSceneAssistant
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
 
-            if (GUILayout.Button("Select", EditorStyles.miniButton)) CurrentObject.Params.ForEach(p => p.Selected = true);
-            if (GUILayout.Button("Deselect", EditorStyles.miniButton)) CurrentObject.Params.ForEach(p => p.Selected = false);
-            if (GUILayout.Button("Default", EditorStyles.miniButton)) CurrentObject.Params.ForEach(p => p.ResetDefault());
-            if (GUILayout.Button("Reset", EditorStyles.miniButton)) CurrentObject.Params.ForEach(p => p.ResetState());
-            if (GUILayout.Button("Rollback", EditorStyles.miniButton)) foreach(var obj in sceneAssistantManager.ObjectList.Values) obj.Params.ForEach(p => p.ResetState());
+            if (GUILayout.Button("Select", EditorStyles.miniButton)) CurrentObject.CommandParameters.ForEach(p => p.Selected = true);
+            if (GUILayout.Button("Deselect", EditorStyles.miniButton)) CurrentObject.CommandParameters.ForEach(p => p.Selected = false);
+            if (GUILayout.Button("Default", EditorStyles.miniButton)) CurrentObject.CommandParameters.ForEach(p => p.ResetDefault());
+            if (GUILayout.Button("Reset", EditorStyles.miniButton)) CurrentObject.CommandParameters.ForEach(p => p.ResetState());
+            if (GUILayout.Button("Rollback", EditorStyles.miniButton)) foreach(var obj in sceneAssistantManager.ObjectList.Values) obj.CommandParameters.ForEach(p => p.ResetState());
 
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
@@ -336,10 +340,15 @@ namespace NaninovelSceneAssistant
 
             EditorGUILayout.Space(5);
             clipboardString = EditorGUILayout.TextArea(clipboardString, style, GUILayout.Height(textAreaHeight + 10));
-            logResults = EditorGUILayout.ToggleLeft("Log Results", logResults, EditorStyles.miniLabel);
+
+            GUILayout.BeginHorizontal();
+            logResults = EditorGUILayout.ToggleLeft("Log Results", logResults, EditorStyles.miniLabel, GUILayout.Width(80));
+            ExcludeState = EditorGUILayout.ToggleLeft("Exclude State Values", ExcludeState, EditorStyles.miniLabel, GUILayout.Width(125));
+            pauseOnHover = EditorGUILayout.ToggleLeft("Pause Script Player on Hover", pauseOnHover, EditorStyles.miniLabel, GUILayout.Width(165));
+            GUILayout.EndHorizontal();
         }
 
-        protected virtual void DrawCustomVariables(SortedList<string, VariableValue> variables, ISceneAssistantLayout layout)
+        protected virtual void DrawCustomVariables(SortedList<string, VariableData> variables, ISceneAssistantLayout layout)
         {
             if (variables == null && variables.Count == 0) return;
             GUILayout.Space(5);
@@ -347,7 +356,7 @@ namespace NaninovelSceneAssistant
             DrawSearchField();
 
             scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
-            foreach (VariableValue variable in variables.Values)
+            foreach (VariableData variable in variables.Values)
             {
                 if (!string.IsNullOrEmpty(search) && variable.Name.IndexOf(search, StringComparison.OrdinalIgnoreCase) < 0) continue;
 
@@ -358,7 +367,7 @@ namespace NaninovelSceneAssistant
             EditorGUILayout.EndScrollView();
         }
 
-        protected virtual void DrawUnlockables(SortedList<string, UnlockableValue> unlockables, ISceneAssistantLayout layout)
+        protected virtual void DrawUnlockables(SortedList<string, UnlockableData> unlockables, ISceneAssistantLayout layout)
         {
             if (unlockables == null) return;
             GUILayout.Space(5);
@@ -366,7 +375,7 @@ namespace NaninovelSceneAssistant
             DrawSearchField();
 
             scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
-            foreach (UnlockableValue unlockable in unlockables.Values)
+            foreach (UnlockableData unlockable in unlockables.Values)
             {
                 if (!string.IsNullOrEmpty(search) && unlockable.Name.IndexOf(search, StringComparison.OrdinalIgnoreCase) < 0) continue;
 

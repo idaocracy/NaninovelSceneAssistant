@@ -3,7 +3,7 @@ using Naninovel;
 using NaninovelSceneAssistant;
 using System;
 
-public class VariableValue
+public class VariableData
 {
     public string Name { get; }
     public string Value { get => getValue(); set => setValue(value); }
@@ -13,7 +13,7 @@ public class VariableValue
 
     private ICustomVariableManager customVariableManager;
 
-    public VariableValue(string name)
+    public VariableData(string name)
     {
         Name = name;
         customVariableManager = Engine.GetService<ICustomVariableManager>();

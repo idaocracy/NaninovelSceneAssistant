@@ -1,6 +1,7 @@
 ﻿using Naninovel;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -14,89 +15,87 @@ namespace NaninovelSceneAssistant
         private static float textAreaHeight;
 
         private ISceneAssistantLayout sceneAssistantLayout { get => this; }
-        public void BoolField(ICommandData<bool> param, ICommandData toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.Toggle(param.Value), param, toggleWith);
-        public void IntField(ICommandData<int> param, int? min = null, int? max = null, ICommandData toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.IntField(Mathf.Clamp(param.Value, min ?? int.MinValue, max ?? int.MaxValue)), param, toggleWith);
-        public void IntSliderField(ICommandData<int> param, int min, int max, ICommandData toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.IntSlider(param.Value, min, max), param, toggleWith);
-        public void StringField(ICommandData<string> param, ICommandData toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.DelayedTextField(param.Value), param, toggleWith);
-        public void ColorField(ICommandData<Color> param, bool includeAlpha = true, bool includeHDR = false, ICommandData toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.ColorField(GUIContent.none, param.Value, true, includeAlpha, false), param, toggleWith);
-        public void FloatField(ICommandData<float> param, float? min = null, float? max = null, ICommandData toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.FloatField("value", Mathf.Clamp(param.Value, min ?? float.MinValue, max ?? float.MaxValue), GUILayout.MinWidth(20)), param, toggleWith);
-        public void FloatSliderField(ICommandData<float> param, float min, float max, ICommandData toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.Slider((float)param.Value, min, max), param, toggleWith);
-        public void Vector2Field(ICommandData<Vector2> param, ICommandData toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.Vector2Field("", param.Value), param, toggleWith);
-        public void Vector3Field(ICommandData<Vector3> param, ICommandData toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.Vector3Field("", param.Value), param, toggleWith);
-        public void Vector4Field(ICommandData<Vector4> param, ICommandData toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.Vector4Field("", param.Value), param, toggleWith);
-        public void EnumField(ICommandData<Enum> param, ICommandData toggleWith = null)
-            => WrapInLayout(() => param.Value = EditorGUILayout.EnumPopup((Enum)param.Value), param, toggleWith);
-        public void EmptyField(ICommandData param, ICommandData toggleWith = null)
-            => WrapInLayout(null, param, toggleWith);
+        public void BoolField(ICommandParameterData<bool> data, ICommandParameterData toggleWith = null)
+            => WrapInLayout(() => data.Value = EditorGUILayout.Toggle(data.Value), data, toggleWith);
+        public void IntField(ICommandParameterData<int> data, int? min = null, int? max = null, ICommandParameterData toggleWith = null)
+            => WrapInLayout(() => data.Value = EditorGUILayout.IntField(Mathf.Clamp(data.Value, min ?? int.MinValue, max ?? int.MaxValue)), data, toggleWith);
+        public void IntSliderField(ICommandParameterData<int> data, int min, int max, ICommandParameterData toggleWith = null)
+            => WrapInLayout(() => data.Value = EditorGUILayout.IntSlider(data.Value, min, max), data, toggleWith);
+        public void StringField(ICommandParameterData<string> data, ICommandParameterData toggleWith = null)
+            => WrapInLayout(() => data.Value = EditorGUILayout.DelayedTextField(data.Value), data, toggleWith);
+        public void ColorField(ICommandParameterData<Color> data, bool includeAlpha = true, bool includeHDR = false, ICommandParameterData toggleWith = null)
+            => WrapInLayout(() => data.Value = EditorGUILayout.ColorField(GUIContent.none, data.Value, true, includeAlpha, false), data, toggleWith);
+        public void FloatField(ICommandParameterData<float> data, float? min = null, float? max = null, ICommandParameterData toggleWith = null)
+            => WrapInLayout(() => data.Value = EditorGUILayout.FloatField("value", Mathf.Clamp(data.Value, min ?? float.MinValue, max ?? float.MaxValue), GUILayout.MinWidth(20)), data, toggleWith);
+        public void FloatSliderField(ICommandParameterData<float> data, float min, float max, ICommandParameterData toggleWith = null)
+            => WrapInLayout(() => data.Value = EditorGUILayout.Slider((float)data.Value, min, max), data, toggleWith);
+        public void Vector2Field(ICommandParameterData<Vector2> data, ICommandParameterData toggleWith = null)
+            => WrapInLayout(() => data.Value = EditorGUILayout.Vector2Field("", data.Value), data, toggleWith);
+        public void Vector3Field(ICommandParameterData<Vector3> data, ICommandParameterData toggleWith = null)
+            => WrapInLayout(() => data.Value = EditorGUILayout.Vector3Field("", data.Value), data, toggleWith);
+        public void Vector4Field(ICommandParameterData<Vector4> data, ICommandParameterData toggleWith = null)
+            => WrapInLayout(() => data.Value = EditorGUILayout.Vector4Field("", data.Value), data, toggleWith);
+        public void EnumField(ICommandParameterData<Enum> data, ICommandParameterData toggleWith = null)
+            => WrapInLayout(() => data.Value = EditorGUILayout.EnumPopup((Enum)data.Value), data, toggleWith);
 
-        public void StringListField(ICommandData<string> param, string[] stringValues, ICommandData toggleWith = null)
+        public void StringListField(ICommandParameterData<string> data, string[] stringValues, ICommandParameterData toggleWith = null)
         {
             EditorGUILayout.BeginHorizontal();
-            if (param.HasCondition != null && param.HasCondition() == false) return;
-            var stringIndex = stringValues.IndexOf(param.Value.ToString());
-            DrawValueInfo(param);
+            if (data.HasCondition != null && data.HasCondition() == false) return;
+            var stringIndex = stringValues.IndexOf(data.Value.ToString());
+            DrawValueInfo(data);
 
-            EditorGUI.BeginDisabledGroup(!param.Selected);
+            EditorGUI.BeginDisabledGroup(!data.Selected);
             stringIndex = EditorGUILayout.Popup(stringIndex, stringValues);
-            CheckToggles(param, toggleWith);
+            CheckToggles(data, toggleWith);
             EditorGUI.EndDisabledGroup();
 
-            param.Value = stringValues[stringIndex];
-            if (!param.Selected && toggleWith == null) param.ResetState();
+            data.Value = stringValues[stringIndex];
+            if (!data.Selected && toggleWith == null) data.ResetState();
             EditorGUILayout.EndHorizontal();
         }
 
-        public void TypeListField<T>(ICommandData<T> param, Dictionary<string, T> values, ICommandData toggleWith = null)
+        public void TypeListField<T>(ICommandParameterData<T> data, Dictionary<string, T> values, ICommandParameterData toggleWith = null)
         {
             EditorGUILayout.BeginHorizontal();
-            if (param.HasCondition != null && param.HasCondition() == false) return;
+            if (data.HasCondition != null && data.HasCondition() == false) return;
 
-            var stringIndex = values.Values.Contains(param.Value) ? Array.IndexOf(values.Values.ToArray(), param.Value) : Array.IndexOf(values.Keys.ToArray(), "None");
-            DrawValueInfo(param);
+            var stringIndex = values.Values.Contains(data.Value) ? Array.IndexOf(values.Values.ToArray(), data.Value) : Array.IndexOf(values.Keys.ToArray(), "None");
+            DrawValueInfo(data);
 
-            EditorGUI.BeginDisabledGroup(!param.Selected);
+            EditorGUI.BeginDisabledGroup(!data.Selected);
             stringIndex = EditorGUILayout.Popup(stringIndex, values.Keys.ToArray());
-            CheckToggles(param, toggleWith);
+            CheckToggles(data, toggleWith);
             EditorGUI.EndDisabledGroup();
 
-            param.Value = (T)values.FirstOrDefault(s => s.Key == values.Keys.ToArray()[stringIndex]).Value;
-            if (!param.Selected && toggleWith == null) param.ResetState();
+            data.Value = (T)values.FirstOrDefault(s => s.Key == values.Keys.ToArray()[stringIndex]).Value;
+            if (!data.Selected && toggleWith == null) data.ResetState();
             EditorGUILayout.EndHorizontal();
         }
 
-        public void PosField(ICommandData<Vector3> param, CameraConfiguration cameraConfiguration, ICommandData toggleWith = null)
+        public void PosField(ICommandParameterData<Vector3> data, CameraConfiguration cameraConfiguration, ICommandParameterData toggleWith = null)
         {
             EditorGUILayout.BeginHorizontal();
-            if (param.HasCondition != null && param.HasCondition() == false) return;
-            DrawValueInfo(param);
-            var position = cameraConfiguration.WorldToSceneSpace((Vector3)param.Value);
+            if (data.HasCondition != null && data.HasCondition() == false) return;
+            DrawValueInfo(data);
+            var position = cameraConfiguration.WorldToSceneSpace((Vector3)data.Value);
             position.x *= 100;
             position.y *= 100;
 
-            EditorGUI.BeginDisabledGroup(!param.Selected);
+            EditorGUI.BeginDisabledGroup(!data.Selected);
             position = EditorGUILayout.Vector3Field("", position);
-            CheckToggles(param, toggleWith);
+            CheckToggles(data, toggleWith);
             EditorGUI.EndDisabledGroup();
 
             position.x /= 100;
             position.y /= 100;
             position = cameraConfiguration.SceneToWorldSpace(position);
-            param.Value = position;
-            if (!param.Selected && toggleWith == null) param.ResetState();
+            data.Value = position;
+            if (!data.Selected && toggleWith == null) data.ResetState();
             EditorGUILayout.EndHorizontal();
         }
 
-        public void VariableField(VariableValue var)
+        public void VariableField(VariableData var)
         {
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(var.Name, GUILayout.Width(150));
@@ -104,35 +103,35 @@ namespace NaninovelSceneAssistant
             EditorGUILayout.EndHorizontal();
         }
 
-        public void UnlockableField(UnlockableValue unlockable)
+        public void UnlockableField(UnlockableData unlockable)
         {
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(unlockable.Name, GUILayout.Width(150));
-            unlockable.EnumValue = (UnlockableValue.UnlockableState)EditorGUILayout.EnumPopup(unlockable.EnumValue);
-            if (unlockable.EnumValue == UnlockableValue.UnlockableState.Unlocked) unlockable.Value = true;
+            unlockable.EnumValue = (UnlockableData.UnlockableState)EditorGUILayout.EnumPopup(unlockable.EnumValue);
+            if (unlockable.EnumValue == UnlockableData.UnlockableState.Unlocked) unlockable.Value = true;
             else unlockable.Value = false;
             EditorGUILayout.EndHorizontal();
         }
 
-        public void WrapInLayout(Action layoutField, ICommandData param, ICommandData toggleWith = null)
+        public void WrapInLayout<T>(Action layoutField, ICommandParameterData<T> data, ICommandParameterData toggleWith = null)
         {
             EditorGUILayout.BeginHorizontal();
-            if (param.HasCondition != null && param.HasCondition() == false) return;
-            DrawValueInfo(param);
-            EditorGUI.BeginDisabledGroup(!param.Selected);
+            if (data.HasCondition != null && data.HasCondition() == false) return;
+            DrawValueInfo<T>(data);
+            EditorGUI.BeginDisabledGroup(!data.Selected);
             layoutField();
-            if (!param.Selected && toggleWith == null) param.ResetState();
-            CheckToggles(param, toggleWith);
+            if (!data.Selected && toggleWith == null) data.ResetState();
+            CheckToggles(data, toggleWith);
             EditorGUI.EndDisabledGroup();
             EditorGUILayout.EndHorizontal();
         }
 
-        private static void CheckToggles(ICommandData param, ICommandData toggleWith)
+        private static void CheckToggles(ICommandParameterData data, ICommandParameterData toggleWith)
         {
-            if (toggleWith != null && param.Selected && toggleWith.Selected) toggleWith.Selected = false;
-            else if (toggleWith != null && !param.Selected && !toggleWith.Selected)
+            if (toggleWith != null && data.Selected && toggleWith.Selected) toggleWith.Selected = false;
+            else if (toggleWith != null && !data.Selected && !toggleWith.Selected)
             {
-                param.ResetState();
+                data.ResetState();
                 toggleWith.ResetState();
             }
         }
@@ -155,28 +154,30 @@ namespace NaninovelSceneAssistant
             search = GUILayout.TextField(search);
             GUILayout.EndHorizontal();
         }
-        public void DrawValueInfo(ICommandData param)
+        public void DrawValueInfo<T>(ICommandParameterData<T> data)
         {
-            param.Selected = EditorGUILayout.Toggle(param.Selected, GUILayout.Width(15f));
-            EditorGUI.BeginDisabledGroup(!param.Selected);
-            if (DrawButton(param.Name)) ClipboardString = param.GetCommandValue(paramOnly:true);
+            data.Selected = EditorGUILayout.Toggle(data.Selected, GUILayout.Width(15f));
+            EditorGUI.BeginDisabledGroup(!data.Selected);
+            if (DrawButton(data.Name)) ClipboardString = data.FormatValue();
             EditorGUI.EndDisabledGroup();
         }
 
-        public void ListButtonField(IListCommandData param, ICommandData toggleWith = null)
+        public void ListButtonField(IListCommandParameterData data, ICommandParameterData toggleWith = null)
         {
             EditorGUILayout.BeginHorizontal();
             EditorGUI.BeginChangeCheck();
-            param.Selected = EditorGUILayout.Toggle(param.Selected, GUILayout.Width(15));
+            data.Selected = EditorGUILayout.Toggle(data.Selected, GUILayout.Width(15));
             if (EditorGUI.EndChangeCheck())
             {
-                if (!param.Selected) param.Values.ForEach(s => s.Selected = false);
-                else param.Values.ForEach(s => s.Selected = true);
+                 data.Values.ForEach(s => s.Selected = data.Selected);
             }
 
-            if (DrawButton(param.Name))
+            if (DrawButton(data.Name))
             {
-                ClipboardString = param.GetCommandValue(paramOnly: true);
+                var stateValue = CommandParameterData.ExcludeState;
+                CommandParameterData.ExcludeState = false;
+                ClipboardString = data.GetCommandValue(paramOnly: true);
+                CommandParameterData.ExcludeState = stateValue;
             }
             EditorGUILayout.EndHorizontal();
 
@@ -184,18 +185,21 @@ namespace NaninovelSceneAssistant
             GUILayout.Space(25);
 
             EditorGUILayout.BeginVertical();
+            EditorGUI.BeginDisabledGroup(!data.Selected);
             var defaultButtonWidth = buttonWidth;
             var defaultButtonSize = buttonSize;
             buttonSize = 9;
             buttonWidth = 128;
-            foreach (var value in param.Values)
+            foreach (var value in data.Values)
             {
                 value.GetLayout(sceneAssistantLayout);
             }
             buttonWidth = defaultButtonWidth;
             buttonSize = defaultButtonSize;
+            EditorGUI.EndDisabledGroup();
             EditorGUILayout.EndVertical();
             EditorGUILayout.EndHorizontal();
+
         }
     }
 }

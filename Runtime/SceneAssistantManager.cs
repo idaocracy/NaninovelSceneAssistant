@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System;
 using System.Linq;
-using Naninovel.Commands;
 
 namespace NaninovelSceneAssistant
 {
@@ -18,8 +17,8 @@ namespace NaninovelSceneAssistant
         private IReadOnlyCollection<IActorManager> actorServices;
         public Dictionary<string, INaninovelObjectData> ObjectList { get; protected set; } = new Dictionary<string, INaninovelObjectData>();
         public Dictionary<Type, bool> ObjectTypeList { get; protected set; } = new Dictionary<Type, bool>();
-        public SortedList<string, VariableValue> CustomVarList { get; protected set; } = new SortedList<string, VariableValue> { };
-        public SortedList<string, UnlockableValue> UnlockablesList { get; protected set; } = new SortedList<string, UnlockableValue> { };
+        public SortedList<string, VariableData> CustomVarList { get; protected set; } = new SortedList<string, VariableData> { };
+        public SortedList<string, UnlockableData> UnlockablesList { get; protected set; } = new SortedList<string, UnlockableData> { };
         public IReadOnlyCollection<string> ScriptsList { get; protected set; }
 
         public Action OnSceneAssistantReset;
@@ -41,7 +40,7 @@ namespace NaninovelSceneAssistant
 
         public virtual void ResetService()
         {
-            if(Initialised) ResetLists();
+            if(Initialised) RebuildLists();
         }
 
         public virtual void DestroyService()
@@ -54,80 +53,99 @@ namespace NaninovelSceneAssistant
             actorServices = Engine.FindAllServices<IActorManager>();
             ScriptsList = await scriptManager.LocateScriptsAsync();
 
-            ResetLists();
+            RebuildLists();
             variableManager.OnVariableUpdated += HandleVariableUpdated;
             unlockableManager.OnItemUpdated += HandleUnlockableUpdated;
 
             stateManager.OnGameLoadFinished += HandleOnGameLoadFinished;
-            stateManager.OnResetFinished += ResetLists;
-            stateManager.OnRollbackFinished += ResetLists;
+            stateManager.OnResetFinished += RebuildLists;
+            stateManager.OnRollbackFinished += RebuildLists;
 
             scriptPlayer.AddPostExecutionTask(HandlePlayedCommand);
 
             Initialised = true; 
         }
+
         public virtual void DestroySceneAssistant()
         {
             if (Initialised)
             {
-                ObjectList.Clear();
+                ClearObjectList();
                 CustomVarList.Clear();
                 UnlockablesList.Clear();
 
                 variableManager.OnVariableUpdated -= HandleVariableUpdated;
                 unlockableManager.OnItemUpdated -= HandleUnlockableUpdated;
                 stateManager.OnGameLoadFinished -= HandleOnGameLoadFinished;
-                stateManager.OnResetFinished -= ResetLists;
-                stateManager.OnRollbackFinished -= ResetLists;
+                stateManager.OnResetFinished -= RebuildLists;
+                stateManager.OnRollbackFinished -= RebuildLists;
 
+                scriptPlayer.RemovePostExecutionTask(HandlePlayedCommand);
                 Initialised = false;
             }
         }
 
-        private void HandleOnGameLoadFinished(GameSaveLoadArgs obj) => ResetLists();
+        public virtual UniTask HandlePlayedCommand(Command command)
+        {
+            RefreshObjectList();
+            RefreshObjectTypeList();
 
-        protected virtual void ResetLists()
+            return UniTask.CompletedTask;
+        }
+
+        private void HandleOnGameLoadFinished(GameSaveLoadArgs obj) => RebuildLists();
+
+        protected virtual void RebuildLists()
+        {
+            ClearObjectList();
+            RefreshObjectList();
+            OnSceneAssistantReset?.Invoke();
+
+            CustomVarList.Clear();
+            foreach (var variable in variableManager.GetAllVariables()) CustomVarList.Add(variable.Name, new VariableData(variable.Name));
+
+            UnlockablesList.Clear();
+            foreach (var unlockable in unlockableManager.GetAllItems()) UnlockablesList.Add(unlockable.Key, new UnlockableData(unlockable.Key));
+        }
+
+        private void ClearObjectList()
         {
             foreach (var obj in ObjectList)
             {
                 if (obj.Value is IDisposable disposable) disposable.Dispose();
             }
-            
 
             ObjectList.Clear();
-            ResetObjectList();
-
-            CustomVarList.Clear();
-            foreach (var variable in variableManager.GetAllVariables()) CustomVarList.Add(variable.Name, new VariableValue(variable.Name));
-
-            UnlockablesList.Clear();
-            foreach (var unlockable in unlockableManager.GetAllItems()) UnlockablesList.Add(unlockable.Key, new UnlockableValue(unlockable.Key));
         }
 
         protected void HandleVariableUpdated(CustomVariableUpdatedArgs args)
         {
             if (CustomVarList.ContainsKey(args.Name)) CustomVarList[args.Name].Value = args.Value;
-            else CustomVarList.Add(args.Name, new VariableValue(args.Name));
+            else CustomVarList.Add(args.Name, new VariableData(args.Name));
         }
 
         protected void HandleUnlockableUpdated(UnlockableItemUpdatedArgs args)
         {
             if (UnlockablesList.ContainsKey(args.Id)) UnlockablesList[args.Id].Value = args.Unlocked;
-            else UnlockablesList.Add(args.Id, new UnlockableValue(args.Id));
+            else UnlockablesList.Add(args.Id, new UnlockableData(args.Id));
         }
 
-        protected virtual void ResetObjectList()
+        protected virtual void RefreshObjectList()
         {
             if (!ObjectExists(typeof(CameraData)))
             {
                 var camera = new CameraData();
                 ObjectList.Add(camera.Id, camera);
             }
-            RefreshSpawnList();
+
             RefreshActorList();
+            RefreshSpawnList();
             RefreshObjectTypeList();
 
-            OnSceneAssistantReset?.Invoke();
+            foreach(var obj in ObjectList)
+            {
+                if (obj.Value is IDynamicCommandParameter dynamic) dynamic.UpdateCommandParameters();
+            }
         }
 
         protected virtual void RefreshActorList()
@@ -151,14 +169,6 @@ namespace NaninovelSceneAssistant
         protected virtual void RefreshSpawnList()
         {
             foreach (var spawn in spawnManager.GetAllSpawned()) if(!ObjectExists(typeof(SpawnData), spawn.Path)) ObjectList.Add(spawn.Path, new SpawnData(spawn.Path));
-        }
-
-        public virtual UniTask HandlePlayedCommand(Command command = null)
-        {
-            ResetObjectList();
-            RefreshObjectTypeList();
-
-            return UniTask.CompletedTask;
         }
 
         private void RefreshObjectTypeList()

@@ -12,8 +12,7 @@ namespace NaninovelSceneAssistant
         public abstract bool IsTransformable { get; }
         public abstract string CommandId { get; }
         public string SpawnId => GetType().Name;
-        public abstract List<ICommandData> GetParams();
-
+        public abstract List<ICommandParameterData> GetParams();
         public SpawnData ObjectSpawnData { get; private set; }
 
         private SceneAssistantManager sceneAssistantManager;
