@@ -1,10 +1,6 @@
 ﻿using Naninovel;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Security.Policy;
-using Unity.Plastic.Newtonsoft.Json.Linq;
 using UnityEngine;
-
 
 namespace NaninovelSceneAssistant
 {
@@ -57,4 +53,3 @@ namespace NaninovelSceneAssistant
         private static bool ExcludeState<T>(this ICommandParameterData<T> parameter) => CommandParameterData.ExcludeState && parameter.Value.Equals(parameter.State);
     }
 }
-

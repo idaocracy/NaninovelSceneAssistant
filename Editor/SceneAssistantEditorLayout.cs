@@ -1,7 +1,6 @@
 ﻿using Naninovel;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -196,7 +195,6 @@ namespace NaninovelSceneAssistant
             buttonWidth = defaultButtonWidth;
             buttonSize = defaultButtonSize;
             EditorGUI.EndDisabledGroup();
-
 
             EditorGUILayout.EndVertical();
             EditorGUILayout.EndHorizontal();

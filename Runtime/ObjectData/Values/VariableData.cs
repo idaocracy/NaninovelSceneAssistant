@@ -1,5 +1,4 @@
-﻿
-using Naninovel;
+﻿using Naninovel;
 using NaninovelSceneAssistant;
 using System;
 

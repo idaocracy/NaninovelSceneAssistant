@@ -107,5 +107,4 @@ namespace NaninovelSceneAssistant
             StateManager.RemoveOnGameSerializeTask(HandleSerialization);
         }
     }
-
 }

@@ -6,7 +6,7 @@ public class UnlockableData
 {
     public string Name { get; }
     public bool Value { get => getValue(); set => setValue(value); }
-    public enum UnlockableState { Unlocked, Locked };
+    public enum UnlockableState { Unlocked, Locked }
     public UnlockableState EnumValue { get => enumValue; set => enumValue = value; }
 
     private Func<bool> getValue;
@@ -22,6 +22,5 @@ public class UnlockableData
         setValue = (value) => unlockableManager.SetItemUnlocked(Name, value);
         enumValue = getValue() ? UnlockableState.Unlocked : UnlockableState.Locked;
     }
-
     public void DisplayField(ISceneAssistantLayout layout) => layout.UnlockableField(this);
 }

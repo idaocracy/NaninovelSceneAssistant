@@ -1,12 +1,9 @@
-﻿using Codice.Client.BaseCommands.BranchExplorer;
-using Naninovel;
+﻿using Naninovel;
 using Naninovel.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
-using UnityEditor.Experimental;
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 

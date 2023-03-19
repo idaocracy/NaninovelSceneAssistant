@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System;
-using System.Linq;
 
 namespace NaninovelSceneAssistant
 {
@@ -27,7 +26,5 @@ namespace NaninovelSceneAssistant
         public override void GetLayout(ISceneAssistantLayout layout) => getLayout(layout, this);
         public override void ResetDefault() => Values.ForEach(c => c.ResetDefault());
         public override void ResetState() => Values.ForEach(c => c.ResetState());
-
-
     }
 }
