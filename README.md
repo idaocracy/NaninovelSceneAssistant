@@ -9,7 +9,7 @@
 - Hovering on the window will no longer cause any ongoing transitions to complete instantly. It is also not possible to change the values as long as there is an ongoing transition to prevent unwanted changes. 
 - Improved stability. The extension is designed to remain active and functional throughout the engine's lifetime. 
 - Scene Assistant is now managed by a custom engine service, and it should be possible to override its behaviour. Instructions coming soon. 
-- Added SceneAssistantSpawnObject script which can be used to add parameters to spawn objects. A working example can be found in my newly updated NaninovelPostProcess V2. 
+- Added SceneAssistantSpawnObject script which can be used to add parameters to spawn objects. A working example can be found in my newly updated NaninovelPostProcess V2: https://github.com/idaocracy/NaninovelPostProcess
 
 ## Introduction & Installation
 
