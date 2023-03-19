@@ -1,15 +1,26 @@
 # NaninovelSceneAssistant
 
+## What's new in NaninovelSceneAssistant V2
+- You can now insert lines directly into the visual editor without having to copy the command to the clipboard buffer first.
+- The object list will now update according to what's visible as opposed to what's (pre)loaded, eliminating some clutter. 
+- The original parameter states are now saved and these are restored when the parameters are deselected. You can also choose to ignore unchanged values when checking the "Exclude State Values" option.  
+- Added two new tabs to the Scene Assistant windows: Variables and Unlockables. You can now track their states and debug them, similar to the built-in Custom Variable GUI.
+- Added an option to pause the Script Player on hover, which causes the script player to pause on current command's completion.
+- Hovering on the window will no longer cause any ongoing transitions to complete instantly. It is also not possible to change values as long as there is an ongoing transition. 
+- Improved stability. The extension is designed to remain active and functional throughout the engine's lifetime. 
+- Scene Assistant is now managed by a custom engine service, and it should be possible to override its behaviour. Instructions coming soon. 
+- Added SceneAssistantSpawnObject script which can be used to add parameters to spawn objects. A working example can be found in my newly updated NaninovelPostProcess V2. 
+
 ## Introduction & Installation
 
-Naninovel Scene Assistant is an extension that lets you easily modify Naninovel objects in real time and copy their corresponding command and parameters to a clipboard. 
+Naninovel Scene Assistant is an extension that lets you easily modify Naninovel objects in real time and copy their corresponding command and parameters directly into the visual editor or clipboard.
 
 ### Installation (New version)
 1. In Unity's Package Manager, click the plus sign and navigate to *Add package from git URL...*. If you don't have git installed, install it and restart the computer.
 2. Type in https://github.com/Idaocracy/NaninovelPostProcess#package and it should install automatically. 
 3. In Naninovel's Engine configuration, unfold the Type Assemblies dropdown and add these two assembly definitions:
-Idaocracy.NaninovelSceneAssistant.Runtime 
-Idaocracy.NaninovelSceneAssistant.Editor 
+- **Idaocracy.NaninovelSceneAssistant.Runtime**
+- **Idaocracy.NaninovelSceneAssistant.Editor**
 3. You are done! You can now access the scene assistant from the Naninovel menu.
 
 ### Installation (Old version) and basic walkthrough 
@@ -21,12 +32,13 @@ TLDW: Add the script to an Editor folder (If you don't have one for your own use
 
 ![image](https://user-images.githubusercontent.com/77254066/162417149-db622e5f-1f01-4861-8fe1-7d10deca85ff.png)
 
-**From top to bottom:**  
-**Copy commands (@ or []):** Copy a string generated from selected parameter options to the clipboard buffer as well as the Clipboard field. Will always include the command corresponding to the object type.   
-**Copy all or Copy Selected:** Copy all or select type of objects listed under ID. Please note that you cannot omit parameter options from these strings.  
+**From top to bottom:**
+
+**Insert/Copy commands (@ or []):** Will insert the command of the current object directly into the visual editor (if currently visible) or alternatively, copy the command to the clipboard buffer. Results will be visible in the text field below, and the results can also be logged when Log Results is checked. 
+**Insert/Copy all or Copy Selected:** Insert/Copy all or selected type of objects listed under the buttons. The list of object types are updated according to the currently present objects. 
 ____
 **Id**: The object ID. Click on the object Id to get the list of objects you can modify.  
-**Parameter options:** Each object has a list of parameters you can modify in real time. To exclude the parameter from string generation, uncheck the box in front of the parameter name. In case of transforms, you can omit x,y,z values specifically by unchecking the boxes on the far right.  
+**Parameter options:** Each object has a list of parameters you can modify in real time. These options are available out of the box:
 - Appearance (character, background and printer)
 - Look Direction (character)
 - Tint Color (character, background and printer)* 
@@ -34,24 +46,22 @@ ____
 - Rotation (all except choice buttons)
 - Scale (all except camera and choice buttons)
 - Orthographic (camera only)
-- Camera Components (camera only)**
+- Camera Components (camera only)
+- Roll (camera only)
+- Spawn parameters**
+- Any custom parameter you decide to implement
 
 /* Please note that you need to set up the tint behaviour for the printer prefab yourself, by hooking a method to the public **On Tint Color Changed** event
+** Spawn parameters (apart from transform values) have to be set up manually. See my NaninovelPostProcess V2 extension for reference. 
 
 **Parameter/reset options:**  
-- Rollback:  Will attempt to roll back to the newest state snapshot. Please note that this option is only available when you have State Rollback enabled in Naninovel's State Configuration.
-- Nullify Transforms: Will reset to default or visibility-friendly values. 
 - Select/Deselect All: Will check/uncheck all the parameter options for the current object.
+- Default: Will attempt to retrieve the default value for the parameter (some which are set in the object's configuration menu)
+- Reset: Will reset all values of the current object. 
+- Rollback: Will perform a faux rollback that resets all values found in the scene. 
 
 ## Current limitations
-
-- When the object is going through a timed transition, hovering over the Scene Assistant window will instantly complete the transition. This is due to Naninovel registering the new values before any tweens are completed, I do not intend to work around this.   
-- Spawn effect parameters (params) cannot be manipulated. I intend to release my own pack of spawn effects soon that will be compatible with the scene assistant. 
-- This is my first time working on Editor scripting and unfortunately the documentation can be insufficient so there will be bugs. If you can identify a bug and reproduce it, please let me know!
-
-## Performance
-
-The list of objects is refreshed during every change in object hierarchy, as well as when the window is opened. Hovering over the window will update it, otherwise it should have no effect on performance. 
+- The float parameter fields are fugly as heck. Unfortunately due to the limitations of FloatField, I couldn't make them any prettier.
 
 ## Contact
 
