@@ -25,7 +25,4 @@ namespace NaninovelSceneAssistant {
         void VariableField(VariableData variable);
         void UnlockableField(UnlockableData unlockable);
     }
-
-
-
 }

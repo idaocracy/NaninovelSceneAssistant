@@ -5,7 +5,6 @@ using System.Linq;
 using Naninovel;
 
 namespace NaninovelSceneAssistant {
-
     
     public interface INaninovelObjectData
     {
@@ -16,7 +15,6 @@ namespace NaninovelSceneAssistant {
         List<ICommandParameterData> CommandParameters { get; }
         SortedList<string, VariableData> CustomVariables { get; }
     }
-
 
     //This interface is designed for objects which has more data added throughout its lifetime (like choice handler)
     public interface IDynamicCommandParameter
@@ -80,6 +78,4 @@ namespace NaninovelSceneAssistant {
             }
         }
     }
-
 }
-

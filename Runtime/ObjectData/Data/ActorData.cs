@@ -151,5 +151,4 @@ namespace NaninovelSceneAssistant
 
         public void UpdateCommandParameters() => AddCommandParameters();
     }
-
 }

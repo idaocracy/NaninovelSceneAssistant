@@ -69,7 +69,6 @@ namespace NaninovelSceneAssistant
             sceneAssistantManager.OnSceneAssistantReset += HandleReset;
             scriptPlayer.AddPostExecutionTask(HandleCommandExecuted);
             scriptPlayer.AddPreExecutionTask(HandleCommandStarted);
-
         }
 
         private static void HandleReset() => objectIndex = 0;
@@ -225,7 +224,6 @@ namespace NaninovelSceneAssistant
                     ClipboardString = string.Join("", CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, inlined: true, selected: true));
                 }
                 GUILayout.EndHorizontal();
-                
             }
             GUILayout.EndVertical();
         }
@@ -397,11 +395,9 @@ namespace NaninovelSceneAssistant
             scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
             GUILayout.Space(5);
 
-
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
             GUILayout.BeginVertical();
-
 
             foreach (string script in scripts)
             {

@@ -20,9 +20,7 @@ namespace NaninovelSceneAssistant
         public SortedList<string, VariableData> CustomVarList { get; protected set; } = new SortedList<string, VariableData> { };
         public SortedList<string, UnlockableData> UnlockablesList { get; protected set; } = new SortedList<string, UnlockableData> { };
         public IReadOnlyCollection<string> ScriptsList { get; protected set; }
-
         public Action OnSceneAssistantReset;
-
         public bool Initialised { get; protected set; } = false;
 
         public SceneAssistantManager(ISpawnManager spawnManager, IScriptPlayer scriptPlayer, ICustomVariableManager variableManager, IUnlockableManager unlockableManager,
@@ -197,11 +195,5 @@ namespace NaninovelSceneAssistant
                 else return (ObjectList.Any(c => c.Value.GetType() == type && c.Key == id));
             }
         }
-
-
     }
 }
-
-
-
-

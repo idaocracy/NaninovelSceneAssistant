@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-
 namespace NaninovelSceneAssistant
 {
     public class CameraData : NaninovelObjectData<ICameraManager, CameraConfiguration>, INaninovelObjectData
@@ -42,6 +41,5 @@ namespace NaninovelSceneAssistant
 
             CommandParameters.Add(new ListCommandData("Set", componentsData, (i, p) => i.ListButtonField(p)));
         }
-
     }
 }
