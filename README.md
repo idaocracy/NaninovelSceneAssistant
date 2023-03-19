@@ -52,8 +52,9 @@ ____
 - Spawn parameters**
 - Any custom parameter you decide to implement.
 
-/* Please note that you need to set up the tint behaviour for the printer prefab yourself, by hooking a method to the public **On Tint Color Changed** event
-/** Spawn parameters (apart from transform values) have to be set up manually. See my NaninovelPostProcess V2 extension for reference. 
+* Please note that you need to set up the tint behaviour for the printer prefab yourself, by hooking a method to the public **On Tint Color Changed** event
+
+** Spawn parameters (apart from transform values) have to be set up manually. See my NaninovelPostProcess V2 extension for reference. 
 
 **Parameter/reset options:**  
 - Select/Deselect All: Will check/uncheck all the parameter options for the current object.
