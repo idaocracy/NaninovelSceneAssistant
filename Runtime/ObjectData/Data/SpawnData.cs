@@ -16,15 +16,15 @@ namespace NaninovelSceneAssistant
         protected SpawnedObject Spawned { get => Engine.GetService<SpawnManager>().GetSpawned(Id); }
         public override string Id => id;
         public static string TypeId => "Spawn";
-        protected Transform Transform => Spawned.Transform; 
-        public override GameObject GameObject => Spawned.GameObject; 
-        protected ISceneAssistantSpawn SpawnSceneAssistant => GameObject.GetComponent<ISceneAssistantSpawn>() ?? null; 
+        protected Transform Transform => Spawned.Transform;
+        public override GameObject GameObject => Spawned.GameObject;
+        protected ISceneAssistantSpawn SpawnSceneAssistant => GameObject.GetComponent<ISceneAssistantSpawn>() ?? null;
         protected override string CommandNameAndId => "spawn " + Id;
         protected bool IsTransformable => SpawnSceneAssistant?.IsTransformable ?? true;
 
         private string id;
 
-        public override string GetCommandLine( bool inlined = false, bool paramsOnly = false)
+        public override string GetCommandLine(bool inlined = false, bool paramsOnly = false)
         {
             if (CommandParameters == null)
             {
@@ -33,31 +33,27 @@ namespace NaninovelSceneAssistant
             }
 
             var tempParams = CommandParameters.ToList();
-            var tempString = string.Empty;
+            var transformString = string.Empty;
 
-            if (IsTransformable) tempString = AddTransformParameters(tempParams, tempString, out tempParams);
+            if (IsTransformable)
+            {
+                foreach (var parameter in tempParams.ToList())
+                {
+                    if (parameter.Name == "Position" || parameter.Name == "Pos" || parameter.Name == "Rotation" || parameter.Name == "Scale")
+                    {
+                        if (parameter.Selected & parameter.GetCommandValue() != null) transformString = transformString + parameter.GetCommandValue() + " ";
+                        tempParams.Remove(parameter);
+                    }
+                }
+            }
 
-            var paramsString = string.Join(",", tempParams.Where(p => p.GetCommandValue() != null).Select(p => p.GetCommandValue(paramOnly:true) ?? string.Empty));
-            if (CommandParameterData.ExcludeState && paramsString.Length == 0) return null;
+            var paramsString = string.Join(",", tempParams.Where(p => p.GetCommandValue() != null).Select(p => p.GetCommandValue(paramOnly: true) ?? string.Empty));
+            if (CommandParameterData.ExcludeState && paramsString.Length == 0 && transformString.Length == 0) return null;
             if (paramsOnly) return paramsString;
-            var commandString = $"{CommandNameAndId} {tempString} params:{paramsString}";
+            var commandString = CommandNameAndId + " " + transformString + (paramsString.Length != 0 ? "params:" + paramsString : string.Empty);
             return inlined ? $"[{commandString}]" : $"@{commandString}";
         }
 
-        private static string AddTransformParameters(List<ICommandParameterData> tempParams, string tempString, out List<ICommandParameterData> result)
-        {
-            foreach (var parameter in tempParams)
-            {
-                if (parameter.Name == "Position" || parameter.Name == "Pos" || parameter.Name == "Rotation" || parameter.Name == "Scale")
-                {
-                    if (!parameter.Selected) continue;
-                    tempString = tempString + parameter.GetCommandValue() + " ";
-                    tempParams.Remove(parameter);
-                }
-            }
-            result = tempParams;
-            return tempString;
-        }
 
         public virtual string GetSpawnEffectLine(bool inlined = false, bool paramsOnly = false)
         {
@@ -78,10 +74,10 @@ namespace NaninovelSceneAssistant
             ICommandParameterData pos = null;
             ICommandParameterData position = null;
 
-            CommandParameters.Add(position = new CommandParameterData<Vector3>("Position", () => Transform.localPosition, v => Transform.localPosition = v, (i, p) =>  i.Vector3Field(p, toggleWith: pos), defaultValue: new Vector3(0,0,99)));
-            CommandParameters.Add(pos = new CommandParameterData<Vector3>("Pos", () => Transform.localPosition, v => Transform.localPosition = v,  (i, p) => i.PosField(p, CameraConfiguration, toggleWith: position), defaultValue: new Vector3(0, 0, 99)));
-            CommandParameters.Add(new CommandParameterData<Vector3>("Rotation", () => Transform.localRotation.eulerAngles, v => Transform.localRotation = Quaternion.Euler(v), (i,p) => i.Vector3Field(p)));
-            CommandParameters.Add(new CommandParameterData<Vector3>("Scale", () => Transform.localScale, v => Transform.localScale = v, (i, p) => i.Vector3Field(p), defaultValue:Vector3.one));
+            CommandParameters.Add(position = new CommandParameterData<Vector3>("Position", () => Transform.localPosition, v => Transform.localPosition = v, (i, p) => i.Vector3Field(p, toggleWith: pos), defaultValue: new Vector3(0, 0, 99)));
+            CommandParameters.Add(pos = new CommandParameterData<Vector3>("Pos", () => Transform.localPosition, v => Transform.localPosition = v, (i, p) => i.PosField(p, CameraConfiguration, toggleWith: position), defaultValue: new Vector3(0, 0, 99)));
+            CommandParameters.Add(new CommandParameterData<Vector3>("Rotation", () => Transform.localRotation.eulerAngles, v => Transform.localRotation = Quaternion.Euler(v), (i, p) => i.Vector3Field(p)));
+            CommandParameters.Add(new CommandParameterData<Vector3>("Scale", () => Transform.localScale, v => Transform.localScale = v, (i, p) => i.Vector3Field(p), defaultValue: Vector3.one));
         }
 
         protected override void AddCommandParameters()
