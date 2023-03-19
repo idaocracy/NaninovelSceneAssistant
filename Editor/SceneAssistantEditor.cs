@@ -12,6 +12,7 @@ using UnityEngine.UIElements;
 
 namespace NaninovelSceneAssistant
 {
+    [System.Serializable]
     public partial class SceneAssistantEditor : EditorWindow
     {
         private static SceneAssistantEditor sceneAssistantEditor;

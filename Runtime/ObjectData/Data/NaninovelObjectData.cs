@@ -6,6 +6,7 @@ using Naninovel;
 
 namespace NaninovelSceneAssistant {
 
+    
     public interface INaninovelObjectData
     {
         string Id { get; }
@@ -22,7 +23,6 @@ namespace NaninovelSceneAssistant {
     {
         void UpdateCommandParameters();
     }
-
 
     public abstract class NaninovelObjectData<TService, TConfig> : INaninovelObjectData, IDisposable 
         where TService : class, IEngineService

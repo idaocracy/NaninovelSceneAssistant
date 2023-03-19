@@ -24,8 +24,8 @@ namespace NaninovelSceneAssistant
             else if (value is Quaternion quaternion) return quaternion.eulerAngles.ToString("0.##").Replace(" ", "").Replace("(", "").Replace(")", "");
             else if (value is bool) return value.ToString().ToLower();
             else if (value is Color color) return "#" + ColorUtility.ToHtmlStringRGBA(color);
-            else if (value is Texture texture && texture is null) return string.Empty;
-            else return value.ToString();
+            else if (value is Texture texture) return texture is null ? string.Empty : texture.name;
+            else return value?.ToString();
         }
 
         private static string GetPosValue(Vector3 vector)
@@ -49,7 +49,7 @@ namespace NaninovelSceneAssistant
         public static string GetListValue(this IListCommandParameterData parameter, bool paramOnly = false)
         {
             if (parameter.Values.All(c => c.GetCommandValue() == null)) return null;
-            else return (paramOnly ? string.Empty : parameter.Name.FormatName() + ":") + string.Join(",", parameter.Values.Select(c => c.GetCommandValue(paramOnly: true).ToString()).ToList());
+            else return (paramOnly ? string.Empty : parameter.Name.FormatName() + ":") + string.Join(",", parameter.Values.Select(c => c.GetCommandValue(paramOnly: true) ?? string.Empty));
         }
 
         private static bool IsValid<T>(this ICommandParameterData<T> parameter) => parameter.Selected && !ExcludeState(parameter) && (parameter.HasCondition == null || parameter.HasCondition());
@@ -57,4 +57,4 @@ namespace NaninovelSceneAssistant
         private static bool ExcludeState<T>(this ICommandParameterData<T> parameter) => CommandParameterData.ExcludeState && parameter.Value.Equals(parameter.State);
     }
 }
-    
+
