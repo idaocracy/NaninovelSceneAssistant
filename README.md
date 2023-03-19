@@ -30,7 +30,7 @@ TLDW: Add the script to an Editor folder (If you don't have one for your own use
 
 ## Overview
 
-![image](https://user-images.githubusercontent.com/77254066/162417149-db622e5f-1f01-4861-8fe1-7d10deca85ff.png)
+<img width="311" alt="image" src="https://user-images.githubusercontent.com/77254066/226194715-6bc14b0a-06fa-45ef-ab6b-e299af71eda2.png">
 
 **From top to bottom:**
 
@@ -64,7 +64,7 @@ ____
 - The float parameter fields are fugly as heck. Unfortunately due to the limitations of FloatField, I couldn't make them any prettier.
 
 ## Future features
-- A UI version of this extension is in the works, hence the Runtime scripts in the extension. For now the extension won't be included in builds.  
+- A UI version of this extension is in the works, hence the Runtime scripts in the extension. For now the extension won't be included in builds as the assembly definitions target editor only.  
 
 ## Contact
 If you need help with the extension, you can contact me on here or on Discord. I am the tech support person (only yellow username) on the Naninovel discord.  
