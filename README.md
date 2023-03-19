@@ -35,6 +35,7 @@ TLDW: Add the script to an Editor folder (If you don't have one for your own use
 **From top to bottom:**
 
 **Insert/Copy commands (@ or []):** Will insert the command of the current object directly into the visual editor (if currently visible) or alternatively, copy the command to the clipboard buffer. Results will be visible in the text field below, and the results can also be logged when Log Results is checked. 
+
 **Insert/Copy all or Copy Selected:** Insert/Copy all or selected type of objects listed under the buttons. The list of object types are updated according to the currently present objects. 
 ____
 **Id**: The object ID. Click on the object Id to get the list of objects you can modify.  
