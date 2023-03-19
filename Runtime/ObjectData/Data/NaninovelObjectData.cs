@@ -5,7 +5,6 @@ using System.Linq;
 using Naninovel;
 
 namespace NaninovelSceneAssistant {
-    
     public interface INaninovelObjectData
     {
         string Id { get; }

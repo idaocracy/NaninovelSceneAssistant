@@ -198,7 +198,6 @@ namespace NaninovelSceneAssistant
 
             EditorGUILayout.EndVertical();
             EditorGUILayout.EndHorizontal();
-
         }
     }
 }

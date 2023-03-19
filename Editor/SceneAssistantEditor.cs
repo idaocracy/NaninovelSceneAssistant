@@ -118,7 +118,6 @@ namespace NaninovelSceneAssistant
                     DrawScripts(sceneAssistant.ScriptsList);
                     break;
             }
-
         }
 
         protected virtual void DrawSceneAssistant(ISceneAssistantLayout layout)
@@ -198,34 +197,22 @@ namespace NaninovelSceneAssistant
                 GUILayout.EndHorizontal();
 
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button("Insert all @", GUILayout.Width(130), GUILayout.Height(20)))
-                {
-                    foreach (var command in CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList)) InsertCommandLine(command);
-                    ClipboardString = string.Join("\n", CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList));
-                }
-
-                if (GUILayout.Button("[]", GUILayout.Width(25), GUILayout.Height(20)))
-                {
-                    foreach (var command in CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, inlined: true)) InsertGenericLine(command);
-                    ClipboardString = string.Join("", CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, inlined: true));
-                }
+                if (GUILayout.Button("Insert all @", GUILayout.Width(130), GUILayout.Height(20))) DrawInsertCommandsButton(false, false);
+                if (GUILayout.Button("[]", GUILayout.Width(25), GUILayout.Height(20))) DrawInsertCommandsButton(true, false);
                 GUILayout.EndHorizontal();
 
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button("Insert selected @", GUILayout.Width(130), GUILayout.Height(20)))
-                {
-                    foreach (var command in CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, selected: true)) InsertCommandLine(command);
-                    ClipboardString = string.Join("\n", CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, selected: true));
-                }
-
-                if (GUILayout.Button("[]", GUILayout.Width(25), GUILayout.Height(20)))
-                {
-                    foreach (var command in CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, inlined: true, selected: true)) InsertGenericLine(command);
-                    ClipboardString = string.Join("", CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, inlined: true, selected: true));
-                }
+                if (GUILayout.Button("Insert selected @", GUILayout.Width(130), GUILayout.Height(20))) DrawInsertCommandsButton(false, true);
+                if (GUILayout.Button("[]", GUILayout.Width(25), GUILayout.Height(20))) DrawInsertCommandsButton(true, true);
                 GUILayout.EndHorizontal();
             }
             GUILayout.EndVertical();
+
+            void DrawInsertCommandsButton(bool inlined, bool selected)
+            {
+                foreach (var command in CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, inlined, selected)) InsertGenericLine(command);
+                ClipboardString = string.Join("", CurrentObject.GetAllCommands(sceneAssistantManager.ObjectList, sceneAssistantManager.ObjectTypeList, inlined, selected));
+            } 
         }
 
         protected string InsertCommandLine(string content)
@@ -421,5 +408,4 @@ namespace NaninovelSceneAssistant
             }
         }
     }
-    
 }

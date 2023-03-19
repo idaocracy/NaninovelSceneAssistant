@@ -4,7 +4,6 @@ using UnityEngine;
 using Naninovel;
 
 namespace NaninovelSceneAssistant {
-
     public interface ISceneAssistantLayout
     {
         void StringField(ICommandParameterData<string> data, ICommandParameterData toggleWith = null);

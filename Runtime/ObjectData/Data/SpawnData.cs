@@ -35,24 +35,28 @@ namespace NaninovelSceneAssistant
             var tempParams = CommandParameters.ToList();
             var tempString = string.Empty;
 
-            if (IsTransformable)
-            {
-                foreach (var parameter in tempParams)
-                {
-                    if(parameter.Name == "Position" || parameter.Name == "Pos" || parameter.Name == "Rotation" || parameter.Name == "Scale")
-                    {
-                        if (!parameter.Selected) continue;
-                        tempString = tempString + parameter.GetCommandValue() + " ";
-                        tempParams.Remove(parameter);
-                    }
-                }
-            }
+            if (IsTransformable) tempString = AddTransformParameters(tempParams, tempString, out tempParams);
 
             var paramsString = string.Join(",", tempParams.Where(p => p.GetCommandValue() != null).Select(p => p.GetCommandValue(paramOnly:true) ?? string.Empty));
             if (CommandParameterData.ExcludeState && paramsString.Length == 0) return null;
             if (paramsOnly) return paramsString;
             var commandString = $"{CommandNameAndId} {tempString} params:{paramsString}";
             return inlined ? $"[{commandString}]" : $"@{commandString}";
+        }
+
+        private static string AddTransformParameters(List<ICommandParameterData> tempParams, string tempString, out List<ICommandParameterData> result)
+        {
+            foreach (var parameter in tempParams)
+            {
+                if (parameter.Name == "Position" || parameter.Name == "Pos" || parameter.Name == "Rotation" || parameter.Name == "Scale")
+                {
+                    if (!parameter.Selected) continue;
+                    tempString = tempString + parameter.GetCommandValue() + " ";
+                    tempParams.Remove(parameter);
+                }
+            }
+            result = tempParams;
+            return tempString;
         }
 
         public virtual string GetSpawnEffectLine(bool inlined = false, bool paramsOnly = false)
