@@ -54,18 +54,18 @@ namespace NaninovelSceneAssistant
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
-            GUILayout.Space(5f);
+            //GUILayout.Space(5f);
 
-            if(!string.IsNullOrEmpty(spawnObject.CommandId))
-            { 
-                GUILayout.BeginHorizontal();
-                GUILayout.FlexibleSpace();
-                DrawButton(target.name, isSpawnEffect:true, logResult: logResult);
-                GUILayout.Space(5f);
-                DrawButton(target.name, isSpawnEffect: true, inlined: true, logResult: logResult);
-                GUILayout.FlexibleSpace();
-                GUILayout.EndHorizontal();
-            }
+            //if(!string.IsNullOrEmpty(spawnObject.CommandId))
+            //{ 
+            //    GUILayout.BeginHorizontal();
+            //    GUILayout.FlexibleSpace();
+            //    DrawButton(target.name, isSpawnEffect:true, logResult: logResult);
+            //    GUILayout.Space(5f);
+            //    DrawButton(target.name, isSpawnEffect: true, inlined: true, logResult: logResult);
+            //    GUILayout.FlexibleSpace();
+            //    GUILayout.EndHorizontal();
+            //}
 
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
