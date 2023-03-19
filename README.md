@@ -5,8 +5,8 @@
 - The object list will now update according to what's visible as opposed to what's (pre)loaded, eliminating some clutter. 
 - The original parameter states are now saved and these are restored when the parameters are deselected. You can also choose to ignore unchanged values when checking the "Exclude State Values" option.  
 - Added two new tabs to the Scene Assistant windows: Variables and Unlockables. You can now track their states and debug them, similar to the built-in Custom Variable GUI.
-- Added an option to pause the Script Player on hover, which causes the script player to pause on current command's completion.
-- Hovering on the window will no longer cause any ongoing transitions to complete instantly. It is also not possible to change values as long as there is an ongoing transition. 
+- Added an option to pause the Script Player on hover, which causes the script player to pause after the current command has completed its transition.
+- Hovering on the window will no longer cause any ongoing transitions to complete instantly. It is also not possible to change the values as long as there is an ongoing transition. 
 - Improved stability. The extension is designed to remain active and functional throughout the engine's lifetime. 
 - Scene Assistant is now managed by a custom engine service, and it should be possible to override its behaviour. Instructions coming soon. 
 - Added SceneAssistantSpawnObject script which can be used to add parameters to spawn objects. A working example can be found in my newly updated NaninovelPostProcess V2. 
@@ -17,7 +17,7 @@ Naninovel Scene Assistant is an extension that lets you easily modify Naninovel 
 
 ### Installation (New version)
 1. In Unity's Package Manager, click the plus sign and navigate to *Add package from git URL...*. If you don't have git installed, install it and restart the computer.
-2. Type in https://github.com/Idaocracy/NaninovelPostProcess#package and it should install automatically. 
+2. Type in https://github.com/Idaocracy/NaninovelSceneAssistant.git and it should install automatically. 
 3. In Naninovel's Engine configuration, unfold the Type Assemblies dropdown and add these two assembly definitions:
 - **Idaocracy.NaninovelSceneAssistant.Runtime**
 - **Idaocracy.NaninovelSceneAssistant.Editor**
@@ -49,7 +49,7 @@ ____
 - Camera Components (camera only)
 - Roll (camera only)
 - Spawn parameters**
-- Any custom parameter you decide to implement
+- Any custom parameter you decide to implement.
 
 /* Please note that you need to set up the tint behaviour for the printer prefab yourself, by hooking a method to the public **On Tint Color Changed** event
 ** Spawn parameters (apart from transform values) have to be set up manually. See my NaninovelPostProcess V2 extension for reference. 
@@ -63,6 +63,8 @@ ____
 ## Current limitations
 - The float parameter fields are fugly as heck. Unfortunately due to the limitations of FloatField, I couldn't make them any prettier.
 
-## Contact
+## Future features
+- A UI version of this extension is in the works, hence the Runtime scripts in the extension. For now the extension won't be included in builds.  
 
+## Contact
 If you need help with the extension, you can contact me on here or on Discord. I am the tech support person (only yellow username) on the Naninovel discord.  
