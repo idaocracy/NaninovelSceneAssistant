@@ -17,7 +17,7 @@ Naninovel Scene Assistant is an extension that lets you easily modify Naninovel 
 
 ### Installation (New version)
 1. In Unity's Package Manager, click the plus sign and navigate to *Add package from git URL...*. If you don't have git installed, install it and restart the computer.
-2. Type in https://github.com/Idaocracy/NaninovelSceneAssistant.git and it should install automatically. 
+2. Type in https://github.com/idaocracy/NaninovelSceneAssistant.git and it should install automatically. 
 3. In Naninovel's Engine configuration, unfold the Type Assemblies dropdown and add these two assembly definitions:
 - **Idaocracy.NaninovelSceneAssistant.Runtime**
 - **Idaocracy.NaninovelSceneAssistant.Editor**
