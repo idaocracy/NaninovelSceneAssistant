@@ -8,31 +8,22 @@ namespace NaninovelSceneAssistant
     [InitializeAtRuntime]
     public class SceneAssistantManager : IEngineService
     {
+        private IReadOnlyCollection<IActorManager> actorServices;
         private ISpawnManager spawnManager;
         private IScriptPlayer scriptPlayer;
         private IScriptManager scriptManager;
         private ICustomVariableManager variableManager;
         private IUnlockableManager unlockableManager;
         private IStateManager stateManager;
-        private IReadOnlyCollection<IActorManager> actorServices;
+
         public Dictionary<string, INaninovelObjectData> ObjectList { get; protected set; } = new Dictionary<string, INaninovelObjectData>();
         public Dictionary<Type, bool> ObjectTypeList { get; protected set; } = new Dictionary<Type, bool>();
         public SortedList<string, VariableData> CustomVarList { get; protected set; } = new SortedList<string, VariableData> { };
         public SortedList<string, UnlockableData> UnlockablesList { get; protected set; } = new SortedList<string, UnlockableData> { };
         public IReadOnlyCollection<string> ScriptsList { get; protected set; }
-        public Action OnSceneAssistantReset;
         public bool Initialised { get; protected set; } = false;
 
-        public SceneAssistantManager(ISpawnManager spawnManager, IScriptPlayer scriptPlayer, ICustomVariableManager variableManager, IUnlockableManager unlockableManager,
-                IStateManager stateManager, IScriptManager scriptManager)
-        {
-            this.spawnManager = spawnManager;
-            this.scriptPlayer = scriptPlayer;
-            this.variableManager = variableManager;
-            this.unlockableManager = unlockableManager;
-            this.stateManager = stateManager;
-            this.scriptManager = scriptManager;
-        }
+        public Action OnSceneAssistantReset;
 
         public virtual UniTask InitializeServiceAsync() => UniTask.CompletedTask;
 
@@ -48,7 +39,7 @@ namespace NaninovelSceneAssistant
 
         public virtual async void InitializeSceneAssistant()
         {
-            actorServices = Engine.FindAllServices<IActorManager>();
+            GetServices();
             ScriptsList = await scriptManager.LocateScriptsAsync();
 
             RebuildLists();
@@ -62,6 +53,17 @@ namespace NaninovelSceneAssistant
             scriptPlayer.AddPostExecutionTask(HandlePlayedCommand);
 
             Initialised = true; 
+        }
+
+        public virtual void GetServices()
+        {
+            actorServices = Engine.FindAllServices<IActorManager>();
+            spawnManager = Engine.GetService<ISpawnManager>();
+            scriptPlayer = Engine.GetService<IScriptPlayer>();
+            variableManager = Engine.GetService<ICustomVariableManager>();
+            unlockableManager = Engine.GetService<IUnlockableManager>();
+            stateManager = Engine.GetService<IStateManager>();
+            scriptManager = Engine.GetService<IScriptManager>();
         }
 
         public virtual void DestroySceneAssistant()
@@ -130,19 +132,27 @@ namespace NaninovelSceneAssistant
 
         protected virtual void RefreshObjectList()
         {
+            RefreshCamera();
+            RefreshActorList();
+            RefreshSpawnList();
+            RefreshObjectTypeList();
+            RefreshDynamicParameters();
+        }
+
+        private void RefreshDynamicParameters()
+        {
+            foreach (var obj in ObjectList)
+            {
+                if (obj.Value is IDynamicCommandParameter dynamic) dynamic.UpdateCommandParameters();
+            }
+        }
+
+        private void RefreshCamera()
+        {
             if (!ObjectExists(typeof(CameraData)))
             {
                 var camera = new CameraData();
                 ObjectList.Add(camera.Id, camera);
-            }
-
-            RefreshActorList();
-            RefreshSpawnList();
-            RefreshObjectTypeList();
-
-            foreach(var obj in ObjectList)
-            {
-                if (obj.Value is IDynamicCommandParameter dynamic) dynamic.UpdateCommandParameters();
             }
         }
 
@@ -184,7 +194,7 @@ namespace NaninovelSceneAssistant
             }
         }
 
-        private bool ObjectExists(Type type, string id = null)
+        protected bool ObjectExists(Type type, string id = null)
         {
             if (ObjectList.Count == 0) return false;
 
