@@ -21,6 +21,7 @@ Naninovel Scene Assistant is an extension that lets you easily modify Naninovel 
 3. In Naninovel's Engine configuration, unfold the Type Assemblies dropdown and add these two assembly definitions:
 - **Idaocracy.NaninovelSceneAssistant.Runtime**
 - **Idaocracy.NaninovelSceneAssistant.Editor**
+4. Reimport the Naninovel folder for Naninovel to recognise the extension (right click on the Naninovel folder -> Reimport)
 3. You are done! You can now access the scene assistant from the Naninovel menu.
 
 ### Installation (Old version) and basic walkthrough 
