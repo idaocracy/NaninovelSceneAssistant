@@ -191,6 +191,7 @@ namespace NaninovelSceneAssistant
 
             if (DrawScriptPlayerButton("\u25B6", Color.green, scriptPlayer.Playing))
             {
+                if (!scriptPlayer.Playing) scriptPlayer.Play(); 
                 inputManager.GetContinue().Activate(1);
                 sceneAssistantEditor.Repaint();
             }
