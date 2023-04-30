@@ -1,21 +1,8 @@
-# NaninovelSceneAssistant
-
-## What's new in NaninovelSceneAssistant V2
-- You can now insert lines directly into the visual editor without having to copy the command to the clipboard buffer first.
-- The object list will now update according to what's visible as opposed to what's (pre)loaded, eliminating some clutter. 
-- The original parameter states are now saved and these are restored when the parameters are deselected. You can also choose to ignore unchanged values when checking the "Exclude State Values" option.  
-- Added three new tabs to the Scene Assistant windows: Variables, Unlockables, Scripts. You can now track their states and debug them, similar to the built-in Custom Variable GUI and Script Navigator.
-- Added an option to pause the Script Player on hover, which causes the script player to pause after the current command has completed its transition.
-- Hovering on the window will no longer cause any ongoing transitions to complete instantly. It is also not possible to change the values as long as there is an ongoing transition to prevent unwanted changes. 
-- Improved stability. The extension is designed to remain active and functional throughout the engine's lifetime. 
-- Scene Assistant is now managed by a custom engine service, and it should be possible to override its behaviour. Instructions coming soon. 
-- Added SceneAssistantSpawnObject script which can be used to add parameters to spawn objects. A working example can be found in my newly updated NaninovelPostProcess V2: https://github.com/idaocracy/NaninovelPostProcess
-
 ## Introduction & Installation
 
 Naninovel Scene Assistant is an extension that lets you easily modify Naninovel objects in real time and copy their corresponding command and parameters directly into the visual editor or clipboard.
 
-### Installation (New version)
+### Installation (v2.0+)
 1. In Unity's Package Manager, click the plus sign and navigate to *Add package from git URL...*. If you don't have git installed, install it and restart the computer.
 2. Type in https://github.com/idaocracy/NaninovelSceneAssistant.git and it should install automatically. 
 3. In Naninovel's Engine configuration, unfold the Type Assemblies dropdown and add these two assembly definitions:
@@ -24,7 +11,7 @@ Naninovel Scene Assistant is an extension that lets you easily modify Naninovel 
 4. Reimport the Naninovel folder for Naninovel to recognise the extension (right click on the Naninovel folder -> Reimport)
 3. You are done! You can now access the scene assistant from the Naninovel menu.
 
-### Installation (Old version) and basic walkthrough 
+### Installation (V1) and basic walkthrough 
 Check this video for a quick guide on installation and usage:
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/Qc5XYE-ojx8/0.jpg)](https://www.youtube.com/watch?v=Qc5XYE-ojx8)  
 TLDW: Add the script to an Editor folder (If you don't have one for your own use, create one under Assets). The window can be accessed via the Naninovel menu. Enter Play Mode and tada.  
