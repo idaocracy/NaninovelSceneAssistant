@@ -183,7 +183,8 @@ namespace NaninovelSceneAssistant
 
             if (DrawScriptPlayerButton("\u25B6", Color.green, scriptPlayer.Playing))
             {
-                if(scriptPlayer.WaitingForInput) scriptPlayer.SetWaitingForInputEnabled(false);
+                stateManager.PushRollbackSnapshot();
+                if (scriptPlayer.WaitingForInput) scriptPlayer.SetWaitingForInputEnabled(false);
                 if(!scriptPlayer.Playing) scriptPlayer.Play(scriptPlayer.Playlist, scriptPlayer.PlayedIndex + 1);
                 sceneAssistantEditor.Repaint();
             }
@@ -234,10 +235,7 @@ namespace NaninovelSceneAssistant
             }
         }
 
-        public async void RollbackAsync()
-        {
-            await stateManager.RollbackAsync(s => s.PlayerRollbackAllowed);
-        }
+        public async void RollbackAsync() => await stateManager.RollbackAsync(s => s.PlayerRollbackAllowed);
 
         public async void SyncAndExecuteAsync(Action action)
         {
