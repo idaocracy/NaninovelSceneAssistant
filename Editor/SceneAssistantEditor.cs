@@ -13,7 +13,7 @@ namespace NaninovelSceneAssistant
     public partial class SceneAssistantEditor : EditorWindow
     {
         private static SceneAssistantEditor sceneAssistantEditor;
-        public string[] Tabs { get; protected set; } = new string[] { "Objects", "Variables", "Unlockables", "Scripts"};
+        public string[] Tabs { get; protected set; } = new string[] { "Objects", "Variables", "Unlockables", "Scripts" };
         protected static INaninovelObjectData CurrentObject => sceneAssistantManager.ObjectList.Values.ToArray()[objectIndex];
         protected static string ClipboardString { get => clipboardString; set { clipboardString = value; EditorGUIUtility.systemCopyBuffer = value; if (logResults) Debug.Log(value); } }
         protected ScriptImporterEditor[] VisualEditors => Resources.FindObjectsOfTypeAll<ScriptImporterEditor>();
@@ -79,7 +79,11 @@ namespace NaninovelSceneAssistant
 
         private static void HandleReset() => objectIndex = 0;
 
-        private static void HandlePlay(Script script) => inputManager.GetRollback().Enabled = true;
+        private static void HandlePlay(Script script)
+        {
+            inputManager.GetRollback().Enabled = true;
+            sceneAssistantEditor.Repaint();
+        } 
 
         private static UniTask HandleCommandStarted(Command command)
         {
