@@ -64,6 +64,7 @@ namespace NaninovelSceneAssistant
             scriptPlayer.AddPostExecutionTask(HandleCommandExecuted);
             scriptPlayer.AddPreExecutionTask(HandleCommandStarted);
             scriptPlayer.OnWaitingForInput += s => sceneAssistantEditor.Repaint();
+            scriptPlayer.OnPlay += HandlePlay;
         }
 
         private void OnDestroy()
@@ -73,9 +74,12 @@ namespace NaninovelSceneAssistant
             scriptPlayer.RemovePostExecutionTask(HandleCommandExecuted);
             scriptPlayer.RemovePreExecutionTask(HandleCommandStarted);
             scriptPlayer.OnWaitingForInput -= s => sceneAssistantEditor.Repaint();
+            scriptPlayer.OnPlay += HandlePlay;
         }
 
         private static void HandleReset() => objectIndex = 0;
+
+        private static void HandlePlay(Script script) => inputManager.GetRollback().Enabled = true;
 
         private static UniTask HandleCommandStarted(Command command)
         {
@@ -198,9 +202,9 @@ namespace NaninovelSceneAssistant
             if (DrawScriptPlayerButton("\uFFED", Color.red, !scriptPlayer.Playing, 18))
             {
                 SyncAndExecuteAsync(scriptPlayer.Stop);
-                if (disableRollback) inputManager.GetRollback().Enabled = !disableRollback;
-                if (scriptPlayer.WaitingForInput) scriptPlayer.SetWaitingForInputEnabled(false);
                 sceneAssistantEditor.Repaint();
+                if(disableRollback) inputManager.GetRollback().Enabled = false;
+                if (scriptPlayer.WaitingForInput) scriptPlayer.SetWaitingForInputEnabled(false);
             }
 
             if (GUILayout.Button("\u25AE" + " \u25C0", new GUIStyle(GUI.skin.button) { fontSize = 7, fontStyle = FontStyle.Bold }, GUILayout.Height(20), GUILayout.Width(25)))
