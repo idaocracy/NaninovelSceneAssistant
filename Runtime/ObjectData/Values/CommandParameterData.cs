@@ -50,10 +50,7 @@ namespace NaninovelSceneAssistant
     {
         public T Value { 
             get => getValue();  
-            set 
-            { 
-                if((CanUpdate && ScriptPlayer.Playing) || !ScriptPlayer.Playing) setValue(value); 
-            } 
+            set => setValue(value);
         }
         public T State { get; private set; }
         public T Default { get; }

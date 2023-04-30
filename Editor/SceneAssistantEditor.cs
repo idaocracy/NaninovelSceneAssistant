@@ -17,12 +17,12 @@ namespace NaninovelSceneAssistant
         protected static INaninovelObjectData CurrentObject => sceneAssistantManager.ObjectList.Values.ToArray()[objectIndex];
         protected static string ClipboardString { get => clipboardString; set { clipboardString = value; EditorGUIUtility.systemCopyBuffer = value; if (logResults) Debug.Log(value); } }
         protected ScriptImporterEditor[] VisualEditors => Resources.FindObjectsOfTypeAll<ScriptImporterEditor>();
-
-        protected bool ExcludeState { get => CommandParameterData.ExcludeState; set => CommandParameterData.ExcludeState = value; } 
+        protected bool ExcludeState { get => CommandParameterData.ExcludeState; set => CommandParameterData.ExcludeState = value; }
 
         private static SceneAssistantManager sceneAssistantManager;
         private static IScriptPlayer scriptPlayer;
         private static IStateManager stateManager;
+        private static IInputManager inputManager;
         private static ScriptsConfiguration scriptsConfiguration;
 
         private static int objectIndex;
@@ -31,9 +31,7 @@ namespace NaninovelSceneAssistant
         private static string search;
         private static Vector2 scrollPos;
         private static bool logResults;
-        private static bool pauseOnHover;
-        private static bool isHovered;
-        private static bool commandPlaying;
+        private static bool disableRollback;
 
         [MenuItem("Naninovel/Scene Assistant", false, 360)]
         public static void ShowWindow()
@@ -52,23 +50,29 @@ namespace NaninovelSceneAssistant
             if (Engine.Initialized) SetupAndInitializeSceneAssistant();
         }
 
-        private void OnDestroy()
-        {
-            if (sceneAssistantManager != null && sceneAssistantManager.Initialised) sceneAssistantManager.DestroySceneAssistant();
-        }
-
         private static void SetupAndInitializeSceneAssistant()
         {
             sceneAssistantEditor = GetWindow<SceneAssistantEditor>();
             sceneAssistantManager = Engine.GetService<SceneAssistantManager>();
             scriptPlayer = Engine.GetService<IScriptPlayer>();
             stateManager = Engine.GetService<StateManager>();
+            inputManager = Engine.GetService<InputManager>();
             scriptsConfiguration = Engine.GetConfiguration<ScriptsConfiguration>();
 
             sceneAssistantManager.InitializeSceneAssistant();
             sceneAssistantManager.OnSceneAssistantReset += HandleReset;
             scriptPlayer.AddPostExecutionTask(HandleCommandExecuted);
             scriptPlayer.AddPreExecutionTask(HandleCommandStarted);
+            scriptPlayer.OnWaitingForInput += s => sceneAssistantEditor.Repaint();
+        }
+
+        private void OnDestroy()
+        {
+            if (sceneAssistantManager != null && sceneAssistantManager.Initialised) sceneAssistantManager.DestroySceneAssistant();
+            sceneAssistantManager.OnSceneAssistantReset -= HandleReset;
+            scriptPlayer.RemovePostExecutionTask(HandleCommandExecuted);
+            scriptPlayer.RemovePreExecutionTask(HandleCommandStarted);
+            scriptPlayer.OnWaitingForInput -= s => sceneAssistantEditor.Repaint();
         }
 
         private static void HandleReset() => objectIndex = 0;
@@ -127,6 +131,12 @@ namespace NaninovelSceneAssistant
             GUILayout.Space(10);
             GUILayout.BeginVertical();
 
+            DrawScriptPlayerOptions();
+
+            EditorGUI.BeginDisabledGroup(scriptPlayer.Playing && !scriptPlayer.WaitingForInput);
+
+            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+
             DrawCommandOptions();
             GUILayout.Space(5);
             DrawTypeOptions();
@@ -149,16 +159,94 @@ namespace NaninovelSceneAssistant
             GUILayout.Space(10);
             GUILayout.EndHorizontal();
 
-            EditorGUILayout.EndScrollView();
+            EditorGUI.EndDisabledGroup();
 
-            if (EditorWindow.mouseOverWindow == sceneAssistantEditor && !isHovered)
-            { 
-                if(pauseOnHover) scriptPlayer.SetWaitingForInputEnabled(true);
-                isHovered = true;
-            }
-            if (EditorWindow.mouseOverWindow != sceneAssistantEditor && isHovered)
+            EditorGUILayout.EndScrollView();
+        }
+
+        private GUIStyle GetButtonStyle(Color color, bool condition, int fontSize = 10)
+        {
+            GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
+            buttonStyle.normal.textColor = condition ? color : Color.white;
+            buttonStyle.active.textColor = condition ? color : Color.white;
+            buttonStyle.hover.textColor = condition ? color : Color.white;
+            buttonStyle.fontStyle = FontStyle.Bold;
+            buttonStyle.fontSize = fontSize;
+            return buttonStyle;
+        }
+
+        public void DrawScriptPlayerOptions()
+        {
+            EditorGUILayout.LabelField("Script Player", EditorStyles.centeredGreyMiniLabel);
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+
+            if (DrawScriptPlayerButton("\u25B6", Color.green, scriptPlayer.Playing))
             {
-                isHovered = false;
+                if(scriptPlayer.WaitingForInput) scriptPlayer.SetWaitingForInputEnabled(false);
+                if(!scriptPlayer.Playing) scriptPlayer.Play(scriptPlayer.Playlist, scriptPlayer.PlayedIndex + 1);
+                sceneAssistantEditor.Repaint();
+            }
+
+            if (DrawScriptPlayerButton("\u2161", Color.yellow, scriptPlayer.WaitingForInput))
+            {
+                SyncAndExecuteAsync(() => scriptPlayer.SetWaitingForInputEnabled(true));
+                sceneAssistantEditor.Repaint();
+            }
+
+            if (DrawScriptPlayerButton("\uFFED", Color.red, !scriptPlayer.Playing, 18))
+            {
+                SyncAndExecuteAsync(scriptPlayer.Stop);
+                if (disableRollback) inputManager.GetRollback().Enabled = !disableRollback;
+                if (scriptPlayer.WaitingForInput) scriptPlayer.SetWaitingForInputEnabled(false);
+                sceneAssistantEditor.Repaint();
+            }
+
+            if (GUILayout.Button("\u25AE" + " \u25C0", new GUIStyle(GUI.skin.button) { fontSize = 7, fontStyle = FontStyle.Bold }, GUILayout.Height(20), GUILayout.Width(25)))
+            {
+                RollbackAsync();
+                SyncAndExecuteAsync(() => scriptPlayer.SetWaitingForInputEnabled(true));
+                sceneAssistantEditor.Repaint();
+            }
+
+            if (GUILayout.Button("\u25B6" + "\u25AE", new GUIStyle(GUI.skin.button) { fontSize = 8, fontStyle = FontStyle.Bold }, GUILayout.Height(20), GUILayout.Width(25)))
+            {
+                foreach (var obj in sceneAssistantManager.ObjectList.Values) obj.CommandParameters.ForEach(p => p.ResetState());
+                stateManager.PushRollbackSnapshot();
+
+                if (scriptPlayer.WaitingForInput) scriptPlayer.SetWaitingForInputEnabled(false);
+                else scriptPlayer.Play(scriptPlayer.Playlist, scriptPlayer.PlayedIndex + 1);
+
+                SyncAndExecuteAsync(() => scriptPlayer.SetWaitingForInputEnabled(true));
+                sceneAssistantEditor.Repaint();
+            }
+
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+
+            bool DrawScriptPlayerButton(string content, Color color, bool condition, int fontSize = 10)
+            {
+                if (GUILayout.Button(content, GetButtonStyle(color, condition, fontSize), GUILayout.Height(20), GUILayout.Width(20)))
+                {
+                    return true;
+                }
+                else return false;
+            }
+        }
+
+        public async void RollbackAsync()
+        {
+            await stateManager.RollbackAsync(s => s.PlayerRollbackAllowed);
+        }
+
+        public async void SyncAndExecuteAsync(Action action)
+        {
+            await scriptPlayer.SynchronizeAndDoAsync(() => UniTaskify(action));
+
+            UniTask UniTaskify(Action task)
+            {
+                task();
+                return UniTask.CompletedTask;
             }
         }
 
@@ -327,7 +415,7 @@ namespace NaninovelSceneAssistant
             GUILayout.BeginHorizontal();
             logResults = EditorGUILayout.ToggleLeft("Log Results", logResults, EditorStyles.miniLabel, GUILayout.Width(80));
             ExcludeState = EditorGUILayout.ToggleLeft("Exclude State Values", ExcludeState, EditorStyles.miniLabel, GUILayout.Width(125));
-            pauseOnHover = EditorGUILayout.ToggleLeft("Pause Script Player on Hover", pauseOnHover, EditorStyles.miniLabel, GUILayout.Width(165));
+            disableRollback = EditorGUILayout.ToggleLeft("Disable Rollback on Stop", disableRollback, EditorStyles.miniLabel, GUILayout.Width(150));
             GUILayout.EndHorizontal();
         }
 
