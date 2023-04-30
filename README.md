@@ -18,9 +18,12 @@ TLDW: Add the script to an Editor folder (If you don't have one for your own use
 
 ## Overview
 
-<img width="311" alt="image" src="https://user-images.githubusercontent.com/77254066/226194715-6bc14b0a-06fa-45ef-ab6b-e299af71eda2.png">
+<img width="500" alt="image" src="https://user-images.githubusercontent.com/77254066/235355459-a1e9484b-39f7-4e83-8da4-d8ff9e95c21c.png">
+
 
 **From top to bottom:**
+
+**Script player:** Play will resume playback, Pause will activate wait for input mode, Stop will stop the player. Skip and Rewind will skip or rewind once and activate wait for input mode immediately after.
 
 **Insert/Copy commands (@ or []):** Will insert the command of the current object directly into the visual editor (if currently visible) or alternatively, copy the command to the clipboard buffer. Results will be visible in the text field below, and the results can also be logged when Log Results is checked. 
 
