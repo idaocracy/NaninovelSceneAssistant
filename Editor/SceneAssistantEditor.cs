@@ -75,7 +75,6 @@ namespace NaninovelSceneAssistant
             scriptPlayer.OnWaitingForInput -= s => sceneAssistantEditor.Repaint();
         }
 
-
         private static void HandleReset() => objectIndex = 0;
 
         private static UniTask HandleCommandStarted(Command command)
