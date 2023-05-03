@@ -37,6 +37,17 @@ namespace NaninovelSceneAssistant
             if (Initialised) DestroySceneAssistant();
         }
 
+        public virtual void GetServices()
+        {
+            actorServices = Engine.FindAllServices<IActorManager>();
+            spawnManager = Engine.GetService<ISpawnManager>();
+            scriptPlayer = Engine.GetService<IScriptPlayer>();
+            variableManager = Engine.GetService<ICustomVariableManager>();
+            unlockableManager = Engine.GetService<IUnlockableManager>();
+            stateManager = Engine.GetService<IStateManager>();
+            scriptManager = Engine.GetService<IScriptManager>();
+        }
+
         public virtual async void InitializeSceneAssistant()
         {
             GetServices();
@@ -55,16 +66,6 @@ namespace NaninovelSceneAssistant
             Initialised = true; 
         }
 
-        public virtual void GetServices()
-        {
-            actorServices = Engine.FindAllServices<IActorManager>();
-            spawnManager = Engine.GetService<ISpawnManager>();
-            scriptPlayer = Engine.GetService<IScriptPlayer>();
-            variableManager = Engine.GetService<ICustomVariableManager>();
-            unlockableManager = Engine.GetService<IUnlockableManager>();
-            stateManager = Engine.GetService<IStateManager>();
-            scriptManager = Engine.GetService<IScriptManager>();
-        }
 
         public virtual void DestroySceneAssistant()
         {
@@ -166,7 +167,7 @@ namespace NaninovelSceneAssistant
                         if (!ObjectExists(typeof(CharacterData), character.Id) && character.Visible) ObjectList.Add(character.Id, new CharacterData(character.Id));
                     if (actor is IBackgroundActor background) 
                         if (!ObjectExists(typeof(BackgroundData), background.Id) && background.Visible) ObjectList.Add(background.Id, new BackgroundData(background.Id));
-                    if (actor is IChoiceHandlerActor choiceHandler) 
+                    if (actor is IChoiceHandlerActor choiceHandler)
                         if (!ObjectExists(typeof(ChoiceHandlerData), choiceHandler.Id) && choiceHandler.Visible) ObjectList.Add(choiceHandler.Id, new ChoiceHandlerData(choiceHandler.Id));
                     if (actor is ITextPrinterActor textPrinter) 
                         if (!ObjectExists(typeof(TextPrinterData), textPrinter.Id) && textPrinter.Visible) ObjectList.Add(textPrinter.Id, new TextPrinterData(textPrinter.Id));

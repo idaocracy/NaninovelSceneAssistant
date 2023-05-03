@@ -69,12 +69,15 @@ namespace NaninovelSceneAssistant
 
         private void OnDestroy()
         {
-            if (sceneAssistantManager != null && sceneAssistantManager.Initialised) sceneAssistantManager.DestroySceneAssistant();
-            sceneAssistantManager.OnSceneAssistantReset -= HandleReset;
-            scriptPlayer.RemovePostExecutionTask(HandleCommandExecuted);
-            scriptPlayer.RemovePreExecutionTask(HandleCommandStarted);
-            scriptPlayer.OnWaitingForInput -= s => sceneAssistantEditor.Repaint();
-            scriptPlayer.OnPlay += HandlePlay;
+            if (sceneAssistantManager != null && sceneAssistantManager.Initialised)
+            {
+                sceneAssistantManager.DestroySceneAssistant();
+                sceneAssistantManager.OnSceneAssistantReset -= HandleReset;
+                scriptPlayer.RemovePostExecutionTask(HandleCommandExecuted);
+                scriptPlayer.RemovePreExecutionTask(HandleCommandStarted);
+                scriptPlayer.OnWaitingForInput -= s => sceneAssistantEditor.Repaint();
+                scriptPlayer.OnPlay += HandlePlay;
+            }
         }
 
         private static void HandleReset() => objectIndex = 0;

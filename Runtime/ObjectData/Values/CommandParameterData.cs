@@ -59,8 +59,6 @@ namespace NaninovelSceneAssistant
         protected Action<T> setValue;
         protected Action<ISceneAssistantLayout, ICommandParameterData<T>> getLayout;
 
-        protected static bool CanUpdate;
-
         public CommandParameterData(string name, Func<T> getValue, Action<T> setValue, Action<ISceneAssistantLayout, ICommandParameterData<T>> getLayout, 
             T defaultValue = default, Func<bool> getCondition = null) : base(name, getCondition) 
         {
@@ -69,7 +67,6 @@ namespace NaninovelSceneAssistant
             this.getLayout = getLayout;
             this.Default = defaultValue;
 
-            ScriptPlayer.AddPreExecutionTask(HandleCommandStarted);
             ScriptPlayer.AddPostExecutionTask(HandleCommandFinished);
             StateManager.AddOnGameSerializeTask(HandleSerialization);
             State = Value;
@@ -80,16 +77,9 @@ namespace NaninovelSceneAssistant
             ResetState();
         }
 
-        private UniTask HandleCommandStarted(Command command)
-        {
-            CanUpdate = false;
-            return UniTask.CompletedTask;
-        }
-
         private UniTask HandleCommandFinished(Command command)
         {
             State = Value;
-            CanUpdate = true;
             return UniTask.CompletedTask;
         }
 
@@ -99,7 +89,6 @@ namespace NaninovelSceneAssistant
         public override void ResetState() => Value = State;
         public void Dispose()
         {
-            ScriptPlayer.RemovePreExecutionTask(HandleCommandStarted);
             ScriptPlayer.RemovePostExecutionTask(HandleCommandFinished);
             StateManager.RemoveOnGameSerializeTask(HandleSerialization);
         }
