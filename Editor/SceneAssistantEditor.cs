@@ -130,6 +130,8 @@ namespace NaninovelSceneAssistant
 
             DrawScriptPlayerOptions();
 
+            if(!sceneAssistantManager.IsAvailable) objectIndex = 0;
+
             EditorGUI.BeginDisabledGroup(!sceneAssistantManager.IsAvailable);
 
             EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
