@@ -119,18 +119,17 @@ namespace NaninovelSceneAssistant
         }
     }
 
-    public class ChoiceHandlerData : ActorData<ChoiceHandlerManager, IChoiceHandlerActor, ChoiceHandlerMetadata, ChoiceHandlersConfiguration>, IDynamicCommandParameter
+    public class ChoiceHandlerData : ActorData<ChoiceHandlerManager, IChoiceHandlerActor, ChoiceHandlerMetadata, ChoiceHandlersConfiguration>
     {
         public ChoiceHandlerData(string id) : base(id) { }
         public static string TypeId => "ChoiceHandler";
         protected override string CommandNameAndId => "choice";
-        protected List<ChoiceHandlerButton> ChoiceHandlerButtons => GameObject.GetComponentsInChildren<ChoiceHandlerButton>()?.ToList();
+        protected Dictionary<ChoiceState, ChoiceHandlerButton> ChoiceButtons;
 
         public override string GetCommandLine( bool inlined = false, bool paramsOnly = false)
         {
             var choiceList = new List<string>();
 
-            //todo fix this
             foreach (var param in CommandParameters)
             {
                 var choiceString = CommandNameAndId + " " + param.GetCommandValue() + " handler:" + Id;
@@ -142,13 +141,17 @@ namespace NaninovelSceneAssistant
 
         protected override void AddCommandParameters()
         {
-            foreach(var choice in ChoiceHandlerButtons)
+            ChoiceButtons = new Dictionary<ChoiceState, ChoiceHandlerButton>();
+
+            foreach(var choiceState in Actor.Choices)
             {
-                if (CommandParameters.Exists(p => p.Name.Equals(choice.ChoiceState.Summary + " pos"))) continue;
-                CommandParameters.Add(new CommandParameterData<Vector2>(choice.ChoiceState.Summary + " pos", () => (Vector2)choice.transform.localPosition, v => choice.transform.localPosition = v, (i, p) => i.Vector2Field(p)));
+                ChoiceButtons.Add(choiceState, GameObject.GetComponentsInChildren<ChoiceHandlerButton>().FirstOrDefault(c => c.ChoiceState == choiceState));
+            }
+
+            foreach (var button in ChoiceButtons)
+            {
+                CommandParameters.Add(new CommandParameterData<Vector2>(button.Value.ChoiceState.Summary + " pos", () => (Vector2)button.Value.transform.localPosition, v => button.Value.transform.localPosition = v, (i, p) => i.Vector2Field(p)));
             }
         }
-
-        public void UpdateCommandParameters() => AddCommandParameters();
     }
 }

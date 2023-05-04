@@ -21,20 +21,18 @@ namespace NaninovelSceneAssistant
         public SortedList<string, VariableData> CustomVarList { get; protected set; } = new SortedList<string, VariableData> { };
         public SortedList<string, UnlockableData> UnlockablesList { get; protected set; } = new SortedList<string, UnlockableData> { };
         public IReadOnlyCollection<string> ScriptsList { get; protected set; }
-        public bool Initialised { get; protected set; } = false;
-
-        public Action OnSceneAssistantReset;
+        public bool IsAvailable { get; protected set; }
 
         public virtual UniTask InitializeServiceAsync() => UniTask.CompletedTask;
 
         public virtual void ResetService()
         {
-            if(Initialised) RebuildLists();
+            if (IsAvailable) ResetSceneAssistant();
         }
 
         public virtual void DestroyService()
         {
-            if (Initialised) DestroySceneAssistant();
+            if (IsAvailable) DestroySceneAssistant();
         }
 
         public virtual void GetServices()
@@ -53,72 +51,54 @@ namespace NaninovelSceneAssistant
             GetServices();
             ScriptsList = await scriptManager.LocateScriptsAsync();
 
-            RebuildLists();
+            ResetSceneAssistant();
+
+            scriptPlayer.OnCommandExecutionStart += ClearSceneAssistantOnCommandStart;
+            scriptPlayer.OnCommandExecutionFinish += ResetSceneAssistantOnCommandFinish;
+
+            stateManager.OnRollbackStarted += ClearSceneAssistant;
+            stateManager.OnRollbackFinished += ResetSceneAssistant;
+
+            stateManager.OnGameLoadStarted += ClearSceneAssistantOnGameLoading;
+            stateManager.OnGameLoadFinished += ResetSceneAssistantOnGameLoaded;
+
+            stateManager.OnResetStarted += ClearSceneAssistant;
+            stateManager.OnResetFinished += ResetSceneAssistant;
+
             variableManager.OnVariableUpdated += HandleVariableUpdated;
             unlockableManager.OnItemUpdated += HandleUnlockableUpdated;
-
-            stateManager.OnGameLoadFinished += HandleOnGameLoadFinished;
-            stateManager.OnResetFinished += RebuildLists;
-            stateManager.OnRollbackFinished += RebuildLists;
-
-            scriptPlayer.AddPostExecutionTask(HandlePlayedCommand);
-
-            Initialised = true; 
         }
 
 
         public virtual void DestroySceneAssistant()
         {
-            if (Initialised)
+            if (IsAvailable)
             {
-                ClearObjectList();
+                ClearSceneAssistant();
                 CustomVarList.Clear();
                 UnlockablesList.Clear();
 
+                scriptPlayer.OnCommandExecutionStart -= ClearSceneAssistantOnCommandStart;
+                scriptPlayer.OnCommandExecutionFinish -= ResetSceneAssistantOnCommandFinish;
+
+                stateManager.OnRollbackStarted -= ClearSceneAssistant;
+                stateManager.OnRollbackFinished -= ResetSceneAssistant;
+
+                stateManager.OnGameLoadStarted -= ClearSceneAssistantOnGameLoading;
+                stateManager.OnGameLoadFinished -= ResetSceneAssistantOnGameLoaded;
+
+                stateManager.OnResetStarted -= ClearSceneAssistant;
+                stateManager.OnResetFinished -= ResetSceneAssistant;
+
                 variableManager.OnVariableUpdated -= HandleVariableUpdated;
                 unlockableManager.OnItemUpdated -= HandleUnlockableUpdated;
-                stateManager.OnGameLoadFinished -= HandleOnGameLoadFinished;
-                stateManager.OnResetFinished -= RebuildLists;
-                stateManager.OnRollbackFinished -= RebuildLists;
-
-                scriptPlayer.RemovePostExecutionTask(HandlePlayedCommand);
-                Initialised = false;
             }
         }
 
-        public virtual UniTask HandlePlayedCommand(Command command)
-        {
-            RefreshObjectList();
-            RefreshObjectTypeList();
-
-            return UniTask.CompletedTask;
-        }
-
-        private void HandleOnGameLoadFinished(GameSaveLoadArgs obj) => RebuildLists();
-
-        protected virtual void RebuildLists()
-        {
-            ClearObjectList();
-            RefreshObjectList();
-            OnSceneAssistantReset?.Invoke();
-
-            CustomVarList.Clear();
-            foreach (var variable in variableManager.GetAllVariables()) CustomVarList.Add(variable.Name, new VariableData(variable.Name));
-
-            UnlockablesList.Clear();
-            foreach (var unlockable in unlockableManager.GetAllItems()) UnlockablesList.Add(unlockable.Key, new UnlockableData(unlockable.Key));
-        }
-
-        private void ClearObjectList()
-        {
-            foreach (var obj in ObjectList)
-            {
-                if (obj.Value is IDisposable disposable) disposable.Dispose();
-            }
-
-            ObjectList.Clear();
-        }
-
+        private void ClearSceneAssistantOnCommandStart(Command command) => ClearSceneAssistant();
+        private void ResetSceneAssistantOnCommandFinish(Command command) => ResetSceneAssistant();
+        private void ClearSceneAssistantOnGameLoading(GameSaveLoadArgs obj) => ClearSceneAssistant();
+        private void ResetSceneAssistantOnGameLoaded(GameSaveLoadArgs obj) => ResetSceneAssistant();
         protected void HandleVariableUpdated(CustomVariableUpdatedArgs args)
         {
             if (CustomVarList.ContainsKey(args.Name)) CustomVarList[args.Name].Value = args.Value;
@@ -131,80 +111,70 @@ namespace NaninovelSceneAssistant
             else UnlockablesList.Add(args.Id, new UnlockableData(args.Id));
         }
 
-        protected virtual void RefreshObjectList()
+
+        private void ClearSceneAssistant()
         {
-            RefreshCamera();
-            RefreshActorList();
-            RefreshSpawnList();
-            RefreshObjectTypeList();
-            RefreshDynamicParameters();
+            IsAvailable = false;
+            foreach (var obj in ObjectList) if (obj.Value is IDisposable disposable) disposable.Dispose();
+            ObjectList.Clear();
+            CustomVarList.Clear();
+            UnlockablesList.Clear();
         }
 
-        private void RefreshDynamicParameters()
+        protected virtual void ResetSceneAssistant()
         {
-            foreach (var obj in ObjectList)
-            {
-                if (obj.Value is IDynamicCommandParameter dynamic) dynamic.UpdateCommandParameters();
-            }
+            ClearSceneAssistant();
+            ResetObjectList();
+
+            foreach (var variable in variableManager.GetAllVariables()) CustomVarList.Add(variable.Name, new VariableData(variable.Name));
+            foreach (var unlockable in unlockableManager.GetAllItems()) UnlockablesList.Add(unlockable.Key, new UnlockableData(unlockable.Key));
+            IsAvailable = true;
         }
 
-        private void RefreshCamera()
+        protected virtual void ResetObjectList()
         {
-            if (!ObjectExists(typeof(CameraData)))
-            {
-                var camera = new CameraData();
-                ObjectList.Add(camera.Id, camera);
-            }
+            ResetCamera();
+            ResetActorList();
+            ResetSpawnList();
+            ResetObjectTypeList();
         }
 
-        protected virtual void RefreshActorList()
+        private void ResetCamera()
+        {
+            var camera = new CameraData();
+            ObjectList.Add(camera.Id, camera);
+        }
+
+        protected virtual void ResetActorList()
         {
             foreach (var actorService in actorServices)
             {
                 foreach (var actor in actorService.GetAllActors())
                 {
-                    if (actor is ICharacterActor character) 
-                        if (!ObjectExists(typeof(CharacterData), character.Id) && character.Visible) ObjectList.Add(character.Id, new CharacterData(character.Id));
-                    if (actor is IBackgroundActor background) 
-                        if (!ObjectExists(typeof(BackgroundData), background.Id) && background.Visible) ObjectList.Add(background.Id, new BackgroundData(background.Id));
-                    if (actor is IChoiceHandlerActor choiceHandler)
-                        if (!ObjectExists(typeof(ChoiceHandlerData), choiceHandler.Id) && choiceHandler.Visible) ObjectList.Add(choiceHandler.Id, new ChoiceHandlerData(choiceHandler.Id));
-                    if (actor is ITextPrinterActor textPrinter) 
-                        if (!ObjectExists(typeof(TextPrinterData), textPrinter.Id) && textPrinter.Visible) ObjectList.Add(textPrinter.Id, new TextPrinterData(textPrinter.Id));
+                    if (actor is ICharacterActor character && character.Visible) ObjectList.Add(character.Id, new CharacterData(character.Id));
+                    if (actor is IBackgroundActor background && background.Visible) ObjectList.Add(background.Id, new BackgroundData(background.Id));
+                    if (actor is IChoiceHandlerActor choiceHandler && choiceHandler.Visible) ObjectList.Add(choiceHandler.Id, new ChoiceHandlerData(choiceHandler.Id));
+                    if (actor is ITextPrinterActor textPrinter && textPrinter.Visible) ObjectList.Add(textPrinter.Id, new TextPrinterData(textPrinter.Id));
                 }
             }
         }
 
-        protected virtual void RefreshSpawnList()
+        protected virtual void ResetSpawnList()
         {
-            foreach (var spawn in spawnManager.GetAllSpawned()) if(!ObjectExists(typeof(SpawnData), spawn.Path)) ObjectList.Add(spawn.Path, new SpawnData(spawn.Path));
+            foreach (var spawn in spawnManager.GetAllSpawned()) ObjectList.Add(spawn.Path, new SpawnData(spawn.Path));
         }
 
-        private void RefreshObjectTypeList()
+        private void ResetObjectTypeList()
         {
+            ObjectTypeList.Clear();
+
             if (ObjectList.Count == 0) return;
-            
+
             foreach (var obj in ObjectList.Values.ToList())
             {
                 if (!ObjectTypeList.Keys.Any(t => t == obj.GetType())) ObjectTypeList.Add(obj.GetType(), true);
             }
-
-            foreach (var type in ObjectTypeList.Keys.ToList())
-            {
-                if (!ObjectExists(type)) ObjectTypeList.Remove(type);
-            }
         }
 
-        protected bool ObjectExists(Type type, string id = null)
-        {
-            if (ObjectList.Count == 0) return false;
-
-            if (!ObjectList.Any(c => c.Value.GetType() == type))  return false;
-            else
-            {
-                if (string.IsNullOrEmpty(id)) return true;
-                else return (ObjectList.Any(c => c.Value.GetType() == type && c.Key == id));
-            }
-        }
     }
 }

@@ -14,7 +14,7 @@ namespace NaninovelSceneAssistant
     {
         private static SceneAssistantEditor sceneAssistantEditor;
         public string[] Tabs { get; protected set; } = new string[] { "Objects", "Variables", "Unlockables", "Scripts" };
-        protected static INaninovelObjectData CurrentObject => sceneAssistantManager.ObjectList.Values.ToArray()[objectIndex];
+        protected static INaninovelObjectData CurrentObject => sceneAssistantManager.ObjectList.Values?.ToArray()[objectIndex];
         protected static string ClipboardString { get => clipboardString; set { clipboardString = value; EditorGUIUtility.systemCopyBuffer = value; if (logResults) Debug.Log(value); } }
         protected ScriptImporterEditor[] VisualEditors => Resources.FindObjectsOfTypeAll<ScriptImporterEditor>();
         protected bool ExcludeState { get => CommandParameterData.ExcludeState; set => CommandParameterData.ExcludeState = value; }
@@ -60,33 +60,19 @@ namespace NaninovelSceneAssistant
             scriptsConfiguration = Engine.GetConfiguration<ScriptsConfiguration>();
 
             sceneAssistantManager.InitializeSceneAssistant();
-            sceneAssistantManager.OnSceneAssistantReset += HandleReset;
             scriptPlayer.AddPostExecutionTask(HandleCommandExecuted);
             scriptPlayer.AddPreExecutionTask(HandleCommandStarted);
-            scriptPlayer.OnWaitingForInput += s => sceneAssistantEditor.Repaint();
-            scriptPlayer.OnPlay += HandlePlay;
         }
 
         private void OnDestroy()
         {
-            if (sceneAssistantManager != null && sceneAssistantManager.Initialised)
+            if (sceneAssistantManager != null && sceneAssistantManager.IsAvailable)
             {
                 sceneAssistantManager.DestroySceneAssistant();
-                sceneAssistantManager.OnSceneAssistantReset -= HandleReset;
                 scriptPlayer.RemovePostExecutionTask(HandleCommandExecuted);
                 scriptPlayer.RemovePreExecutionTask(HandleCommandStarted);
-                scriptPlayer.OnWaitingForInput -= s => sceneAssistantEditor.Repaint();
-                scriptPlayer.OnPlay += HandlePlay;
             }
         }
-
-        private static void HandleReset() => objectIndex = 0;
-
-        private static void HandlePlay(Script script)
-        {
-            inputManager.GetRollback().Enabled = true;
-            sceneAssistantEditor.Repaint();
-        } 
 
         private static UniTask HandleCommandStarted(Command command)
         {
@@ -102,7 +88,7 @@ namespace NaninovelSceneAssistant
 
         public void OnGUI()
         {
-            if (Engine.Initialized && sceneAssistantManager?.ObjectList.Count > 0)
+            if (Engine.Initialized && sceneAssistantManager != null)
             {
                 ShowTabs(sceneAssistantManager, sceneAssistantLayout);
             }
@@ -144,10 +130,9 @@ namespace NaninovelSceneAssistant
 
             DrawScriptPlayerOptions();
 
-            EditorGUI.BeginDisabledGroup(scriptPlayer.Playing && !scriptPlayer.WaitingForInput);
+            EditorGUI.BeginDisabledGroup(!sceneAssistantManager.IsAvailable);
 
             EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
-
             DrawCommandOptions();
             GUILayout.Space(5);
             DrawTypeOptions();
@@ -158,7 +143,7 @@ namespace NaninovelSceneAssistant
 
             EditorGUILayout.Space(10);
 
-            DrawCommandParameters(CurrentObject.CommandParameters, layout);
+            if(sceneAssistantManager.IsAvailable) DrawCommandParameters(CurrentObject.CommandParameters, layout);
 
             EditorGUILayout.Space(5);
 
@@ -196,13 +181,11 @@ namespace NaninovelSceneAssistant
             {
                 if (!scriptPlayer.Playing) scriptPlayer.Play(); 
                 inputManager.GetContinue().Activate(1);
-                sceneAssistantEditor.Repaint();
             }
 
             if (DrawScriptPlayerButton("\u2161", Color.yellow, scriptPlayer.Playing && scriptPlayer.WaitingForInput))
             {
                 SyncAndExecuteAsync(() => scriptPlayer.SetWaitingForInputEnabled(true));
-                sceneAssistantEditor.Repaint();
             }
 
             if (DrawScriptPlayerButton("\uFFED", Color.red, !scriptPlayer.Playing, 18))
@@ -210,7 +193,6 @@ namespace NaninovelSceneAssistant
                 SyncAndExecuteAsync(scriptPlayer.Stop);
                 if (disableRollback) inputManager.GetRollback().Enabled = false;
                 if (scriptPlayer.WaitingForInput) scriptPlayer.SetWaitingForInputEnabled(false);
-                sceneAssistantEditor.Repaint();
             }
 
             if (stateManager.Configuration.EnableStateRollback)
@@ -219,7 +201,6 @@ namespace NaninovelSceneAssistant
                 {
                     inputManager.GetRollback().Activate(1);
                     SyncAndExecuteAsync(() => scriptPlayer.SetWaitingForInputEnabled(true));
-                    sceneAssistantEditor.Repaint();
                 }
             }
 
@@ -227,9 +208,7 @@ namespace NaninovelSceneAssistant
             {
                 foreach (var obj in sceneAssistantManager.ObjectList.Values) obj.CommandParameters.ForEach(p => p.ResetState());
                 inputManager.GetContinue().Activate(1);
-
                 SyncAndExecuteAsync(() => scriptPlayer.SetWaitingForInputEnabled(true));
-                sceneAssistantEditor.Repaint();
             }
 
             GUILayout.FlexibleSpace();
@@ -373,20 +352,23 @@ namespace NaninovelSceneAssistant
 
         protected virtual void DrawTypeOptions()
         {
-            GUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-            var list = sceneAssistantManager.ObjectTypeList.Keys.ToList();
-
-            foreach (var type in list)
+            if (sceneAssistantManager.IsAvailable)
             {
-                var typeText = type.GetProperty("TypeId").GetValue(null).ToString() ?? type.Name;
-                float typeTextWidth = EditorStyles.label.CalcSize(new GUIContent(typeText)).x;
-                sceneAssistantManager.ObjectTypeList[type] = EditorGUILayout.Toggle("", sceneAssistantManager.ObjectTypeList[type], GUILayout.Width(15));
-                EditorGUILayout.LabelField(typeText, EditorStyles.miniLabel, GUILayout.Width(typeTextWidth));
-            }
+                GUILayout.BeginHorizontal();
+                GUILayout.FlexibleSpace();
+                var list = sceneAssistantManager.ObjectTypeList.Keys.ToList();
 
-            GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
+                foreach (var type in list)
+                {
+                    var typeText = type.GetProperty("TypeId").GetValue(null).ToString() ?? type.Name;
+                    float typeTextWidth = EditorStyles.label.CalcSize(new GUIContent(typeText)).x;
+                    sceneAssistantManager.ObjectTypeList[type] = EditorGUILayout.Toggle("", sceneAssistantManager.ObjectTypeList[type], GUILayout.Width(15));
+                    EditorGUILayout.LabelField(typeText, EditorStyles.miniLabel, GUILayout.Width(typeTextWidth));
+                }
+
+                GUILayout.FlexibleSpace();
+                GUILayout.EndHorizontal();
+            }
         }
 
         protected virtual void DrawCommandParameters(List<ICommandParameterData> parameters, ISceneAssistantLayout layout)

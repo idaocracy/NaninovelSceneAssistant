@@ -1,3 +1,6 @@
+v2.2.0 May 2023
+- Scene Assistant will now clear itself on command/load/rollback/reset start operation to prevent object nullrefs when an object is destroyed before the operation is finished (like choices).
+- Refactoring and cleanup.
 
 v2.1.0 April 2023
 - Added a script player and other tweaks to Scene Assistant to better communicate and control the availability of Scene Assistant. 
@@ -14,5 +17,3 @@ v2.0.0 March 2023
 - Improved stability. The extension is designed to remain active and functional throughout the engine's lifetime.
 - Scene Assistant is now managed by a custom engine service, and it should be possible to override its behaviour. Instructions coming soon.
 - Added SceneAssistantSpawnObject script which can be used to add parameters to spawn objects. A working example can be found in my newly updated NaninovelPostProcess V2: https://github.com/idaocracy/NaninovelPostProcess
-
-
