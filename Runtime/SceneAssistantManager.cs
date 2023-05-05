@@ -11,7 +11,6 @@ namespace NaninovelSceneAssistant
         private IReadOnlyCollection<IActorManager> actorServices;
         private ISpawnManager spawnManager;
         private IScriptPlayer scriptPlayer;
-        private IScriptManager scriptManager;
         private ICustomVariableManager variableManager;
         private IUnlockableManager unlockableManager;
         private IStateManager stateManager;
@@ -20,7 +19,7 @@ namespace NaninovelSceneAssistant
         public Dictionary<Type, bool> ObjectTypeList { get; protected set; } = new Dictionary<Type, bool>();
         public SortedList<string, VariableData> CustomVarList { get; protected set; } = new SortedList<string, VariableData> { };
         public SortedList<string, UnlockableData> UnlockablesList { get; protected set; } = new SortedList<string, UnlockableData> { };
-        public IReadOnlyCollection<string> ScriptsList { get; protected set; }
+        public List<string> ScriptsList { get; protected set; }
         public bool IsAvailable { get; protected set; }
 
         public virtual UniTask InitializeServiceAsync() => UniTask.CompletedTask;
@@ -43,13 +42,12 @@ namespace NaninovelSceneAssistant
             variableManager = Engine.GetService<ICustomVariableManager>();
             unlockableManager = Engine.GetService<IUnlockableManager>();
             stateManager = Engine.GetService<IStateManager>();
-            scriptManager = Engine.GetService<IScriptManager>();
         }
 
         public virtual async void InitializeSceneAssistant()
         {
             GetServices();
-            ScriptsList = await scriptManager.LocateScriptsAsync();
+            await LocateScriptsAsync();
 
             ResetSceneAssistant();
 
@@ -65,10 +63,19 @@ namespace NaninovelSceneAssistant
             stateManager.OnResetStarted += ClearSceneAssistant;
             stateManager.OnResetFinished += ResetSceneAssistant;
 
-            variableManager.OnVariableUpdated += HandleVariableUpdated;
-            unlockableManager.OnItemUpdated += HandleUnlockableUpdated;
         }
 
+        private async UniTask LocateScriptsAsync()
+        {
+            var resourceProviderManager = Engine.GetService<IResourceProviderManager>();
+            var scriptsConfiguration = Engine.GetConfiguration<ScriptsConfiguration>();
+
+            foreach (var provider in resourceProviderManager.GetProviders(scriptsConfiguration.Loader.ProviderTypes))
+            {
+                var paths = await provider.LocateResourcesAsync<Script>(scriptsConfiguration.Loader.PathPrefix);
+                foreach (var path in paths) ScriptsList.Add(path.Split("/".ToCharArray()).Last());
+            }
+        }
 
         public virtual void DestroySceneAssistant()
         {
@@ -90,8 +97,6 @@ namespace NaninovelSceneAssistant
                 stateManager.OnResetStarted -= ClearSceneAssistant;
                 stateManager.OnResetFinished -= ResetSceneAssistant;
 
-                variableManager.OnVariableUpdated -= HandleVariableUpdated;
-                unlockableManager.OnItemUpdated -= HandleUnlockableUpdated;
             }
         }
 
@@ -99,18 +104,6 @@ namespace NaninovelSceneAssistant
         private void ResetSceneAssistantOnCommandFinish(Command command) => ResetSceneAssistant();
         private void ClearSceneAssistantOnGameLoading(GameSaveLoadArgs obj) => ClearSceneAssistant();
         private void ResetSceneAssistantOnGameLoaded(GameSaveLoadArgs obj) => ResetSceneAssistant();
-        protected void HandleVariableUpdated(CustomVariableUpdatedArgs args)
-        {
-            if (CustomVarList.ContainsKey(args.Name)) CustomVarList[args.Name].Value = args.Value;
-            else CustomVarList.Add(args.Name, new VariableData(args.Name));
-        }
-
-        protected void HandleUnlockableUpdated(UnlockableItemUpdatedArgs args)
-        {
-            if (UnlockablesList.ContainsKey(args.Id)) UnlockablesList[args.Id].Value = args.Unlocked;
-            else UnlockablesList.Add(args.Id, new UnlockableData(args.Id));
-        }
-
 
         private void ClearSceneAssistant()
         {
@@ -119,6 +112,7 @@ namespace NaninovelSceneAssistant
             ObjectList.Clear();
             CustomVarList.Clear();
             UnlockablesList.Clear();
+            ObjectTypeList.Clear();
         }
 
         protected virtual void ResetSceneAssistant()
@@ -166,8 +160,6 @@ namespace NaninovelSceneAssistant
 
         private void ResetObjectTypeList()
         {
-            ObjectTypeList.Clear();
-
             if (ObjectList.Count == 0) return;
 
             foreach (var obj in ObjectList.Values.ToList())

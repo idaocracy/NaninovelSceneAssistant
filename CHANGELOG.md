@@ -1,3 +1,6 @@
+v2.2.1 May 2023
+- Fixed 1.19 incompatibility issue.
+
 v2.2.0 May 2023
 - Scene Assistant will now clear itself on command/load/rollback/reset start operation to prevent object nullrefs when an object is destroyed before the operation is finished (like choices).
 - Refactoring and cleanup.
