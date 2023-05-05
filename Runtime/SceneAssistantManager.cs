@@ -19,7 +19,7 @@ namespace NaninovelSceneAssistant
         public Dictionary<Type, bool> ObjectTypeList { get; protected set; } = new Dictionary<Type, bool>();
         public SortedList<string, VariableData> CustomVarList { get; protected set; } = new SortedList<string, VariableData> { };
         public SortedList<string, UnlockableData> UnlockablesList { get; protected set; } = new SortedList<string, UnlockableData> { };
-        public List<string> ScriptsList { get; protected set; }
+        public List<string> ScriptsList { get; protected set; } = new List<string>();
         public bool IsAvailable { get; protected set; }
 
         public virtual UniTask InitializeServiceAsync() => UniTask.CompletedTask;
