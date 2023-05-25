@@ -23,7 +23,7 @@ namespace NaninovelSceneAssistant
         private Action<ISceneAssistantLayout, IListCommandParameterData> getLayout;
 
         public override string GetCommandValue(bool paramOnly = false) => CommandParameterDataExtensions.GetListValue(this, paramOnly);
-        public override void GetLayout(ISceneAssistantLayout layout) => getLayout(layout, this);
+        public override void DrawLayout(ISceneAssistantLayout layout) => getLayout(layout, this);
         public override void ResetDefault() => Values.ForEach(c => c.ResetDefault());
         public override void ResetState() => Values.ForEach(c => c.ResetState());
     }

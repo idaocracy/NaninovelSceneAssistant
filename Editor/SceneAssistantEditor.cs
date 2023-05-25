@@ -72,6 +72,12 @@ namespace NaninovelSceneAssistant
                 scriptPlayer.RemovePostExecutionTask(HandleCommandExecuted);
                 scriptPlayer.RemovePreExecutionTask(HandleCommandStarted);
             }
+
+            if (!scriptPlayer.Playing)
+            {
+                scriptPlayer.SetWaitingForInputEnabled(true);
+                scriptPlayer.Play();
+            }
         }
 
         private static UniTask HandleCommandStarted(Command command)
@@ -379,7 +385,7 @@ namespace NaninovelSceneAssistant
 
             for (int i = 0; i < parameters.Count; i++)
             {
-                parameters[i].GetLayout(layout);
+                parameters[i].DrawLayout(layout);
             }
         }
         protected virtual void DrawCommandParameterOptions()
