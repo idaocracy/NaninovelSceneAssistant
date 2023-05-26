@@ -82,8 +82,6 @@ namespace NaninovelSceneAssistant
             if (IsAvailable)
             {
                 ClearSceneAssistant();
-                CustomVarList.Clear();
-                UnlockablesList.Clear();
 
                 scriptPlayer.OnCommandExecutionStart -= ClearSceneAssistantOnCommandStart;
                 scriptPlayer.OnCommandExecutionFinish -= ResetSceneAssistantOnCommandFinish;
@@ -108,7 +106,7 @@ namespace NaninovelSceneAssistant
         private void ClearSceneAssistant()
         {
             IsAvailable = false;
-            foreach (var obj in ObjectList) if (obj.Value is IDisposable disposable) disposable.Dispose();
+            foreach (var obj in ObjectList) obj.Value?.CommandParameters.ForEach(c => c.ResetState());
             ObjectList.Clear();
             CustomVarList.Clear();
             UnlockablesList.Clear();

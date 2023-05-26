@@ -43,7 +43,7 @@ namespace NaninovelSceneAssistant
         T Default { get; }
     }
 
-    public class CommandParameterData<T> : CommandParameterData, ICommandParameterData<T>, IDisposable
+    public class CommandParameterData<T> : CommandParameterData, ICommandParameterData<T>
     {
 
         public T Value { 
@@ -73,9 +73,5 @@ namespace NaninovelSceneAssistant
         public override void DrawLayout(ISceneAssistantLayout layout) => GetLayout(layout, this);
         public override void ResetDefault() => Value = Default;
         public override void ResetState() => Value = State;
-        public void Dispose()
-        {
-            ResetState();
-        }
     }
 }
