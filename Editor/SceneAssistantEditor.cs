@@ -70,8 +70,6 @@ namespace NaninovelSceneAssistant
             {
                 foreach (var obj in sceneAssistantManager.ObjectList) obj.Value.CommandParameters.ForEach(c => c.ResetState());
                 sceneAssistantManager.DestroySceneAssistant();
-                scriptPlayer.RemovePostExecutionTask(HandleCommandExecuted);
-                scriptPlayer.RemovePreExecutionTask(HandleCommandStarted);
             }
 
             if (Engine.Initialized && scriptPlayer.PlayedScript != null && !scriptPlayer.Playing)
@@ -79,6 +77,9 @@ namespace NaninovelSceneAssistant
                 scriptPlayer.SetWaitingForInputEnabled(true);
                 scriptPlayer.Play();
             }
+
+            scriptPlayer.RemovePostExecutionTask(HandleCommandExecuted);
+            scriptPlayer.RemovePreExecutionTask(HandleCommandStarted);
         }
 
         private static UniTask HandleCommandStarted(Command command)
