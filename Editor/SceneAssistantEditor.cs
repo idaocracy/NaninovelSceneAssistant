@@ -73,7 +73,7 @@ namespace NaninovelSceneAssistant
                 scriptPlayer.RemovePreExecutionTask(HandleCommandStarted);
             }
 
-            if (Engine.Initialized && !scriptPlayer.Playing)
+            if (Engine.Initialized && scriptPlayer.PlayedScript != null && !scriptPlayer.Playing)
             {
                 scriptPlayer.SetWaitingForInputEnabled(true);
                 scriptPlayer.Play();
