@@ -386,7 +386,7 @@ namespace NaninovelSceneAssistant
 
             for (int i = 0; i < parameters.Count; i++)
             {
-                parameters[i].DrawLayout(layout);
+                parameters[i].GetLayout(layout);
             }
         }
         protected virtual void DrawCommandParameterOptions()

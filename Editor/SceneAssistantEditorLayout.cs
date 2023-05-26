@@ -190,7 +190,7 @@ namespace NaninovelSceneAssistant
             buttonWidth = 128;
             foreach (var value in data.Values)
             {
-                value.DrawLayout(sceneAssistantLayout);
+                value.GetLayout(sceneAssistantLayout);
             }
             buttonWidth = defaultButtonWidth;
             buttonSize = defaultButtonSize;
