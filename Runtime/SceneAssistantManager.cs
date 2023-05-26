@@ -79,23 +79,19 @@ namespace NaninovelSceneAssistant
 
         public virtual void DestroySceneAssistant()
         {
-            if (IsAvailable)
-            {
-                ClearSceneAssistant();
+            ClearSceneAssistant();
 
-                scriptPlayer.OnCommandExecutionStart -= ClearSceneAssistantOnCommandStart;
-                scriptPlayer.OnCommandExecutionFinish -= ResetSceneAssistantOnCommandFinish;
+            scriptPlayer.OnCommandExecutionStart -= ClearSceneAssistantOnCommandStart;
+            scriptPlayer.OnCommandExecutionFinish -= ResetSceneAssistantOnCommandFinish;
 
-                stateManager.OnRollbackStarted -= ClearSceneAssistant;
-                stateManager.OnRollbackFinished -= ResetSceneAssistant;
+            stateManager.OnRollbackStarted -= ClearSceneAssistant;
+            stateManager.OnRollbackFinished -= ResetSceneAssistant;
 
-                stateManager.OnGameLoadStarted -= ClearSceneAssistantOnGameLoading;
-                stateManager.OnGameLoadFinished -= ResetSceneAssistantOnGameLoaded;
+            stateManager.OnGameLoadStarted -= ClearSceneAssistantOnGameLoading;
+            stateManager.OnGameLoadFinished -= ResetSceneAssistantOnGameLoaded;
 
-                stateManager.OnResetStarted -= ClearSceneAssistant;
-                stateManager.OnResetFinished -= ResetSceneAssistant;
-
-            }
+            stateManager.OnResetStarted -= ClearSceneAssistant;
+            stateManager.OnResetFinished -= ResetSceneAssistant;
         }
 
         private void ClearSceneAssistantOnCommandStart(Command command) => ClearSceneAssistant();
@@ -103,14 +99,13 @@ namespace NaninovelSceneAssistant
         private void ClearSceneAssistantOnGameLoading(GameSaveLoadArgs obj) => ClearSceneAssistant();
         private void ResetSceneAssistantOnGameLoaded(GameSaveLoadArgs obj) => ResetSceneAssistant();
 
-        private void ClearSceneAssistant()
+        public void ClearSceneAssistant()
         {
             IsAvailable = false;
-            foreach (var obj in ObjectList) obj.Value?.CommandParameters.ForEach(c => c.ResetState());
-            ObjectList.Clear();
             CustomVarList.Clear();
             UnlockablesList.Clear();
             ObjectTypeList.Clear();
+            ObjectList.Clear();
         }
 
         protected virtual void ResetSceneAssistant()

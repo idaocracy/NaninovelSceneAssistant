@@ -68,6 +68,7 @@ namespace NaninovelSceneAssistant
         {
             if (sceneAssistantManager != null && sceneAssistantManager.IsAvailable)
             {
+                foreach (var obj in sceneAssistantManager.ObjectList) obj.Value.CommandParameters.ForEach(c => c.ResetState());
                 sceneAssistantManager.DestroySceneAssistant();
                 scriptPlayer.RemovePostExecutionTask(HandleCommandExecuted);
                 scriptPlayer.RemovePreExecutionTask(HandleCommandStarted);

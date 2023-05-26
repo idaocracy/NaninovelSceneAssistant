@@ -14,7 +14,6 @@ namespace NaninovelSceneAssistant
         public override GameObject GameObject => CameraManager.Camera.gameObject; 
         protected override string CommandNameAndId => "camera";
         protected List<MonoBehaviour> CameraComponents => CameraManager.Camera.GetComponents<MonoBehaviour>().Where(c => c.GetType() != typeof(UnityEngine.Camera)).ToList();
-
         protected override void AddCommandParameters()
         {
             ICommandParameterData rotation = null;

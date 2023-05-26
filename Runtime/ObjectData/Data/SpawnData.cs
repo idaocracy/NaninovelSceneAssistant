@@ -2,6 +2,7 @@
 using UnityEngine;
 using Naninovel;
 using System.Linq;
+using Naninovel.Metadata;
 
 namespace NaninovelSceneAssistant
 {
@@ -23,7 +24,6 @@ namespace NaninovelSceneAssistant
         protected bool IsTransformable => SpawnSceneAssistant?.IsTransformable ?? true;
 
         private string id;
-
         public override string GetCommandLine(bool inlined = false, bool paramsOnly = false)
         {
             if (CommandParameters == null)
