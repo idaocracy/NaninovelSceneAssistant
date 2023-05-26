@@ -2,7 +2,6 @@
 using UnityEngine;
 using Naninovel;
 using System.Linq;
-using Naninovel.Metadata;
 
 namespace NaninovelSceneAssistant
 {
