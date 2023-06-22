@@ -47,7 +47,7 @@ namespace NaninovelSceneAssistant
 			var sceneAssistantFileName = "SceneAssistant";
 			var sceneAssistantFilePath = Application.streamingAssetsPath + sceneAssistantDirectory + sceneAssistantFileName + ".nani";
 			
-			var result = (!String.IsNullOrEmpty(inputField.text) ? inputField.text + "\n" : string.Empty) + CommandString;
+			var result = (!String.IsNullOrEmpty(inputField.text) ? "\n" + inputField.text : string.Empty) + "\n" + CommandString;
 			
 			if(!File.Exists(sceneAssistantFilePath))
 			{
