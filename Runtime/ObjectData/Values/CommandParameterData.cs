@@ -1,10 +1,9 @@
 ﻿using System;
-using UnityEngine;
 using Naninovel;
 
 namespace NaninovelSceneAssistant
 {
-	public interface ICommandParameterData
+    public interface ICommandParameterData
 	{
 		string Name { get; }
 		bool Selected { get; set; }
@@ -44,7 +43,7 @@ namespace NaninovelSceneAssistant
 		T Default { get; }
 	}
 
-	public class CommandParameterData<T> : CommandParameterData, ICommandParameterData<T>
+	public class CommandParameterData<T> : CommandParameterData, ICommandParameterData<T>, IDisposable
 	{
 
 		public T Value { 
@@ -75,7 +74,6 @@ namespace NaninovelSceneAssistant
 		private void HandleSerialization(GameStateMap stateMap)
 		{
 			ResetState();
-			StateManager.RemoveOnGameSerializeTask(HandleSerialization);
 		}
 
 		public override string GetCommandValue(bool paramOnly) => this.GetCommandValue<T>(paramOnly);
@@ -84,6 +82,8 @@ namespace NaninovelSceneAssistant
 		public override void ResetState() 
 		{
 			Value = State;
-		} 
-	}
+		}
+
+        public void Dispose() => StateManager.RemoveOnGameSerializeTask(HandleSerialization);
+    }
 }
