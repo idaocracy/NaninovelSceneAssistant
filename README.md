@@ -11,11 +11,10 @@ Naninovel Scene Assistant is an extension that lets you easily modify Naninovel 
 4. Reimport the Naninovel folder for Naninovel to recognise the extension (right click on the Naninovel folder -> Reimport)
 3. You are done! You can now access the scene assistant from the Naninovel menu.
 
-### Installation (V1) and basic walkthrough 
-Check this video for a quick guide on installation and usage:
+### Video walkthrough 
+Check this video for a quick guide on installation and usage. Please note that the installation instructions are for V1 which is no longer being maintained. 
 
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/Qc5XYE-ojx8/0.jpg)](https://www.youtube.com/watch?v=Qc5XYE-ojx8)  
-TLDW: Add the script to an Editor folder (If you don't have one for your own use, create one under Assets). The window can be accessed via the Naninovel menu. Enter Play Mode and tada.  
 
 ## Overview
 
