@@ -22,6 +22,10 @@ namespace NaninovelSceneAssistant
         public List<string> ScriptsList { get; protected set; } = new List<string>();
         public bool IsAvailable { get; protected set; }
 
+        public Action OnSceneAssistantCleared;
+        public Action OnSceneAssistantReset;
+
+
         public virtual UniTask InitializeServiceAsync() => UniTask.CompletedTask;
 
         public virtual void ResetService()
@@ -75,6 +79,8 @@ namespace NaninovelSceneAssistant
                 var paths = await provider.LocateResourcesAsync<Script>(scriptsConfiguration.Loader.PathPrefix);
                 foreach (var path in paths) ScriptsList.Add(path.Split("/".ToCharArray()).Last());
             }
+
+            await UniTask.CompletedTask;
         }
 
         public virtual void DestroySceneAssistant()
@@ -84,14 +90,14 @@ namespace NaninovelSceneAssistant
             scriptPlayer.OnCommandExecutionStart -= ClearSceneAssistantOnCommandStart;
             scriptPlayer.OnCommandExecutionFinish -= ResetSceneAssistantOnCommandFinish;
 
-            stateManager.OnRollbackStarted -= ClearSceneAssistant;
-            stateManager.OnRollbackFinished -= ResetSceneAssistant;
+            //stateManager.OnRollbackStarted -= ClearSceneAssistant;
+            //stateManager.OnRollbackFinished -= ResetSceneAssistant;
 
             stateManager.OnGameLoadStarted -= ClearSceneAssistantOnGameLoading;
             stateManager.OnGameLoadFinished -= ResetSceneAssistantOnGameLoaded;
 
-            stateManager.OnResetStarted -= ClearSceneAssistant;
-            stateManager.OnResetFinished -= ResetSceneAssistant;
+            //stateManager.OnResetStarted -= ClearSceneAssistant;
+            //stateManager.OnResetFinished -= ResetSceneAssistant;
         }
 
         private void ClearSceneAssistantOnCommandStart(Command command) => ClearSceneAssistant();
@@ -99,8 +105,9 @@ namespace NaninovelSceneAssistant
         private void ClearSceneAssistantOnGameLoading(GameSaveLoadArgs obj) => ClearSceneAssistant();
         private void ResetSceneAssistantOnGameLoaded(GameSaveLoadArgs obj) => ResetSceneAssistant();
 
-        public void ClearSceneAssistant()
+        public virtual void ClearSceneAssistant()
         {
+            OnSceneAssistantCleared?.Invoke();
             IsAvailable = false;
             CustomVarList.Clear();
             UnlockablesList.Clear();
@@ -116,6 +123,7 @@ namespace NaninovelSceneAssistant
             foreach (var variable in variableManager.GetAllVariables()) CustomVarList.Add(variable.Name, new VariableData(variable.Name));
             foreach (var unlockable in unlockableManager.GetAllItems()) UnlockablesList.Add(unlockable.Key, new UnlockableData(unlockable.Key));
             IsAvailable = true;
+            OnSceneAssistantReset?.Invoke();
         }
 
         protected virtual void ResetObjectList()

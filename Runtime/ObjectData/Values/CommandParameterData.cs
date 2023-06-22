@@ -1,83 +1,89 @@
 ﻿using System;
+using UnityEngine;
 using Naninovel;
 
 namespace NaninovelSceneAssistant
 {
-    public interface ICommandParameterData
-    {
-        string Name { get; }
-        bool Selected { get; set; }
-        Func<bool> HasCondition { get; }
+	public interface ICommandParameterData
+	{
+		string Name { get; }
+		bool Selected { get; set; }
+		Func<bool>[] Conditions { get; }
+		string GetCommandValue(bool paramOnly = false);
+		void DrawLayout(ISceneAssistantLayout layout);
+		void ResetDefault();
+		void ResetState();
+	}
 
-        string GetCommandValue(bool paramOnly = false);
-        void GetLayout(ISceneAssistantLayout layout);
-        void ResetDefault();
-        void ResetState();
-    }
+	public abstract class CommandParameterData 
+	{
+		public CommandParameterData(string name, params Func<bool>[] getCondition)
+		{
+			Name = name;
+			Conditions = getCondition;
+			StateManager = Engine.GetService<IStateManager>();
+		}
 
-    public abstract class CommandParameterData
-    {
-        public CommandParameterData(string name, Func<bool> getCondition = default)
-        {
-            Name = name;
-            HasCondition = getCondition;
+		public string Name { get; }
+		public virtual bool Selected { get; set; } = true;
+		public Func<bool>[] Conditions { get; }
+		public abstract string GetCommandValue(bool paramOnly = false);
+		public abstract void DrawLayout(ISceneAssistantLayout layout);
+		public abstract void ResetDefault();
+		public abstract void ResetState();
 
-            StateManager = Engine.GetService<IStateManager>();
-        }
-        public string Name { get; }
-        public virtual bool Selected { get; set; } = true;
-        public Func<bool> HasCondition { get; }
-        public abstract string GetCommandValue(bool paramOnly = false);
-        public abstract void GetLayout(ISceneAssistantLayout layout);
-        public abstract void ResetDefault();
-        public abstract void ResetState();
+		public static bool ExcludeState;
 
-        public static bool ExcludeState;
+		protected IStateManager StateManager;
+	}
 
-        protected IStateManager StateManager;
-    }
+	public interface ICommandParameterData<T> : ICommandParameterData
+	{
+		T Value { get; set; }
+		T State { get; }
+		T Default { get; }
+	}
 
-    public interface ICommandParameterData<T> : ICommandParameterData
-    {
-        T Value { get; set; }
-        T State { get; }
-        T Default { get; }
-    }
+	public class CommandParameterData<T> : CommandParameterData, ICommandParameterData<T>
+	{
 
-    public class CommandParameterData<T> : CommandParameterData, ICommandParameterData<T>
-    {
-        public T Value { 
-            get => getValue();  
-            set => setValue(value);
-        }
-        public T State { get; private set; }
-        public T Default { get; }
+		public T Value { 
+			get => getValue();  
+			set => setValue(value);
+		}
+		private Func<T> getValue;
+		public Action<T> setValue;
 
-        protected Func<T> getValue;
-        protected Action<T> setValue;
-        protected Action<ISceneAssistantLayout, ICommandParameterData<T>> getLayout;
+		public T State { get; private set; }
+		public T Default { get; }
 
-        public CommandParameterData(string name, Func<T> getValue, Action<T> setValue, Action<ISceneAssistantLayout, ICommandParameterData<T>> getLayout, 
-            T defaultValue = default, Func<bool> getCondition = null) : base(name, getCondition) 
-        {
-            this.getValue = getValue;
-            this.setValue = setValue;
-            this.getLayout = getLayout;
-            this.Default = defaultValue;
 
-            StateManager.AddOnGameSerializeTask(HandleSerialization);
-            State = Value;
-        }
+		private Action<ISceneAssistantLayout, ICommandParameterData<T>> getLayout;
 
-        private void HandleSerialization(GameStateMap stateMap)
-        {
-            ResetState();
-            StateManager.RemoveOnGameSerializeTask(HandleSerialization);
-        }
+		public CommandParameterData(string name, Func<T> getValue, Action<T> setValue, Action<ISceneAssistantLayout, ICommandParameterData<T>> getLayout, 
+			T defaultValue = default, params Func<bool>[] conditions) : base(name, conditions) 
+		{
+			this.getValue = getValue;
+			this.setValue = setValue;
+			this.getLayout = getLayout;
+			this.Default = defaultValue;
 
-        public override string GetCommandValue(bool paramOnly) => this.GetCommandValue<T>(paramOnly);
-        public override void GetLayout(ISceneAssistantLayout layout) => getLayout(layout, this);
-        public override void ResetDefault() => Value = Default;
-        public override void ResetState() => Value = State;
-    }
+			State = Value;
+			StateManager.AddOnGameSerializeTask(HandleSerialization);
+		}
+
+		private void HandleSerialization(GameStateMap stateMap)
+		{
+			ResetState();
+			StateManager.RemoveOnGameSerializeTask(HandleSerialization);
+		}
+
+		public override string GetCommandValue(bool paramOnly) => this.GetCommandValue<T>(paramOnly);
+		public override void DrawLayout(ISceneAssistantLayout layout) => getLayout(layout, this);
+		public override void ResetDefault() => Value = Default;
+		public override void ResetState() 
+		{
+			Value = State;
+		} 
+	}
 }

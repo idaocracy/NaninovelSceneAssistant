@@ -73,8 +73,8 @@ namespace NaninovelSceneAssistant
             ICommandParameterData pos = null;
             ICommandParameterData position = null;
 
-            CommandParameters.Add(position = new CommandParameterData<Vector3>("Position", () => Transform.localPosition, v => Transform.localPosition = v, (i, p) => i.Vector3Field(p, toggleWith: pos), defaultValue: new Vector3(0, 0, 99)));
-            CommandParameters.Add(pos = new CommandParameterData<Vector3>("Pos", () => Transform.localPosition, v => Transform.localPosition = v, (i, p) => i.PosField(p, CameraConfiguration, toggleWith: position), defaultValue: new Vector3(0, 0, 99)));
+            CommandParameters.Add(position = new CommandParameterData<Vector3>("Position", () => Transform.localPosition, v => Transform.localPosition = v, (i, p) => i.Vector3Field(p, toggleGroup: pos), defaultValue: new Vector3(0, 0, 99)));
+            CommandParameters.Add(pos = new CommandParameterData<Vector3>("Pos", () => Transform.localPosition, v => Transform.localPosition = v, (i, p) => i.PosField(p, CameraConfiguration, toggleGroup: position), defaultValue: new Vector3(0, 0, 99)));
             CommandParameters.Add(new CommandParameterData<Vector3>("Rotation", () => Transform.localRotation.eulerAngles, v => Transform.localRotation = Quaternion.Euler(v), (i, p) => i.Vector3Field(p)));
             CommandParameters.Add(new CommandParameterData<Vector3>("Scale", () => Transform.localScale, v => Transform.localScale = v, (i, p) => i.Vector3Field(p), defaultValue: Vector3.one));
         }
@@ -83,7 +83,7 @@ namespace NaninovelSceneAssistant
         {
             if (SpawnSceneAssistant == null) return;
             if (SpawnSceneAssistant.IsTransformable) AddTransformParams();
-            if (SpawnSceneAssistant?.GetParams() != null) CommandParameters.Add(new ListCommandData("Params", SpawnSceneAssistant.GetParams(), (i, p) => i.ListButtonField(p)));
+            if (SpawnSceneAssistant?.GetParams() != null) CommandParameters.Add(new ListCommandData("Params", SpawnSceneAssistant.GetParams(), (i, p) => i.ListField(p)));
         }
     }
 

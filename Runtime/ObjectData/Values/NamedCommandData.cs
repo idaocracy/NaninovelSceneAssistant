@@ -8,10 +8,10 @@ namespace NaninovelSceneAssistant
         string NamedKey { get; }
     }
 
-    public class NamedCommandData<T> : CommandParameterData<T>, INamedCommandParameterData<T>
+    public class NamedCommandParameterData<T> : CommandParameterData<T>, INamedCommandParameterData<T>
     {
-        public NamedCommandData(string name, string namedKey, Func<T> getValue, Action<T> setValue,
-        Action<ISceneAssistantLayout, ICommandParameterData<T>> getLayout, T defaultValue = default, Func<bool> getCondition = null) : base(name, getValue, setValue, getLayout, defaultValue, getCondition)
+        public NamedCommandParameterData(string name, string namedKey, Func<T> getValue, Action<T> setValue,
+        Action<ISceneAssistantLayout, ICommandParameterData<T>> getLayout, T defaultValue = default, params Func<bool>[] conditions) : base(name, getValue, setValue, getLayout, defaultValue, conditions)
         {
             NamedKey = namedKey;
         }

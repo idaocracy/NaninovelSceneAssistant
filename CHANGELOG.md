@@ -1,3 +1,7 @@
+v2.3.0 June 2023
+- Added UI version of Scene Assistant.
+- Minor bug-fixes and refactoring.
+
 v2.2.1 May 2023
 - Fixed 1.19 incompatibility issue.
 
@@ -8,7 +12,6 @@ v2.2.0 May 2023
 v2.1.0 April 2023
 - Added a script player and other tweaks to Scene Assistant to better communicate and control the availability of Scene Assistant. 
 - Replaced "Pause Script Player In Hover" with "Disable Rollback On Hover" in Scene Assistant options. 
-
 
 v2.0.0 March 2023
 - You can now insert lines directly into the visual editor without having to copy the command to the clipboard buffer first.

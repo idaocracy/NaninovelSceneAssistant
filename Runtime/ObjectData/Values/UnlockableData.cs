@@ -22,5 +22,5 @@ public class UnlockableData
         setValue = (value) => unlockableManager.SetItemUnlocked(Name, value);
         enumValue = getValue() ? UnlockableState.Unlocked : UnlockableState.Locked;
     }
-    public void DisplayField(ISceneAssistantLayout layout) => layout.UnlockableField(this);
+    public void DisplayField(IUnlockableLayout layout) => layout.UnlockableField(this);
 }

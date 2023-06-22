@@ -9,7 +9,6 @@ public class VariableData
 
     private Func<string> getValue;
     private Action<string> setValue;
-
     private ICustomVariableManager customVariableManager;
 
     public VariableData(string name)
@@ -20,5 +19,5 @@ public class VariableData
         setValue = (value) => customVariableManager.SetVariableValue(Name, value);
     }
 
-    public void DisplayField(ISceneAssistantLayout layout) => layout.VariableField(this);
+    public void DisplayField(ICustomVariableLayout layout) => layout.VariableField(this);
 }
