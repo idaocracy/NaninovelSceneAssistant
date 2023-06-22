@@ -81,7 +81,6 @@ namespace NaninovelSceneAssistant
 				case SceneAssistantTab.Variables:
 					sceneAssistantMenu.gameObject.SetActive(false);
 					variablesMenu.gameObject.SetActive(true);
-					//unlockablesMenu.gameObject.SetActive(false);
 					scriptsMenu.gameObject.SetActive(false);
 
 					CurrentMenu = variablesMenu;
