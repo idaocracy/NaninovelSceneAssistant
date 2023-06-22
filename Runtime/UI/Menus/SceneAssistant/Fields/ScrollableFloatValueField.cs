@@ -41,16 +41,12 @@ namespace NaninovelSceneAssistant
 			mainCanvasGroup = inputField.GetComponent<CanvasGroup>();
 			
 			onSubmit.AddListener(SetDataValue);
-			onSelect.AddListener(DisableInputProcessing);
-			onDeselect.AddListener(EnableInputProcessing);
 		}
 		
 		protected override void OnDestroy() 
 		{
 			base.OnDestroy();
 			onSubmit.RemoveListener(SetDataValue);	
-			onSelect.RemoveListener(DisableInputProcessing);
-			onDeselect.RemoveListener(EnableInputProcessing);
 		}
 		
 		public override void OnPointerEnter(PointerEventData eventData)
@@ -90,9 +86,7 @@ namespace NaninovelSceneAssistant
 		{
 			getDataValue();
 		} 
-		
-		private void DisableInputProcessing(string value) => sceneAssistantUI.ToggleInputProcessing(false); 
-		private void EnableInputProcessing(string value) => sceneAssistantUI.ToggleInputProcessing(true); 
+	
 	}
 }
 

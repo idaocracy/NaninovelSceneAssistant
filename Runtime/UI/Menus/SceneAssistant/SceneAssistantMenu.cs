@@ -47,8 +47,6 @@ namespace NaninovelSceneAssistant
 			idDropdown.onValueChanged.AddListener(DisplayCurrentObject);
 			idButton.onClick.AddListener(CopyIdString);
 			saveButton.onClick.AddListener(ShowSavePanel);
-			copyBufferField.onSelect.AddListener(DisableInputProcessing);
-			copyBufferField.onDeselect.AddListener(EnableInputProcessing);
 		}
 
 		protected override void OnDisable()
@@ -57,13 +55,7 @@ namespace NaninovelSceneAssistant
 			idDropdown.onValueChanged.RemoveListener(DisplayCurrentObject);
 			idButton.onClick.RemoveListener(CopyIdString);
 			saveButton.onClick.RemoveListener(ShowSavePanel);
-			copyBufferField.onSelect.RemoveListener(DisableInputProcessing);
-			copyBufferField.onDeselect.RemoveListener(EnableInputProcessing);
 		}
-
-		private void DisableInputProcessing(string value) => UI.ToggleInputProcessing(false);
-		private void EnableInputProcessing(string value) => UI.ToggleInputProcessing(true);
-
 		private void ShowSavePanel()
 		{
 			var sceneAssistantDirectory = "/SceneAssistant/";

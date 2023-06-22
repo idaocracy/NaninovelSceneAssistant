@@ -40,16 +40,12 @@ namespace NaninovelSceneAssistant
 		{
 			base.BindUIEvents();
 			inputField.onSubmit.AddListener(SetSliderValue);
-			inputField.onSelect.AddListener(DisableInputProcessing);
-			inputField.onDeselect.AddListener(EnableInputProcessing);
 		}
 
 		protected override void UnbindUIEvents()
 		{
 			base.UnbindUIEvents();
 			inputField.onSubmit.RemoveListener(SetSliderValue);
-			inputField.onSelect.RemoveListener(DisableInputProcessing);
-			inputField.onDeselect.RemoveListener(EnableInputProcessing);
 		}
 
 		private void SetSliderValue(string value) 
@@ -59,8 +55,5 @@ namespace NaninovelSceneAssistant
 			// needed for clamping the value 
 			inputField.text = SliderValue.ToString();
 		} 
-		
-		private void DisableInputProcessing(string value) => SceneAssistantUI.ToggleInputProcessing(false);
-		private void EnableInputProcessing(string value) => SceneAssistantUI.ToggleInputProcessing(true);
 	}
 }

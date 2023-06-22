@@ -18,19 +18,6 @@ namespace NaninovelSceneAssistant
 			}
 
 			GetDataValue();
-			
-			ValueComponent.onSelect.AddListener(DisableInputProcessing);
-			ValueComponent.onDeselect.AddListener(EnableInputProcessing);
 		}
-
-		protected override void OnDestroy() 
-		{
-			base.OnDestroy();
-			ValueComponent.onSelect.RemoveListener(DisableInputProcessing);
-			ValueComponent.onDeselect.RemoveListener(EnableInputProcessing);
-		}
-		
-		private void DisableInputProcessing(string value) => SceneAssistantUI.ToggleInputProcessing(false);
-		private void EnableInputProcessing(string value) => SceneAssistantUI.ToggleInputProcessing(true);
 	}
 }
