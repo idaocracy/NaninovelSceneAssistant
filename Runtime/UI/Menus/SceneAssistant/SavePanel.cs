@@ -7,7 +7,7 @@ using TMPro;
 
 namespace NaninovelSceneAssistant
 {
-	public class SavePanel : ScriptableUIBehaviour 
+	public class SavePanel : ScriptableUIBehaviour
 	{
 		[SerializeField] private LabeledButton closeButton;
 		[SerializeField] private Button saveButton;
@@ -28,7 +28,6 @@ namespace NaninovelSceneAssistant
 			closeButton.onClick.AddListener(CloseWindow);
 			saveButton.onClick.AddListener(SaveOnClick);
 			inputField.onSubmit.AddListener(SaveOnSubmit);
-			
 		}
 
 		protected override void OnDisable()

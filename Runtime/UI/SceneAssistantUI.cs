@@ -11,7 +11,6 @@ namespace NaninovelSceneAssistant
 		private SceneAssistantManager sceneAssistantManager;
 		public enum SceneAssistantTab { SceneAssistant, Variables, Scripts };
 		public SceneAssistantWindowMenu CurrentMenu { get; private set; }
-		private IInputManager inputManager;
 
 		[Header("Toolbar")]
 		[SerializeField] private ScriptableLabeledButton closeButton;
@@ -29,7 +28,6 @@ namespace NaninovelSceneAssistant
 		{
 			base.Awake();
 			sceneAssistantManager = Engine.GetService<SceneAssistantManager>();
-			inputManager = Engine.GetService<IInputManager>();
 			CurrentMenu = sceneAssistantMenu;
 		}
 
@@ -105,8 +103,6 @@ namespace NaninovelSceneAssistant
 			background.color = currentColor;
 		}
 		
-		public void ToggleInputProcessing(bool value) => inputManager.ProcessInput = value;
-
 		public void OnPointerDown(PointerEventData eventData)
 		{
 			sceneAssistantMenu.DestroyColorPicker();
