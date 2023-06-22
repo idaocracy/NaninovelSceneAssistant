@@ -11,6 +11,17 @@ Naninovel Scene Assistant is an extension that lets you easily modify Naninovel 
 4. Reimport the Naninovel folder for Naninovel to recognise the extension (right click on the Naninovel folder -> Reimport)
 3. You are done! You can now access the scene assistant from the Naninovel menu.
 
+### UI setup
+Naninovel Scene Assistant has a UI version which is aimed at devs who don't have access to Unity or modders. Please note that the UI is designed for use with mouse and keyboard.
+
+Setup instructions: 
+1. Search **SceneAssistantUI** in the Project search field. Set the Search setting to **All**.
+2. Add the UI to the UI resources **(Naninovel -> Resources -> UI)**. 
+3. In Naninovel's **Engine** configuration, make sure **Enable Development Console** is checked.
+4. Enter Play Mode and while a script is playing, call the development console by using the **Toggle Console Key** in the Engine configuration and type in **scn**. The UI should appear.   
+
+Generated commands will be copied to clipboard, similar to the Editor version. Additionally you can save the string to a file generated at the application's **StreamingAssets** folder.
+
 ### Video walkthrough 
 Check this video for a quick guide on installation and usage. Please note that the installation instructions are for V1 which is no longer being maintained. 
 
@@ -55,9 +66,6 @@ ____
 
 ## Current limitations
 - The float parameter fields are fugly as heck. Unfortunately due to the limitations of FloatField, I couldn't make them any prettier.
-
-## Future features
-- A UI version of this extension is in the works, hence the Runtime scripts in the extension. For now the extension won't be included in builds as the assembly definitions target editor only.  
 
 ## Contact
 If you need help with the extension, you can contact me on here or on Discord. I am the tech support person (only yellow username) on the Naninovel discord.  
