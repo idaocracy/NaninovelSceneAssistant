@@ -4,6 +4,7 @@ using UnityEngine.Events;
 using Naninovel;
 using TMPro;
 using System;
+using System.Linq;
 
 namespace NaninovelSceneAssistant
 {
@@ -66,16 +67,18 @@ namespace NaninovelSceneAssistant
 			{
 				foreach(var field in SceneAssistantMenu.DataFields)
 				{
-					foreach(var toggleGroup in toggleGroup)
+					foreach(var toggle in toggleGroup)
 					{
-						if(field.Data == toggleGroup) field.ToggleInteractability(false);                    
+						if(field.Data == toggle) field.ToggleInteractability(false);                    
 					} 
 				}
 			}
 			
 			if (!interactable)
 			{
-				Data.ResetState();
+				if(toggleGroup.Length == 0) Data.ResetState();
+				else if (toggleGroup.Length > 0 && toggleGroup.Any(t => t.Selected)) return;
+				else Data.ResetState();
 				SceneAssistantMenu.UpdateDataValues();
 			}
 		}
