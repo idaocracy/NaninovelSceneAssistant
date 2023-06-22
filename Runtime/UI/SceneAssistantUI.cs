@@ -9,7 +9,7 @@ namespace NaninovelSceneAssistant
 	public class SceneAssistantUI : CustomUI, IPointerDownHandler
 	{
 		private SceneAssistantManager sceneAssistantManager;
-		public enum SceneAssistantTab { SceneAssistant, Variables, Unlockables, Scripts };
+		public enum SceneAssistantTab { SceneAssistant, Variables, Scripts };
 		public SceneAssistantWindowMenu CurrentMenu { get; private set; }
 		private IInputManager inputManager;
 
@@ -21,7 +21,6 @@ namespace NaninovelSceneAssistant
 		[Header("Menus")]
 		[SerializeField] private SceneAssistantMenu sceneAssistantMenu;
 		[SerializeField] private VariablesMenu variablesMenu;
-		[SerializeField] private UnlockablesMenu unlockablesMenu;
 		[SerializeField] private ScriptsMenu scriptsMenu;
 
 		public Texture2D CursorTexture;
@@ -74,7 +73,6 @@ namespace NaninovelSceneAssistant
 				case SceneAssistantTab.SceneAssistant:
 					sceneAssistantMenu.gameObject.SetActive(true);
 					variablesMenu.gameObject.SetActive(false);
-					unlockablesMenu.gameObject.SetActive(false);
 					scriptsMenu.gameObject.SetActive(false);
 
 					CurrentMenu = sceneAssistantMenu;
@@ -83,25 +81,15 @@ namespace NaninovelSceneAssistant
 				case SceneAssistantTab.Variables:
 					sceneAssistantMenu.gameObject.SetActive(false);
 					variablesMenu.gameObject.SetActive(true);
-					unlockablesMenu.gameObject.SetActive(false);
+					//unlockablesMenu.gameObject.SetActive(false);
 					scriptsMenu.gameObject.SetActive(false);
 
 					CurrentMenu = variablesMenu;
 				break;
 
-				case SceneAssistantTab.Unlockables:
-					sceneAssistantMenu.gameObject.SetActive(false);
-					variablesMenu.gameObject.SetActive(false);
-					unlockablesMenu.gameObject.SetActive(true);
-					scriptsMenu.gameObject.SetActive(false);
-
-					CurrentMenu = unlockablesMenu;
-				break;
-
 				case SceneAssistantTab.Scripts:
 					sceneAssistantMenu.gameObject.SetActive(false);
 					variablesMenu.gameObject.SetActive(false);
-					unlockablesMenu.gameObject.SetActive(false);
 					scriptsMenu.gameObject.SetActive(true);
 					
 					CurrentMenu = scriptsMenu;

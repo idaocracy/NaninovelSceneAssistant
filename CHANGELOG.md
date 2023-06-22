@@ -1,5 +1,6 @@
 v2.3.0 June 2023
 - Added UI version of Scene Assistant.
+- Script Player is now visible on all tabs.
 - Minor bug-fixes and refactoring.
 
 v2.2.1 May 2023
