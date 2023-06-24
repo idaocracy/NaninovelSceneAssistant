@@ -14,7 +14,6 @@ namespace NaninovelSceneAssistant
 
 		[Header("Toolbar")]
 		[SerializeField] private ScriptableLabeledButton closeButton;
-		[SerializeField] private Slider opacitySlider;
 		[SerializeField] private Image background;
 
 		[Header("Menus")]
@@ -35,15 +34,12 @@ namespace NaninovelSceneAssistant
 		{
 			base.OnEnable();
 			closeButton.OnButtonClicked += Hide;
-			opacitySlider.onValueChanged.AddListener(SetWindowOpacity);
-			opacitySlider.value = background.color.a;
 		}
 
 		protected override void OnDisable()
 		{
 			base.OnEnable();
 			closeButton.OnButtonClicked -= Hide;
-			opacitySlider.onValueChanged.RemoveListener(SetWindowOpacity);
 		}
 
 		protected override void HandleVisibilityChanged(bool visible)

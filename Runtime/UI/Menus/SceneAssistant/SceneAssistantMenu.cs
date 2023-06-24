@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.IO;
@@ -17,7 +17,7 @@ namespace NaninovelSceneAssistant
 		[SerializeField] private TMP_InputField copyBufferField;
 		[SerializeField] private TextMeshProUGUI saveInfoBox;
 		[SerializeField] private Button saveButton;
-		[SerializeField] private SavePanel savePanelPrototype;
+		[SerializeField] private TMP_InputField commandNameField;
 
 		[Header("Object type section")]
 		[SerializeField] private RectTransform objectTypeToggleContainer;
@@ -26,7 +26,6 @@ namespace NaninovelSceneAssistant
 		[Header("Id section")]
 		[SerializeField] private Button idButton;
 		[SerializeField] private TMP_Dropdown idDropdown;
-
 
 		[Header("Field prototypes")]
 		[SerializeField] private SliderField sliderFieldPrototype;
@@ -41,12 +40,17 @@ namespace NaninovelSceneAssistant
 		public List<ISceneAssistantUIField> DataFields { get => parameterContainer.GetComponentsInChildren<ISceneAssistantUIField>().ToList(); }
 		public INaninovelObjectData CurrentObject { get; protected set; }
 		
+		const string sceneAssistantDirectory =  "/SceneAssistant/";
+		const string sceneAssistantFileName = "SceneAssistant.nani";
+		private string sceneAssistantFilePath => Application.streamingAssetsPath + sceneAssistantDirectory + sceneAssistantFileName;
+		
 		public override void InitializeMenu()
 		{
 			base.InitializeMenu();
 			idDropdown.onValueChanged.AddListener(DisplayCurrentObject);
 			idButton.onClick.AddListener(CopyIdString);
-			saveButton.onClick.AddListener(ShowSavePanel);
+			saveButton.onClick.AddListener(SaveCommandStringOnClick);
+			commandNameField.onSubmit.AddListener(SaveCommandString);
 		}
 
 		protected override void OnDisable()
@@ -54,41 +58,46 @@ namespace NaninovelSceneAssistant
 			base.OnDisable();
 			idDropdown.onValueChanged.RemoveListener(DisplayCurrentObject);
 			idButton.onClick.RemoveListener(CopyIdString);
-			saveButton.onClick.RemoveListener(ShowSavePanel);
+			saveButton.onClick.RemoveListener(SaveCommandStringOnClick);
+			commandNameField.onSubmit.RemoveListener(SaveCommandString);
 		}
-		private void ShowSavePanel()
+		
+		private bool CanSave()
 		{
-			var sceneAssistantDirectory = "/SceneAssistant/";
-			var sceneAssistantFileName = "SceneAssistant";
 			if(!Directory.Exists(Application.streamingAssetsPath + sceneAssistantDirectory))
 			{
 				saveInfoBox.color = Color.red;
 				saveInfoBox.text = $"Error: Could not find <b>SceneAssistant</b> directory in {Application.streamingAssetsPath}";
-				return;
-			}
-			
-			if(String.IsNullOrEmpty(copyBufferField.text))
+				return false;
+			}		
+			else if(String.IsNullOrEmpty(copyBufferField.text))
 			{
 				saveInfoBox.color = Color.red;
 				saveInfoBox.text = $"String is empty";
-				return;
+				return false;
 			}
-			
-			SavePanel savePanel = Instantiate(savePanelPrototype, UI.transform);
-			savePanel.Initialize(copyBufferField.text, CloseWindow());
-			mainWindow.interactable = false;
-			
-			Action CloseWindow()
+			else 
 			{
-				return () => 
-				{
-					Destroy(savePanel.gameObject);
-					mainWindow.interactable = true;
-					
-					saveInfoBox.color = Color.green;
-					saveInfoBox.text = $"Successfully saved string to <b>{sceneAssistantFileName}.nani<b> at {Application.streamingAssetsPath}";
-				};
+				saveInfoBox.color = Color.green;
+				saveInfoBox.text = $"Successfully saved string to <b>{sceneAssistantFileName}.nani<b> at {Application.streamingAssetsPath}";
+				return true;
 			}
+		}
+
+		private void SaveCommandStringOnClick() => SaveCommandString(commandNameField.text); 
+
+		private void SaveCommandString(string value)
+		{
+			if(!CanSave()) return;
+			var result = (!String.IsNullOrEmpty(commandNameField.text) ? "\n" + commandNameField.text : string.Empty) + "\n" + copyBufferField.text;
+
+			#if !UNITY_WEBGL
+			if(!File.Exists(sceneAssistantFilePath))
+			{
+				File.WriteAllText(sceneAssistantFilePath, result);
+			}
+			else File.AppendAllText(sceneAssistantFilePath, result);
+			#endif
 		}
 
 		protected override void ResetMenu()
