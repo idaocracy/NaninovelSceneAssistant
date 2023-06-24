@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using Naninovel;
 using Naninovel.UI;
 using UnityEngine.UI;
@@ -91,14 +91,6 @@ namespace NaninovelSceneAssistant
 
 			if(sceneAssistantManager.IsAvailable) CurrentMenu.InitializeMenu();
 		} 
-
-		private void SetWindowOpacity(float value)
-		{
-			var currentColor = background.color;
-			currentColor.a = value;
-			background.color = currentColor;
-		}
-		
 		public void OnPointerDown(PointerEventData eventData)
 		{
 			sceneAssistantMenu.DestroyColorPicker();

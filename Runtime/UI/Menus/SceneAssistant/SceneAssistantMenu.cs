@@ -36,14 +36,25 @@ namespace NaninovelSceneAssistant
 		[SerializeField] private ColorField colorFieldPrototype;
 		[SerializeField] private ListField listFieldPrototype;
 
-		private Transform targetContainer;
 		public List<ISceneAssistantUIField> DataFields { get => parameterContainer.GetComponentsInChildren<ISceneAssistantUIField>().ToList(); }
 		public INaninovelObjectData CurrentObject { get; protected set; }
 		
-		const string sceneAssistantDirectory =  "/SceneAssistant/";
-		const string sceneAssistantFileName = "SceneAssistant.nani";
-		private string sceneAssistantFilePath => Application.streamingAssetsPath + sceneAssistantDirectory + sceneAssistantFileName;
+		public TMP_InputField CopyBufferField => copyBufferField;
 		
+		private Transform targetContainer;
+		const string sceneAssistantDirectory =  "SceneAssistant";
+		const string sceneAssistantFileName = "SceneAssistant.nani";
+
+		protected override void Awake()
+		{
+			base.Awake();
+			#if UNITY_WEBGL && !UNITY_EDITOR
+			saveButton.gameObject.SetActive(false);
+			commandNameField.gameObject.SetActive(false);
+			saveInfoBox.gameObject.SetActive(false);
+			#endif
+		}
+
 		public override void InitializeMenu()
 		{
 			base.InitializeMenu();
@@ -52,7 +63,7 @@ namespace NaninovelSceneAssistant
 			saveButton.onClick.AddListener(SaveCommandStringOnClick);
 			commandNameField.onSubmit.AddListener(SaveCommandString);
 		}
-
+		
 		protected override void OnDisable()
 		{
 			base.OnDisable();
@@ -62,43 +73,38 @@ namespace NaninovelSceneAssistant
 			commandNameField.onSubmit.RemoveListener(SaveCommandString);
 		}
 		
-		private bool CanSave()
+		private string GetDataPath()
 		{
-			if(!Directory.Exists(Application.streamingAssetsPath + sceneAssistantDirectory))
-			{
-				saveInfoBox.color = Color.red;
-				saveInfoBox.text = $"Error: Could not find <b>SceneAssistant</b> directory in {Application.streamingAssetsPath}";
-				return false;
-			}		
-			else if(String.IsNullOrEmpty(copyBufferField.text))
-			{
-				saveInfoBox.color = Color.red;
-				saveInfoBox.text = $"String is empty";
-				return false;
-			}
-			else 
-			{
-				saveInfoBox.color = Color.green;
-				saveInfoBox.text = $"Successfully saved string to <b>{sceneAssistantFileName}.nani<b> at {Application.streamingAssetsPath}";
-				return true;
-			}
+			#if UNITY_ANDROID 
+			return Application.persistentDataPath;
+			#else 
+			return Application.streamingAssetsPath;
+			#endif
 		}
-
 		private void SaveCommandStringOnClick() => SaveCommandString(commandNameField.text); 
 
 		private void SaveCommandString(string value)
 		{
-			if(!CanSave()) return;
-			var result = (!String.IsNullOrEmpty(commandNameField.text) ? "\n" + commandNameField.text : string.Empty) + "\n" + copyBufferField.text;
-
-			#if !UNITY_WEBGL
-			if(!File.Exists(sceneAssistantFilePath))
+			var directoryPath = $"{GetDataPath()}/{sceneAssistantDirectory}";
+			var filePath = $"{directoryPath}/{sceneAssistantFileName}";
+			
+			if(String.IsNullOrEmpty(copyBufferField.text))
 			{
-				File.WriteAllText(sceneAssistantFilePath, result);
+				saveInfoBox.color = Color.red;
+				saveInfoBox.text = $"String is empty";
+				return;
 			}
-			else File.AppendAllText(sceneAssistantFilePath, result);
-			#endif
+			
+			if(!Directory.Exists(directoryPath)) Directory.CreateDirectory(directoryPath);
+
+			if(!File.Exists(filePath)) File.WriteAllText(filePath, GetGeneratedString());
+			else File.AppendAllText(filePath, GetGeneratedString());
+			
+			saveInfoBox.color = Color.green;
+			saveInfoBox.text = $"Successfully saved string to <b>{sceneAssistantFileName}<b> at {GetDataPath()}";
 		}
+
+		private string GetGeneratedString() => !String.IsNullOrEmpty(commandNameField.text) ? "\n\n" + "; " + commandNameField.text : string.Empty + "\n" + copyBufferField.text;
 
 		protected override void ResetMenu()
 		{
@@ -147,11 +153,7 @@ namespace NaninovelSceneAssistant
 			saveInfoBox.text = String.Empty;
 		}
 
-		public void UpdateDataValues()
-		{
-			foreach (var field in DataFields) field.GetDataValue();
-		}
-
+		public void UpdateDataValues() => DataFields.ForEach(f => f.GetDataValue());
 		public void GenerateLayout(List<ICommandParameterData> list, Transform parent)
 		{
 			targetContainer = parent;

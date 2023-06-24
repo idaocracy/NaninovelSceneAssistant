@@ -85,8 +85,8 @@ namespace NaninovelSceneAssistant
 
 		protected void CheckCondition()
 		{
-			if (!Data.FulfillsConditions()) transform.localScale = Vector3.zero;
-			else transform.localScale = Vector3.one;
+			if (!Data.FulfillsConditions()) gameObject.SetActive(false);
+			else gameObject.SetActive(true);
 			LayoutRebuilder.MarkLayoutForRebuild(SceneAssistantMenu.GetComponent<RectTransform>());
 		}
 
