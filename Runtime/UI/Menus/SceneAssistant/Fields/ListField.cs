@@ -16,7 +16,7 @@ namespace NaninovelSceneAssistant
 		public override void GetDataValue()
 		{
 			foreach (var field in parameterContainer.GetComponentsInChildren<ISceneAssistantUIField>()) field.GetDataValue();
-			CheckCondition();
+			CheckConditions();
 		}
 
 		public override void ToggleInteractability(bool interactable)

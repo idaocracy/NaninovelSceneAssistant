@@ -18,7 +18,8 @@ namespace NaninovelSceneAssistant
 		protected static string ClipboardString { get => clipboardString; set { clipboardString = value; EditorGUIUtility.systemCopyBuffer = value; if (logResults) Debug.Log(value); } }
 		protected ScriptImporterEditor[] VisualEditors => Resources.FindObjectsOfTypeAll<ScriptImporterEditor>();
 		protected bool ExcludeState { get => CommandParameterData.ExcludeState; set => CommandParameterData.ExcludeState = value; }
-
+		protected bool ExcludeDefault { get => CommandParameterData.ExcludeDefault; set => CommandParameterData.ExcludeDefault = value; }
+		
 		private static SceneAssistantManager sceneAssistantManager;
 		private static IScriptPlayer scriptPlayer;
 		private static IStateManager stateManager;
@@ -31,6 +32,7 @@ namespace NaninovelSceneAssistant
 		private static string search;
 		private static Vector2 scrollPos;
 		private static bool logResults;
+		private static bool defaultRollbackValue;
 		private static bool disableRollback;
 
 		[MenuItem("Naninovel/Scene Assistant", false, 360)]
@@ -59,35 +61,33 @@ namespace NaninovelSceneAssistant
 			inputManager = Engine.GetService<InputManager>();
 			scriptsConfiguration = Engine.GetConfiguration<ScriptsConfiguration>();
 
+			if(sceneAssistantManager.Initialized) return;
 			sceneAssistantManager.InitializeSceneAssistant();
 			sceneAssistantManager.OnSceneAssistantCleared += HandleSceneAssistantUpdate;
 			sceneAssistantManager.OnSceneAssistantReset += HandleSceneAssistantUpdate;
+
+			defaultRollbackValue = inputManager.GetRollback().Enabled;
 		}
 
 		private void OnDestroy()
 		{
-			if (sceneAssistantManager != null && sceneAssistantManager.IsAvailable)
+			if (sceneAssistantManager.Initialized)
 			{
-				foreach (var obj in sceneAssistantManager.ObjectList) obj.Value.CommandParameters.ForEach(c => c.ResetState());
 				sceneAssistantManager.DestroySceneAssistant();
-
 				sceneAssistantManager.OnSceneAssistantCleared -= HandleSceneAssistantUpdate;
 				sceneAssistantManager.OnSceneAssistantReset -= HandleSceneAssistantUpdate;
 			}
-
-			if (Engine.Initialized && scriptPlayer.PlayedScript != null && !scriptPlayer.Playing)
-			{
-				scriptPlayer.SetWaitingForInputEnabled(true);
-				scriptPlayer.Play();
-			}
-
 		}
 
-		private static void HandleSceneAssistantUpdate() => sceneAssistantEditor.Repaint();
+		private static void HandleSceneAssistantUpdate() 
+		{
+			objectIndex = 0;
+			sceneAssistantEditor.Repaint();
+		} 
 
 		public void OnGUI()
 		{
-			if (Engine.Initialized && sceneAssistantManager != null)
+			if (Engine.Initialized && sceneAssistantManager.Initialized)
 			{
 				ShowTabs();
 			}
@@ -128,8 +128,6 @@ namespace NaninovelSceneAssistant
 			GUILayout.BeginHorizontal();
 			GUILayout.Space(10);
 			GUILayout.BeginVertical();
-
-			if(!sceneAssistantManager.IsAvailable) objectIndex = 0;
 
 			EditorGUI.BeginDisabledGroup(!sceneAssistantManager.IsAvailable);
 
@@ -181,6 +179,7 @@ namespace NaninovelSceneAssistant
 			{
 				if (!scriptPlayer.Playing) scriptPlayer.Play(); 
 				inputManager.GetContinue().Activate(1);
+				inputManager.GetRollback().Enabled = defaultRollbackValue;
 			}
 
 			if (DrawScriptPlayerButton("\u2161", Color.yellow, scriptPlayer.Playing && scriptPlayer.WaitingForInput))
@@ -407,8 +406,9 @@ namespace NaninovelSceneAssistant
 
 			GUILayout.BeginHorizontal();
 			logResults = EditorGUILayout.ToggleLeft("Log Results", logResults, EditorStyles.miniLabel, GUILayout.Width(80));
-			ExcludeState = EditorGUILayout.ToggleLeft("Exclude State Values", ExcludeState, EditorStyles.miniLabel, GUILayout.Width(125));
-			disableRollback = EditorGUILayout.ToggleLeft("Disable Rollback on Stop", disableRollback, EditorStyles.miniLabel, GUILayout.Width(150));
+			ExcludeState = EditorGUILayout.ToggleLeft("Exclude State", ExcludeState, EditorStyles.miniLabel, GUILayout.Width(90));
+			ExcludeDefault = EditorGUILayout.ToggleLeft("Exclude Defaults", ExcludeDefault, EditorStyles.miniLabel, GUILayout.Width(105));
+			disableRollback = EditorGUILayout.ToggleLeft("Disable Rollback on Stop", disableRollback, EditorStyles.miniLabel, GUILayout.Width(140));
 			GUILayout.EndHorizontal();
 		}
 

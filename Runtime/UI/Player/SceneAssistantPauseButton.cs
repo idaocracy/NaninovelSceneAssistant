@@ -14,7 +14,7 @@
             ScriptPlayer.OnWaitingForInput -= HandleWaitingForInput;
         }
 
-        private void HandleWaitingForInput(bool enabled) => HandleModeChange(enabled);
+        private void HandleWaitingForInput(bool enabled) => SetColor(enabled);
 
         protected override void OnButtonClick()
         {

@@ -23,9 +23,9 @@ namespace NaninovelSceneAssistant
 			sceneAssistantManager = Engine.GetService<SceneAssistantManager>();
 			copyBufferField = sceneAssistantMenu.CopyBufferField;
 			
-			#if UNITY_WEBGL && !UNITY_EDITOR
+			#if UNITY_WEBGL
 			var label = GetComponentInChildren<TextMeshProUGUI>();
-			label.text.Replace("Copy", "Generate");
+			label.text = label.text.Replace("Copy", "Generate");
 			#endif 
 		}
 		protected override void OnButtonClick()

@@ -6,13 +6,19 @@ using UnityEngine.EventSystems;
 
 namespace NaninovelSceneAssistant
 {
-	public class SceneAssistantUI : CustomUI, IPointerDownHandler
+	public interface ISceneAssistantUI : IManagedUI
+	{
+		void Show();
+	}
+	
+	public class SceneAssistantUI : CustomUI, ISceneAssistantUI, IPointerDownHandler
 	{
 		private SceneAssistantManager sceneAssistantManager;
 		public enum SceneAssistantTab { SceneAssistant, Variables, Scripts };
 		public SceneAssistantWindowMenu CurrentMenu { get; private set; }
 
 		[Header("Toolbar")]
+		[SerializeField] private Toggle rollbackToggle;
 		[SerializeField] private ScriptableLabeledButton closeButton;
 		[SerializeField] private Image background;
 
@@ -22,11 +28,15 @@ namespace NaninovelSceneAssistant
 		[SerializeField] private ScriptsMenu scriptsMenu;
 
 		public Texture2D CursorTexture;
+		
+		private IInputManager inputManager;
+		private bool defaultRollbackValue;
 
 		protected override void Awake()
 		{
 			base.Awake();
 			sceneAssistantManager = Engine.GetService<SceneAssistantManager>();
+			inputManager = Engine.GetService<IInputManager>();
 			CurrentMenu = sceneAssistantMenu;
 		}
 
@@ -34,30 +44,39 @@ namespace NaninovelSceneAssistant
 		{
 			base.OnEnable();
 			closeButton.OnButtonClicked += Hide;
+			rollbackToggle.onValueChanged.AddListener(SetRollbackEnabled);
 		}
 
 		protected override void OnDisable()
 		{
 			base.OnEnable();
 			closeButton.OnButtonClicked -= Hide;
+			rollbackToggle.onValueChanged.RemoveListener(SetRollbackEnabled);
 		}
 
 		protected override void HandleVisibilityChanged(bool visible)
 		{
 			base.HandleVisibilityChanged(visible);
 
-			if (sceneAssistantManager != null && visible)
+			if (visible)
 			{
-				CurrentMenu.InitializeMenu();
+				defaultRollbackValue = inputManager.GetRollback().Enabled;
 			}
 			else
 			{
-				if(sceneAssistantManager != null && sceneAssistantManager.IsAvailable)
+				if(sceneAssistantManager != null && sceneAssistantManager.Initialized)
 				{
 					CurrentMenu.DestroyMenu();
 					sceneAssistantManager.DestroySceneAssistant();
+					inputManager.GetRollback().Enabled = defaultRollbackValue;
 				}
 			}
+		}
+
+		private void SetRollbackEnabled(bool toggle)
+		{
+			if(toggle) inputManager.GetRollback().Enabled = false;
+			else inputManager.GetRollback().Enabled = defaultRollbackValue;
 		}
 
 		public void ChangeTab(SceneAssistantTab sceneAssistantTab)
@@ -91,9 +110,17 @@ namespace NaninovelSceneAssistant
 
 			if(sceneAssistantManager.IsAvailable) CurrentMenu.InitializeMenu();
 		} 
+		
 		public void OnPointerDown(PointerEventData eventData)
 		{
 			sceneAssistantMenu.DestroyColorPicker();
+		}
+		
+		public override void Show()
+		{
+			sceneAssistantManager.InitializeSceneAssistant();
+			CurrentMenu.InitializeMenu();
+			base.Show();
 		}
 	}
 	
@@ -102,11 +129,19 @@ namespace NaninovelSceneAssistant
 		[ConsoleCommand("scn")]
 		public static void ShowSceneAssistantUI() 
 		{
-			var sceneAssistantManager = Engine.GetService<SceneAssistantManager>();
-			var sceneAssistantUI = Engine.GetService<IUIManager>().GetUI<SceneAssistantUI>();
-
-			sceneAssistantManager.InitializeSceneAssistant();
+			var sceneAssistantUI = Engine.GetService<IUIManager>().GetUI<ISceneAssistantUI>();
 			sceneAssistantUI.Show();
 		} 
 	}
+	
+		[CommandAlias("sceneAssistant")]
+		public class SceneAssistantCommand : Command
+		{
+			public override UniTask ExecuteAsync (AsyncToken asyncToken = default)
+			{
+				var sceneAssistantUI = Engine.GetService<IUIManager>().GetUI<ISceneAssistantUI>();
+				sceneAssistantUI.Show();
+				return UniTask.CompletedTask;
+			}
+		}
 }

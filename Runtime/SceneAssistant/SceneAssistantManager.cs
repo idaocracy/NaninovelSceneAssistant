@@ -1,4 +1,5 @@
 ﻿using Naninovel;
+using Naninovel.Commands;
 using System.Collections.Generic;
 using System;
 using System.Linq;
@@ -45,6 +46,8 @@ namespace NaninovelSceneAssistant
 		}
 		public virtual async void InitializeSceneAssistant()
 		{
+			if(Initialized) return;
+			
 			GetServices();
 			await LocateScriptsAsync();
 
@@ -52,15 +55,6 @@ namespace NaninovelSceneAssistant
 
 			scriptPlayer.OnCommandExecutionStart += ClearSceneAssistantOnCommandStart;
 			scriptPlayer.OnCommandExecutionFinish += ResetSceneAssistantOnCommandFinish;
-
-			stateManager.OnRollbackStarted += ClearSceneAssistant;
-			stateManager.OnRollbackFinished += ResetSceneAssistant;
-
-			stateManager.OnGameLoadStarted += ClearSceneAssistantOnGameLoading;
-			stateManager.OnGameLoadFinished += ResetSceneAssistantOnGameLoaded;
-
-			stateManager.OnResetStarted += ClearSceneAssistant;
-			stateManager.OnResetFinished += ResetSceneAssistant;
 
 			Initialized = true;
 		}
@@ -81,34 +75,33 @@ namespace NaninovelSceneAssistant
 		{
 			ClearSceneAssistant();
 
-			scriptPlayer.OnCommandExecutionStart -= ClearSceneAssistantOnCommandStart;
-			scriptPlayer.OnCommandExecutionFinish -= ResetSceneAssistantOnCommandFinish;
-
-			stateManager.OnRollbackStarted -= ClearSceneAssistant;
-			stateManager.OnRollbackFinished -= ResetSceneAssistant;
-
-			stateManager.OnGameLoadStarted -= ClearSceneAssistantOnGameLoading;
-			stateManager.OnGameLoadFinished -= ResetSceneAssistantOnGameLoaded;
-
-			stateManager.OnResetStarted -= ClearSceneAssistant;
-			stateManager.OnResetFinished -= ResetSceneAssistant;
+			if (scriptPlayer.PlayedScript != null && !scriptPlayer.Playing)
+			{
+				scriptPlayer.SetWaitingForInputEnabled(true);
+				scriptPlayer.Play();
+			}
 			
 			Initialized = false;
 		}
-		private void ClearSceneAssistantOnCommandStart(Command command) => ClearSceneAssistant();
+		private void ClearSceneAssistantOnCommandStart(Command command) 
+		{
+			ClearSceneAssistant();
+			if(command is Stop) ResetSceneAssistant();
+		}
+		
 		private void ResetSceneAssistantOnCommandFinish(Command command) => ResetSceneAssistant();
-		private void ClearSceneAssistantOnGameLoading(GameSaveLoadArgs obj) => ClearSceneAssistant();
-		private void ResetSceneAssistantOnGameLoaded(GameSaveLoadArgs obj) => ResetSceneAssistant();
 
 		public virtual void ClearSceneAssistant()
 		{
+			if(!IsAvailable) return;
 			OnSceneAssistantCleared?.Invoke();
+			IsAvailable = false;
 			
 			foreach(var obj in ObjectList.Values) 
 			{
-				if(obj is IDisposable disposable) disposable.Dispose();
+				foreach(var data in obj.CommandParameters) if(data is IDisposable disposable) disposable.Dispose();
 			}
-			IsAvailable = false;
+
 			CustomVarList.Clear();
 			UnlockablesList.Clear();
 			ObjectTypeList.Clear();
@@ -117,11 +110,12 @@ namespace NaninovelSceneAssistant
 
 		protected virtual void ResetSceneAssistant()
 		{
-			ClearSceneAssistant();
+			if(IsAvailable) return;
+			
 			ResetObjectList();
-
 			foreach (var variable in variableManager.GetAllVariables()) CustomVarList.Add(variable.Name, new VariableData(variable.Name));
 			foreach (var unlockable in unlockableManager.GetAllItems()) UnlockablesList.Add(unlockable.Key, new UnlockableData(unlockable.Key));
+			
 			IsAvailable = true;
 			OnSceneAssistantReset?.Invoke();
 		}
@@ -132,10 +126,11 @@ namespace NaninovelSceneAssistant
 			ResetSpawnList();
 			ResetObjectTypeList();
 		}
+		
 		private void ResetCamera()
 		{
 			var camera = new CameraData();
-			ObjectList.Add(camera.Id, camera);
+			ObjectList.Add(camera.Id, new CameraData());
 		}
 
 		protected virtual void ResetActorList()

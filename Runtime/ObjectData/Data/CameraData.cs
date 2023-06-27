@@ -35,7 +35,7 @@ namespace NaninovelSceneAssistant
 
             foreach (var component in CameraComponents)
             {
-                componentsData.Add(new NamedCommandParameterData<bool>(component.GetType().Name, component.GetType().Name, () => component.enabled, v => component.enabled = v, (i, p) => i.BoolField(p)));
+                componentsData.Add(new NamedCommandParameterData<bool>(component.GetType().Name, component.GetType().Name, () => component.enabled, v => component.enabled = v, (i, p) => i.BoolField(p), defaultValue:component.enabled));
             }
 
             CommandParameters.Add(new ListCommandData("Set", componentsData, (i, p) => i.ListField(p)));

@@ -98,7 +98,7 @@ namespace NaninovelSceneAssistant
 		public override void GetDataValue()
 		{
 			foreach (var field in FloatFields) field.GetDataValue();
-			CheckCondition();
+			CheckConditions();
 		}
 	}
 }

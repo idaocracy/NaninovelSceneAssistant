@@ -49,19 +49,20 @@ namespace NaninovelSceneAssistant
 		}
 
 		// Is the object selected, not eligible for exclusion and fulfills potential conditions.
-		private static bool IsValid<T>(this ICommandParameterData<T> data) => data.Selected && !ExcludeState(data) && data.FulfillsConditions();
+		private static bool IsValid<T>(this ICommandParameterData<T> data) => data.Selected && !ExcludeState(data) && !ExcludeDefault(data) && data.FulfillsConditions();
 
 		// Will exclude the object if Exclude State Values is enabled and the current value is equal to the initial state value.  
 		private static bool ExcludeState<T>(this ICommandParameterData<T> data) 
 		{
 			if(data is IListCommandParameterData) return false;
-			
-			if (CommandParameterData.ExcludeState)
-			{
-				if(data.Value == null) return true;
-				else if(data.Value.Equals(data.State)) return true;
-				else return false;
-			} 
+			if (CommandParameterData.ExcludeState) return data.Value.Equals(data.State) ? true : false; 
+			else return false;
+		} 
+		
+		private static bool ExcludeDefault<T>(this ICommandParameterData<T> data) 
+		{
+			if(data is IListCommandParameterData) return false;
+			if (CommandParameterData.ExcludeDefault) return data.Value.Equals(data.Default) ? true : false; 
 			else return false;
 		} 
 		

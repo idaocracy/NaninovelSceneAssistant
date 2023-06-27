@@ -47,7 +47,7 @@ namespace NaninovelSceneAssistant
             }
 
             var paramsString = string.Join(",", tempParams.Where(p => p.GetCommandValue() != null).Select(p => p.GetCommandValue(paramOnly: true) ?? string.Empty));
-            if (CommandParameterData.ExcludeState && paramsString.Length == 0 && transformString.Length == 0) return null;
+            if ((CommandParameterData.ExcludeState || CommandParameterData.ExcludeDefault) && paramsString.Length == 0 && transformString.Length == 0) return null;
             if (paramsOnly) return paramsString;
             var commandString = CommandNameAndId + " " + transformString + (paramsString.Length != 0 ? "params:" + paramsString : string.Empty);
             return inlined ? $"[{commandString}]" : $"@{commandString}";
@@ -81,8 +81,7 @@ namespace NaninovelSceneAssistant
 
         protected override void AddCommandParameters()
         {
-            if (SpawnSceneAssistant == null) return;
-            if (SpawnSceneAssistant.IsTransformable) AddTransformParams();
+            if (IsTransformable) AddTransformParams();
             if (SpawnSceneAssistant?.GetParams() != null) CommandParameters.Add(new ListCommandData("Params", SpawnSceneAssistant.GetParams(), (i, p) => i.ListField(p)));
         }
     }

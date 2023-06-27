@@ -83,10 +83,20 @@ namespace NaninovelSceneAssistant
 			}
 		}
 
-		protected void CheckCondition()
+		protected void CheckConditions()
 		{
-			if (!Data.FulfillsConditions()) gameObject.SetActive(false);
-			else gameObject.SetActive(true);
+			var selectables = GetComponentsInChildren<Selectable>();
+			if (!Data.FulfillsConditions()) 
+			{
+				transform.localScale = Vector3.zero;
+				foreach(var selectable in selectables) selectable.interactable = false;
+			}
+			else
+			{
+				transform.localScale = Vector3.one;
+				foreach(var selectable in selectables) selectable.interactable = true;
+			} 
+			
 			LayoutRebuilder.MarkLayoutForRebuild(SceneAssistantMenu.GetComponent<RectTransform>());
 		}
 
@@ -124,7 +134,7 @@ namespace NaninovelSceneAssistant
 		public override void GetDataValue()
 		{
 			getDataValue();
-			CheckCondition();
+			CheckConditions();
 		}
 	}
 }

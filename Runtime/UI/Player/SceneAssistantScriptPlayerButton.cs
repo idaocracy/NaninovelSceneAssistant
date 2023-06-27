@@ -1,5 +1,7 @@
 ﻿using System;
 using Naninovel;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace NaninovelSceneAssistant
 {
@@ -8,6 +10,11 @@ namespace NaninovelSceneAssistant
 		protected IScriptPlayer ScriptPlayer;
 		protected IInputManager InputManager;
 		protected SceneAssistantManager SceneAssistantManager;
+		protected SceneAssistantUI SceneAssistantUI;
+		
+		[SerializeField] private Color activeColor;
+		[SerializeField] private Image icon;
+		private Color defaultColor;
 		
 		protected override void Awake()
 		{
@@ -15,6 +22,8 @@ namespace NaninovelSceneAssistant
 			ScriptPlayer = Engine.GetService<IScriptPlayer>();
 			InputManager = Engine.GetService<IInputManager>();
 			SceneAssistantManager = Engine.GetService<SceneAssistantManager>();
+			SceneAssistantUI = GetComponentInParent<SceneAssistantUI>();
+			defaultColor = icon.color; 
 		}
 		protected async void SyncAndExecuteAsync(Action action)
 		{
@@ -27,9 +36,9 @@ namespace NaninovelSceneAssistant
 			}
 		}
 
-		protected void HandleModeChange(bool enabled)
+		protected void SetColor(bool enabled)
 		{
-			UIComponent.targetGraphic.color = enabled ? UIComponent.colors.selectedColor : UIComponent.colors.normalColor;
+			icon.color = enabled ? activeColor : defaultColor;
 		}
 	}
 }

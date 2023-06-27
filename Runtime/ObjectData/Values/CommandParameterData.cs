@@ -1,9 +1,10 @@
 ﻿using System;
 using Naninovel;
+using UnityEngine;
 
 namespace NaninovelSceneAssistant
 {
-    public interface ICommandParameterData
+	public interface ICommandParameterData
 	{
 		string Name { get; }
 		bool Selected { get; set; }
@@ -30,8 +31,8 @@ namespace NaninovelSceneAssistant
 		public abstract void DrawLayout(ISceneAssistantLayout layout);
 		public abstract void ResetDefault();
 		public abstract void ResetState();
-
 		public static bool ExcludeState;
+		public static bool ExcludeDefault;
 
 		protected IStateManager StateManager;
 	}
@@ -84,6 +85,9 @@ namespace NaninovelSceneAssistant
 			Value = State;
 		}
 
-        public void Dispose() => StateManager.RemoveOnGameSerializeTask(HandleSerialization);
-    }
+		public void Dispose() 
+		{
+			StateManager.RemoveOnGameSerializeTask(HandleSerialization);
+		} 
+	}
 }

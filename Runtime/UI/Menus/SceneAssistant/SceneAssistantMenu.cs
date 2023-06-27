@@ -58,7 +58,7 @@ namespace NaninovelSceneAssistant
 		public override void InitializeMenu()
 		{
 			base.InitializeMenu();
-			idDropdown.onValueChanged.AddListener(DisplayCurrentObject);
+			idDropdown.onValueChanged.AddListener(DisplayObjectParameters);
 			idButton.onClick.AddListener(CopyIdString);
 			saveButton.onClick.AddListener(SaveCommandStringOnClick);
 			commandNameField.onSubmit.AddListener(SaveCommandString);
@@ -67,7 +67,7 @@ namespace NaninovelSceneAssistant
 		protected override void OnDisable()
 		{
 			base.OnDisable();
-			idDropdown.onValueChanged.RemoveListener(DisplayCurrentObject);
+			idDropdown.onValueChanged.RemoveListener(DisplayObjectParameters);
 			idButton.onClick.RemoveListener(CopyIdString);
 			saveButton.onClick.RemoveListener(SaveCommandStringOnClick);
 			commandNameField.onSubmit.RemoveListener(SaveCommandString);
@@ -108,11 +108,10 @@ namespace NaninovelSceneAssistant
 
 		protected override void ResetMenu()
 		{
-			copyBufferField.text = string.Empty;
-			foreach (Transform child in parameterContainer) Destroy(child.gameObject);
-			foreach (Transform child in objectTypeToggleContainer) Destroy(child.gameObject);
+			ClearMenu();
 			idDropdown.AddOptions(Manager.ObjectList.Keys.Select(v => new TMP_Dropdown.OptionData(v)).ToList());
-			DisplayCurrentObject(0);
+			idDropdown.value = 0;
+			DisplayObjectParameters(0);
 			ResetToggles();
 		}
 
@@ -125,10 +124,11 @@ namespace NaninovelSceneAssistant
 			}
 		}
 
-		protected void DisplayCurrentObject(int index)
+		protected void DisplayObjectParameters(int index)
 		{
 			foreach (Transform child in parameterContainer) Destroy(child.gameObject);
 			DestroyColorPicker();
+			
 			CurrentObject = Manager.ObjectList.ElementAt(index).Value;
 			GenerateLayout(CurrentObject.CommandParameters, parameterContainer);
 			saveInfoBox.text = String.Empty;
@@ -136,11 +136,10 @@ namespace NaninovelSceneAssistant
 
 		protected override void ClearMenu()
 		{
+			idDropdown.ClearOptions();
 			foreach (Transform child in parameterContainer) Destroy(child.gameObject);
 			foreach (Transform child in objectTypeToggleContainer) Destroy(child.gameObject);
 			DestroyColorPicker();
-			Destroy(GetComponentInChildren<ColorPicker>()?.gameObject);
-			idDropdown.ClearOptions();
 			saveInfoBox.text = String.Empty;
 		}
 

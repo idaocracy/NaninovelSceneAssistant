@@ -10,15 +10,15 @@ namespace NaninovelSceneAssistant
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			ScriptPlayer.OnPlay += HandlePlayModeChange;
-			ScriptPlayer.OnStop += HandlePlayModeChange;
+			ScriptPlayer.OnPlay += SetActiveColor;
+			ScriptPlayer.OnStop += SetDefaultColor;
 		}
 
 		protected override void OnDisable()
 		{
 			base.OnDisable();
-			ScriptPlayer.OnPlay -= HandlePlayModeChange;
-			ScriptPlayer.OnStop -= HandlePlayModeChange;
+			ScriptPlayer.OnPlay -= SetActiveColor;
+			ScriptPlayer.OnStop -= SetDefaultColor;
 		}
 
 		protected override void OnButtonClick()
@@ -28,6 +28,8 @@ namespace NaninovelSceneAssistant
 			InputManager.GetContinue().Activate(1);
 		}
 
-		private void HandlePlayModeChange(Script script) => HandleModeChange(ScriptPlayer.Playing ? true : false);
+		private void SetActiveColor(Script script) => SetColor(true);
+		
+		private void SetDefaultColor(Script script) => SetColor(false);
 	}
 }
