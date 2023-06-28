@@ -3869,7 +3869,7 @@ MonoBehaviour:
   saveVisibilityState: 0
   blockInputWhenVisible: 0
   allowedSamplers: []
-  modalUI: 1
+  modalUI: 0
   fontChangeConfiguration: []
   rollbackToggle: {fileID: 4417970906218076696}
   closeButton: {fileID: 6260962929190330851}

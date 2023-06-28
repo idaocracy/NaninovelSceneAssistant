@@ -71,7 +71,7 @@ namespace NaninovelSceneAssistant
 
 		private void OnDestroy()
 		{
-			if (sceneAssistantManager.Initialized)
+			if (sceneAssistantManager != null && sceneAssistantManager.Initialized)
 			{
 				sceneAssistantManager.DestroySceneAssistant();
 				sceneAssistantManager.OnSceneAssistantCleared -= HandleSceneAssistantUpdate;
