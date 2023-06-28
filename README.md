@@ -2,6 +2,8 @@
 
 Naninovel Scene Assistant is an extension that lets you easily modify Naninovel objects in real time and copy their corresponding command and parameters directly into the visual editor or clipboard.
 
+Try the WebGL demo here: https://idaocracy.github.io/NaninovelSceneAssistantWebGLDemo/
+
 ### Installation (v2.0+)
 1. In Unity's Package Manager, click the plus sign and navigate to *Add package from git URL...*. If you don't have git installed, install it and restart the computer.
 2. Type in https://github.com/idaocracy/NaninovelSceneAssistant.git and it should install automatically. 
