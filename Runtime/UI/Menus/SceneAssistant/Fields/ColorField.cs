@@ -9,7 +9,8 @@ namespace NaninovelSceneAssistant
 {
 	public class ColorField : SceneAssistantDataField<Button, Color>
 	{
-		protected Color ColorValue { get => ColorValue; set { colorImage.color = new Color(value.r, value.g, value.b); alphaImage.value = value.a; } }
+		protected Color ColorValue { get => ColorValue; set => UpdateColorDisplay(value); }
+		public ColorPicker ColorPicker { get; private set; }
 
 		[SerializeField] private Button eyeDropperButton;
 		[SerializeField] private Image colorImage;
@@ -39,24 +40,52 @@ namespace NaninovelSceneAssistant
 				setDataValue = ColorValue => colorData.Value = ColorValue;
 			}
 
-			ValueComponent.onClick.AddListener(ShowColorPicker);
-			eyeDropperButton.onClick.AddListener(ActivateEyeDropper);
 			GetDataValue();
 		}
+		
+		protected override void BindUIEvents()
+		{
+			base.BindUIEvents();
+			ValueComponent.onClick.AddListener(ShowColorPicker);
+			eyeDropperButton.onClick.AddListener(ActivateEyeDropper);
+		}
 
+		protected override void UnbindUIEvents()
+		{
+			base.UnbindUIEvents();
+			ValueComponent.onClick.RemoveListener(ShowColorPicker);
+			eyeDropperButton.onClick.RemoveListener(ActivateEyeDropper);
+		}
+		
+		protected override void OnDestroy() 
+		{
+			DestroyColorPicker();
+		}
+		
+		private void DestroyColorPicker()
+		{
+			if (ColorPicker.IsOpen && !ColorPicker.isMouseOverWindow) Destroy(ColorPicker.gameObject);
+		}
+		
+		private void UpdateColorDisplay(Color value)
+		{
+			colorImage.color = new Color(value.r, value.g, value.b); 
+			alphaImage.value = value.a;
+		}
+		
 		private void ShowColorPicker()
 		{
 			if (ColorPicker.IsOpen) return;
 			if (Data is ICommandParameterData<Color> colorData)
 			{
-				var colorPicker = Instantiate(colorPickerPrototype, SceneAssistantUI.transform);
-				colorPicker.Initialize(colorData.Value, includeAlpha, includeHDR, ActivateEyeDropper);
-				colorPicker.onValueChanged.AddListener(SetDataValue);
+				ColorPicker = Instantiate(colorPickerPrototype, SceneAssistantUI.transform);
+				ColorPicker.Initialize(colorData.Value, includeAlpha, includeHDR, SetDataValue, ActivateEyeDropper);
 			}
 		}
 
 		private void ActivateEyeDropper() 
 		{
+			DestroyColorPicker();
 			clickThroughPanel.Show(true, SampleTexture);
 		} 
 
@@ -78,7 +107,7 @@ namespace NaninovelSceneAssistant
 			var currentPosition = Input.mousePosition;
 			Color sampledColor = samplerImage.GetPixel((int)currentPosition.x, (int)currentPosition.y);
 
-			setDataValue(sampledColor);
+			SetDataValue(sampledColor);
 			SceneAssistantMenu.UpdateDataValues();
 		}
 

@@ -12,7 +12,7 @@ namespace NaninovelSceneAssistant
 		void Show();
 	}
 	
-	public class SceneAssistantUI : CustomUI, ISceneAssistantUI, IPointerDownHandler
+	public class SceneAssistantUI : CustomUI, ISceneAssistantUI
 	{
 		private SceneAssistantManager sceneAssistantManager;
 		public enum SceneAssistantTab { SceneAssistant, Variables, Scripts };
@@ -138,11 +138,6 @@ namespace NaninovelSceneAssistant
 			if(sceneAssistantManager.IsAvailable) CurrentMenu.InitializeMenu();
 		} 
 		
-		public void OnPointerDown(PointerEventData eventData)
-		{
-			sceneAssistantMenu.DestroyColorPicker();
-		}
-		
 		public override void Show()
 		{
 			if(!sceneAssistantManager.Initialized) sceneAssistantManager.InitializeSceneAssistant();
@@ -161,14 +156,14 @@ namespace NaninovelSceneAssistant
 		} 
 	}
 	
-		[CommandAlias("sceneAssistant")]
-		public class SceneAssistantCommand : Command
+	[CommandAlias("sceneAssistant")]
+	public class SceneAssistantCommand : Command
+	{
+		public override UniTask ExecuteAsync (AsyncToken asyncToken = default)
 		{
-			public override UniTask ExecuteAsync (AsyncToken asyncToken = default)
-			{
-				var sceneAssistantUI = Engine.GetService<IUIManager>().GetUI<ISceneAssistantUI>();
-				if(!sceneAssistantUI.Visible) sceneAssistantUI.Show();
-				return UniTask.CompletedTask;
-			}
+			var sceneAssistantUI = Engine.GetService<IUIManager>().GetUI<ISceneAssistantUI>();
+			if(!sceneAssistantUI.Visible) sceneAssistantUI.Show();
+			return UniTask.CompletedTask;
 		}
+	}
 }

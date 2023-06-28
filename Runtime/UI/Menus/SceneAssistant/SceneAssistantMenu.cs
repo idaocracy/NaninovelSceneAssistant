@@ -37,6 +37,7 @@ namespace NaninovelSceneAssistant
 		[SerializeField] private ListField listFieldPrototype;
 
 		public List<ISceneAssistantUIField> DataFields { get => parameterContainer.GetComponentsInChildren<ISceneAssistantUIField>().ToList(); }
+		public List<ObjectTypeToggle> ObjectTypeToggles { get => objectTypeToggleContainer.GetComponentsInChildren<ObjectTypeToggle>().ToList(); }
 		public INaninovelObjectData CurrentObject { get; protected set; }
 		
 		public TMP_InputField CopyBufferField => copyBufferField;
@@ -73,6 +74,65 @@ namespace NaninovelSceneAssistant
 			commandNameField.onSubmit.RemoveListener(SaveCommandString);
 		}
 		
+		protected override void ResetMenu()
+		{
+			idDropdown.AddOptions(Manager.ObjectList.Keys.Select(v => new TMP_Dropdown.OptionData(v)).ToList());
+			ResetToggles();
+			DisplayObjectParameters(0);
+		}
+
+		private void ResetToggles()
+		{
+			foreach (var kv in Manager.ObjectTypeList)
+			{
+				var toggle = Instantiate(objectTypeTogglePrototype, objectTypeToggleContainer);
+				toggle.Initialize(kv);
+			}
+		}
+
+		protected void DisplayObjectParameters(int index)
+		{
+			ClearParameterFields();	
+			CurrentObject = Manager.ObjectList.ElementAt(index).Value;
+			GenerateLayout(CurrentObject.CommandParameters, parameterContainer);
+			saveInfoBox.text = String.Empty;
+		}
+
+		protected override void ClearMenu()
+		{
+			idDropdown.ClearOptions();
+			ClearParameterFields();
+			ClearToggles();
+			saveInfoBox.text = String.Empty;
+		}
+
+		protected void ClearParameterFields()
+		{
+			foreach (var field in DataFields) Destroy(field.GameObject);
+		}
+		
+		protected void ClearToggles()
+		{
+			foreach (var toggle in ObjectTypeToggles) Destroy(toggle.gameObject);
+		}
+
+		private void CopyIdString() => CopyToBuffer(CurrentObject.Id);
+
+		public void CopyToBuffer(string text)
+		{
+			GUIUtility.systemCopyBuffer = text;
+			copyBufferField.text = text;
+			saveInfoBox.text = String.Empty;
+		}
+
+		public void GenerateLayout(List<ICommandParameterData> list, Transform parent)
+		{
+			targetContainer = parent;
+			foreach (var data in list) data.DrawLayout(this);
+		}
+		
+		public void UpdateDataValues() => DataFields.ForEach(f => f.GetDataValue());
+		
 		private string GetDataPath()
 		{
 			#if UNITY_ANDROID 
@@ -81,6 +141,7 @@ namespace NaninovelSceneAssistant
 			return Application.streamingAssetsPath;
 			#endif
 		}
+		
 		private void SaveCommandStringOnClick() => SaveCommandString(commandNameField.text); 
 
 		private void SaveCommandString(string value)
@@ -106,62 +167,6 @@ namespace NaninovelSceneAssistant
 
 		private string GetGeneratedString() => !String.IsNullOrEmpty(commandNameField.text) ? "\n\n" + "; " + commandNameField.text : string.Empty + "\n" + copyBufferField.text;
 
-		protected override void ResetMenu()
-		{
-			idDropdown.AddOptions(Manager.ObjectList.Keys.Select(v => new TMP_Dropdown.OptionData(v)).ToList());
-			ResetToggles();
-			idDropdown.value = 0;
-			DisplayObjectParameters(0);
-		}
-
-		private void ResetToggles()
-		{
-			foreach (var kv in Manager.ObjectTypeList)
-			{
-				var toggle = Instantiate(objectTypeTogglePrototype, objectTypeToggleContainer);
-				toggle.Initialize(kv);
-			}
-		}
-
-		protected void DisplayObjectParameters(int index)
-		{
-			foreach (Transform child in parameterContainer) Destroy(child.gameObject);
-			DestroyColorPicker();
-			
-			CurrentObject = Manager.ObjectList.ElementAt(index).Value;
-			GenerateLayout(CurrentObject.CommandParameters, parameterContainer);
-			saveInfoBox.text = String.Empty;
-		}
-
-		protected override void ClearMenu()
-		{
-			idDropdown.ClearOptions();
-			foreach (var field in DataFields) Destroy(field.GameObject);
-			foreach (Transform child in objectTypeToggleContainer) Destroy(child.gameObject);
-			DestroyColorPicker();
-			saveInfoBox.text = String.Empty;
-		}
-
-		private void CopyIdString() => CopyToBuffer(CurrentObject.Id);
-
-		public void CopyToBuffer(string text)
-		{
-			GUIUtility.systemCopyBuffer = text;
-			copyBufferField.text = text;
-			saveInfoBox.text = String.Empty;
-		}
-
-		public void UpdateDataValues() => DataFields.ForEach(f => f.GetDataValue());
-		public void GenerateLayout(List<ICommandParameterData> list, Transform parent)
-		{
-			targetContainer = parent;
-			foreach (var data in list) data.DrawLayout(this);
-		}
-
-		public void DestroyColorPicker()
-		{
-			if (ColorPicker.IsOpen && !ColorPicker.isMouseOverWindow) Destroy(UI.GetComponentInChildren<ColorPicker>().gameObject);
-		} 
 
 		public void StringField(ICommandParameterData<string> data, params ICommandParameterData[] toggleGroup) 
 		{

@@ -24,10 +24,11 @@ namespace NaninovelSceneAssistant
 		[SerializeField] private Image gradient;
 		[SerializeField] private LabeledButton closeButton;
 
-		public ColorPickerEvent onValueChanged = new ColorPickerEvent(); 
 		public static bool IsOpen;
 		public static bool isMouseOverWindow;
+		
 		private Action onEyeDropper;
+		private Action<Color> setDataValue;
 
 		private Color currentValue;
 
@@ -37,16 +38,15 @@ namespace NaninovelSceneAssistant
 				selectedColor.color = value; 
 				inputField.text = "#" + ColorUtility.ToHtmlStringRGBA(value); 
 				gradient.color = new Color(value.r, value.g, value.b, 1); 
-				onValueChanged?.Invoke(value);
+				SetDataValue(value);
 			} 
 		}
 
-		public void Initialize(Color currentColor, bool includeAlpha, bool includeHDR, Action onEyeDropper)
+		public void Initialize(Color currentColor, bool includeAlpha, bool includeHDR, Action<Color> setDataValue, Action onEyeDropper)
 		{
 			Value = currentColor;
 			colorWheel.color = currentColor;
 			IsOpen = true;
-
 
 			alphaSliderObject.SetActive(includeAlpha);
 			intensitySliderObject.SetActive(includeHDR);
@@ -54,6 +54,7 @@ namespace NaninovelSceneAssistant
 			selectedColor.color = currentColor;
 			AlphaSlider.value = currentColor.a;
 			this.onEyeDropper = onEyeDropper;
+			this.setDataValue = setDataValue;
 
 			closeButton.onClick.AddListener(DestroyColorPicker);
 			inputField.onSubmit.AddListener(SetColorString);
@@ -73,6 +74,11 @@ namespace NaninovelSceneAssistant
 			colorWheel.onColorChanged -= GetColor;
 			eyeDropperButton.onClick.RemoveListener(ActivateEyeDropper);
 			IsOpen = false;
+		}
+
+		private void SetDataValue(Color color) 
+		{
+			if(setDataValue != null) setDataValue(color);
 		}
 
 		private void ActivateEyeDropper() => onEyeDropper();
