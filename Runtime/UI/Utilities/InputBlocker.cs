@@ -1,14 +1,18 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using Naninovel;
+using TMPro;
 
-public class InputBlocker : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, ISelectHandler, IDeselectHandler
+public class InputBlocker : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
 	private IInputManager inputManager;
+	
+	private bool isInput;
 	
 	private void Awake() 
 	{
 		inputManager = Engine.GetService<IInputManager>();
+		isInput = GetComponent<TMP_InputField>() != null;
 	}
 
 	public void ToggleInputProcessing(bool value) => inputManager.ProcessInput = value;
@@ -16,9 +20,6 @@ public class InputBlocker : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 	public void OnPointerEnter(PointerEventData eventData) => ToggleInputProcessing(false);
 	public void OnPointerExit(PointerEventData eventData) 
 	{
-		if(!EventSystem.current.currentSelectedGameObject == this) ToggleInputProcessing(true);
+		ToggleInputProcessing(true);
 	}
-
-	public void OnSelect(BaseEventData eventData) => ToggleInputProcessing(false);
-	public void OnDeselect(BaseEventData eventData)  => ToggleInputProcessing(true);
 }

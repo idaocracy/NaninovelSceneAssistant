@@ -110,6 +110,7 @@ namespace NaninovelSceneAssistant
 		{
 			idDropdown.AddOptions(Manager.ObjectList.Keys.Select(v => new TMP_Dropdown.OptionData(v)).ToList());
 			ResetToggles();
+			idDropdown.value = 0;
 			DisplayObjectParameters(0);
 		}
 
@@ -134,7 +135,6 @@ namespace NaninovelSceneAssistant
 
 		protected override void ClearMenu()
 		{
-			idDropdown.value = 0;
 			idDropdown.ClearOptions();
 			foreach (var field in DataFields) Destroy(field.GameObject);
 			foreach (Transform child in objectTypeToggleContainer) Destroy(child.gameObject);

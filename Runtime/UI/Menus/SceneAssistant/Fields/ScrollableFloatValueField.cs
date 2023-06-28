@@ -38,7 +38,7 @@ namespace NaninovelSceneAssistant
 			sceneAssistantMenu = GetComponentInParent<SceneAssistantMenu>();
 			sceneAssistantUI = GetComponentInParent<SceneAssistantUI>();
 			inputField = GetComponentInParent<ScrollableInputField>();
-			mainCanvasGroup = inputField.GetComponent<CanvasGroup>();
+			mainCanvasGroup = inputField?.GetComponent<CanvasGroup>();
 			
 			onSubmit.AddListener(SetDataValue);
 		}
