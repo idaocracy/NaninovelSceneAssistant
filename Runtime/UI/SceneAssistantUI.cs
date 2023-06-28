@@ -3,6 +3,7 @@ using Naninovel;
 using Naninovel.UI;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using TMPro;
 
 namespace NaninovelSceneAssistant
 {
@@ -17,10 +18,11 @@ namespace NaninovelSceneAssistant
 		public enum SceneAssistantTab { SceneAssistant, Variables, Scripts };
 		public SceneAssistantWindowMenu CurrentMenu { get; private set; }
 
-		[Header("Toolbar")]
+		[Header("Main elements")]
 		[SerializeField] private Toggle rollbackToggle;
 		[SerializeField] private ScriptableLabeledButton closeButton;
-		[SerializeField] private Image background;
+		
+		[SerializeField] private TextMeshProUGUI scriptPlayerInfoBox;
 
 		[Header("Menus")]
 		[SerializeField] private SceneAssistantMenu sceneAssistantMenu;
@@ -30,6 +32,8 @@ namespace NaninovelSceneAssistant
 		public Texture2D CursorTexture;
 		
 		private IInputManager inputManager;
+		private IScriptPlayer scriptPlayer;
+		private IStateManager stateManager;
 		private bool defaultRollbackValue;
 
 		protected override void Awake()
@@ -37,6 +41,8 @@ namespace NaninovelSceneAssistant
 			base.Awake();
 			sceneAssistantManager = Engine.GetService<SceneAssistantManager>();
 			inputManager = Engine.GetService<IInputManager>();
+			scriptPlayer = Engine.GetService<IScriptPlayer>();
+			stateManager = Engine.GetService<IStateManager>();
 			CurrentMenu = sceneAssistantMenu;
 		}
 
@@ -45,13 +51,33 @@ namespace NaninovelSceneAssistant
 			base.OnEnable();
 			closeButton.OnButtonClicked += Hide;
 			rollbackToggle.onValueChanged.AddListener(SetRollbackEnabled);
+			sceneAssistantManager.OnSceneAssistantReset += CheckIndex;
 		}
 
 		protected override void OnDisable()
 		{
-			base.OnEnable();
+			base.OnDisable();
 			closeButton.OnButtonClicked -= Hide;
 			rollbackToggle.onValueChanged.RemoveListener(SetRollbackEnabled);
+		}
+
+		protected void CheckIndex()
+		{	
+			if(scriptPlayer.Playing) 
+			{
+				if(!scriptPlayer.Playlist.IsIndexValid(scriptPlayer.PlayedIndex+1))
+				{
+					scriptPlayerInfoBox.text = "End of script";
+				}
+				else if(!stateManager.CanRollbackTo(s => s.PlayerRollbackAllowed))
+				{
+					scriptPlayerInfoBox.text = "Rollback stack is empty";
+				}
+				else
+				{
+					scriptPlayerInfoBox.text = null;;
+				}
+			}
 		}
 
 		protected override void HandleVisibilityChanged(bool visible)
@@ -81,6 +107,7 @@ namespace NaninovelSceneAssistant
 
 		public void ChangeTab(SceneAssistantTab sceneAssistantTab)
 		{
+			
 			switch(sceneAssistantTab)
 			{
 				case SceneAssistantTab.SceneAssistant:
@@ -118,7 +145,7 @@ namespace NaninovelSceneAssistant
 		
 		public override void Show()
 		{
-			sceneAssistantManager.InitializeSceneAssistant();
+			if(!sceneAssistantManager.Initialized) sceneAssistantManager.InitializeSceneAssistant();
 			CurrentMenu.InitializeMenu();
 			base.Show();
 		}
@@ -130,7 +157,7 @@ namespace NaninovelSceneAssistant
 		public static void ShowSceneAssistantUI() 
 		{
 			var sceneAssistantUI = Engine.GetService<IUIManager>().GetUI<ISceneAssistantUI>();
-			sceneAssistantUI.Show();
+			if(!sceneAssistantUI.Visible) sceneAssistantUI.Show();
 		} 
 	}
 	
@@ -140,7 +167,7 @@ namespace NaninovelSceneAssistant
 			public override UniTask ExecuteAsync (AsyncToken asyncToken = default)
 			{
 				var sceneAssistantUI = Engine.GetService<IUIManager>().GetUI<ISceneAssistantUI>();
-				sceneAssistantUI.Show();
+				if(!sceneAssistantUI.Visible) sceneAssistantUI.Show();
 				return UniTask.CompletedTask;
 			}
 		}

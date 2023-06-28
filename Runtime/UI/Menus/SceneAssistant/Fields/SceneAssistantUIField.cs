@@ -13,6 +13,7 @@ namespace NaninovelSceneAssistant
 		ICommandParameterData Data { get; }
 		void ToggleInteractability(bool interactable);
 		void GetDataValue();
+		GameObject GameObject { get; }
 	}
 
 	public abstract class SceneAssistantDataField<TComponent> : ScriptableUIControl<Toggle>, ISceneAssistantUIField where TComponent : Selectable
@@ -21,6 +22,7 @@ namespace NaninovelSceneAssistant
 		[SerializeField] private Button button;
 
 		public ICommandParameterData Data { get; protected set; }
+		public GameObject GameObject => this.gameObject;
 		public override Toggle UIComponent => toggle;
 		protected virtual TComponent ValueComponent { get; }
 		protected ICommandParameterData[] toggleGroup { get; set; }

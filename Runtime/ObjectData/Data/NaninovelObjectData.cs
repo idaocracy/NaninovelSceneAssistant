@@ -64,7 +64,7 @@ namespace NaninovelSceneAssistant {
 			foreach (var obj in objectList.Values)
 			{
 				if (selectedOnly && !objectTypeList[obj.GetType()]) continue;
-				list.Add(obj.GetCommandLine( inlined));
+				list.Add(obj.GetCommandLine(inlined));
 			}
 
 			return list;

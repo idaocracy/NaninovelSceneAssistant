@@ -7,7 +7,6 @@ namespace NaninovelSceneAssistant
 	{
 		protected SceneAssistantManager Manager;
 		protected SceneAssistantUI UI;
-
 		protected virtual TMP_InputField SearchField { get; }
 
 		protected override void Awake() 
@@ -18,6 +17,7 @@ namespace NaninovelSceneAssistant
 
 		public virtual void InitializeMenu()
 		{
+			ResetMenu();
 			Manager.OnSceneAssistantCleared += ClearMenu;
 			Manager.OnSceneAssistantReset += ResetMenu;
 
@@ -36,10 +36,6 @@ namespace NaninovelSceneAssistant
 			Manager.OnSceneAssistantCleared -= ClearMenu;
 			Manager.OnSceneAssistantReset -= ResetMenu;
 			SearchField?.onValueChanged.RemoveListener(EvaluateSearch);
-		}
-
-		protected override void OnDestroy() {
-			DestroyMenu();
 		}
 
 		protected abstract void ClearMenu();

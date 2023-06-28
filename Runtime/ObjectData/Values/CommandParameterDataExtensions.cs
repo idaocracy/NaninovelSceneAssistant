@@ -17,10 +17,11 @@ namespace NaninovelSceneAssistant
 			
 			var value = data.Value;
 			if (value is Vector2 || value is Vector3 || value is Vector4) return value.ToString().Replace(" ", "").Replace("(", "").Replace(")", "");
-			else if (value is Quaternion quaternion) return quaternion.eulerAngles.ToString("0.##").Replace(" ", "").Replace("(", "").Replace(")", "");
+			else if (value is Quaternion q) return q.eulerAngles.ToString("0.##").Replace(" ", "").Replace("(", "").Replace(")", "");
 			else if (value is bool) return value.ToString().ToLower();
-			else if (value is Color color) return "#" + ColorUtility.ToHtmlStringRGBA(color);
-			else if (value is Texture texture) return texture is null ? string.Empty : texture.name;
+			else if (value is float f) return f.ToString("0.###").ToLower();
+			else if (value is Color c) return "#" + ColorUtility.ToHtmlStringRGBA(c);
+			else if (value is Texture t) return t is null ? string.Empty : t.name;
 			else return value?.ToString();
 		}
 
@@ -55,14 +56,18 @@ namespace NaninovelSceneAssistant
 		private static bool ExcludeState<T>(this ICommandParameterData<T> data) 
 		{
 			if(data is IListCommandParameterData) return false;
-			if (CommandParameterData.ExcludeState) return data.Value.Equals(data.State) ? true : false; 
+			
+			if(data.Default == null && data.Value == null) return true;
+			else if(CommandParameterData.ExcludeState) return data.Value.Equals(data.State) ? true : false; 
 			else return false;
 		} 
 		
 		private static bool ExcludeDefault<T>(this ICommandParameterData<T> data) 
 		{
 			if(data is IListCommandParameterData) return false;
-			if (CommandParameterData.ExcludeDefault) return data.Value.Equals(data.Default) ? true : false; 
+			
+			if(data.Default == null && data.Value == null) return true;
+			else if(CommandParameterData.ExcludeDefault) return data.Value.Equals(data.Default) ? true : false; 
 			else return false;
 		} 
 		
