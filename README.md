@@ -18,7 +18,7 @@ Setup instructions:
 1. Search **SceneAssistantUI** in the Project search field. Set the Search setting to **All**.
 2. Add the UI to the UI resources **(Naninovel -> Resources -> UI)**. 
 3. In Naninovel's **Engine** configuration, make sure **Enable Development Console** is checked.
-4. Enter Play Mode and while a script is playing, call the development console by using the **Toggle Console Key** in the Engine configuration and type in **scn**. The UI should appear.   
+4. Enter Play Mode and while a script is playing, call the development console by using the **Toggle Console Key** in the Engine configuration and type in **scn**. The UI should appear. Alternatively you can use the **@sceneAssistant** command to call it in naniscript.    
 
 Generated commands will be copied to clipboard, similar to the Editor version (except WebGL, see info below). Additionally you can save the string to a file generated at the application's **StreamingAssets** folder (except Android, which uses **persistentDataPath** instead). 
 
