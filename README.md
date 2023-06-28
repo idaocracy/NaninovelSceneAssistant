@@ -25,7 +25,7 @@ Setup instructions:
 Generated commands will be copied to clipboard, similar to the Editor version (except WebGL, see info below). Additionally you can save the string to a file generated at the application's **StreamingAssets** folder (except Android, which uses **persistentDataPath** instead). 
 
 #### WebGL limitations
-In WebGL, it's not currently possible to save a generated string to a text file nor is it possible to copy the value to the clipboard automatically. However, you can use **Ctrl+C** to copy the value yourself, however please be aware that this won't work while in fullscreen mode.   
+In WebGL, it's not currently possible to save a generated string to a text file nor is it possible to copy the value to the clipboard automatically. However, you can use **Ctrl+C/CMD+C** to copy the value yourself, however please be aware that this won't work while in fullscreen mode.   
 
 ### Video walkthrough 
 Check this video for a quick guide on installation and usage. Please note that the installation instructions are for V1 which is no longer being maintained. 
