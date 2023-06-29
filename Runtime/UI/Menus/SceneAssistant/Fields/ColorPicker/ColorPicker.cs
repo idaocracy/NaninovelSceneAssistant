@@ -111,7 +111,5 @@ namespace NaninovelSceneAssistant
 
 		public void OnPointerEnter(PointerEventData eventData) => isMouseOverWindow = true;
 		public void OnPointerExit(PointerEventData eventData) => isMouseOverWindow = false; 
-
 	}
-	public class ColorPickerEvent : UnityEvent<Color> { }
 }
