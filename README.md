@@ -2,6 +2,8 @@
 
 Naninovel Scene Assistant is an extension that lets you easily modify Naninovel objects in real time and copy their corresponding command and parameters directly into the visual editor or clipboard.
 
+Try the WebGL demo here: https://idaocracy.github.io/NaninovelSceneAssistantWebGLDemo/
+
 ### Installation (v2.0+)
 1. In Unity's Package Manager, click the plus sign and navigate to *Add package from git URL...*. If you don't have git installed, install it and restart the computer.
 2. Type in https://github.com/idaocracy/NaninovelSceneAssistant.git and it should install automatically. 
@@ -17,13 +19,13 @@ Naninovel Scene Assistant has a UI version which is aimed at devs who don't have
 Setup instructions: 
 1. Search **SceneAssistantUI** in the Project search field. Set the Search setting to **All**.
 2. Add the UI to the UI resources **(Naninovel -> Resources -> UI)**. 
-3. In Naninovel's **Engine** configuration, make sure **Enable Development Console** is checked.
-4. Enter Play Mode and while a script is playing, call the development console by using the **Toggle Console Key** in the Engine configuration and type in **scn**. The UI should appear.   
+3. Development console setup: In Naninovel's **Engine** configuration, make sure **Enable Development Console** is checked. Enter Play Mode and while a script is playing, call the development console by using the **Toggle Console Key** in the Engine configuration and type in **scn**. The UI should appear. 
+4. Naniscript command setup: Use the **@sceneAssistant** command to call it in naniscript.    
 
 Generated commands will be copied to clipboard, similar to the Editor version (except WebGL, see info below). Additionally you can save the string to a file generated at the application's **StreamingAssets** folder (except Android, which uses **persistentDataPath** instead). 
 
 #### WebGL limitations
-In WebGL, it's not currently possible to save a generated string to a text file nor is it possible to copy the value to the clipboard automatically. However, you can use **Ctrl+C** to copy the value yourself, however please be aware that this won't work while in fullscreen mode.   
+In WebGL, it's not currently possible to save a generated string to a text file nor is it possible to copy the value to the clipboard automatically. However, you can use **Ctrl+C/CMD+C** to copy the value yourself, however please be aware that this won't work while in fullscreen mode.   
 
 ### Video walkthrough 
 Check this video for a quick guide on installation and usage. Please note that the installation instructions are for V1 which is no longer being maintained. 
