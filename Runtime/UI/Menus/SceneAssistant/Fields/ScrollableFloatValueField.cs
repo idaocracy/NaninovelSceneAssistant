@@ -86,7 +86,5 @@ namespace NaninovelSceneAssistant
 		{
 			getDataValue();
 		} 
-	
 	}
 }
-

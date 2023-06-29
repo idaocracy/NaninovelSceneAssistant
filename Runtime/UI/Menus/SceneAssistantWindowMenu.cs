@@ -42,5 +42,4 @@ namespace NaninovelSceneAssistant
 		protected abstract void ResetMenu();
 		protected virtual void EvaluateSearch(string value) {}
 	}
-
 }

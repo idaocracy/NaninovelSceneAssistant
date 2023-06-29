@@ -38,8 +38,6 @@ namespace NaninovelSceneAssistant
             {
                 hasClicked = false;
             }
-
         }
     }
 }
-

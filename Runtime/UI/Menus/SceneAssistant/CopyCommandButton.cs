@@ -14,7 +14,7 @@ namespace NaninovelSceneAssistant
 		
 		private TMP_InputField copyBufferField;
 
-		enum CopyCommandType { CopyCommand, CopySelected, CopyAll };
+		enum CopyCommandType { CopyCommand, CopySelected, CopyAll }
 
 		protected override void Awake()
 		{

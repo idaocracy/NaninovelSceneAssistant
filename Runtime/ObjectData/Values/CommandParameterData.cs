@@ -46,7 +46,6 @@ namespace NaninovelSceneAssistant
 
 	public class CommandParameterData<T> : CommandParameterData, ICommandParameterData<T>, IDisposable
 	{
-
 		public T Value { 
 			get => getValue();  
 			set => setValue(value);

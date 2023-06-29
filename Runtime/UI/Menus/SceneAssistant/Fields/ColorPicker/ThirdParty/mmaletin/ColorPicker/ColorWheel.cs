@@ -177,5 +177,4 @@ public class ColorWheel : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoi
     {
         return (value - min) / (max - min);
     }
-
 }

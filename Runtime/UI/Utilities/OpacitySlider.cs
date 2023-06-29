@@ -14,7 +14,6 @@ namespace NaninovelSceneAssistant
 			UIComponent.value = background.color.a;
 		}
 		
-
 		protected override void OnValueChanged (float value)
 		{
 			var currentColor = background.color;
@@ -23,5 +22,3 @@ namespace NaninovelSceneAssistant
 		}
 	}
 }
-	
-

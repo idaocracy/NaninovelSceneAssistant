@@ -113,12 +113,10 @@ namespace NaninovelSceneAssistant
 
 		void ForceTransitionalSpritesUpdate ()
 		{
-		var updateMethod = typeof(TransitionalSpriteRenderer).GetMethod("Update", BindingFlags.NonPublic | BindingFlags.Instance);
-		var sprites = UnityEngine.Object.FindObjectsOfType<TransitionalSpriteRenderer>();
-		foreach (var sprite in sprites)
-			updateMethod.Invoke(sprite, null);
+			var updateMethod = typeof(TransitionalSpriteRenderer).GetMethod("Update", BindingFlags.NonPublic | BindingFlags.Instance);
+			var sprites = UnityEngine.Object.FindObjectsOfType<TransitionalSpriteRenderer>();
+			foreach (var sprite in sprites)
+				updateMethod.Invoke(sprite, null);
 		}
-
 	}
-
 }

@@ -12,7 +12,6 @@ namespace NaninovelSceneAssistant
 
 		private SceneAssistantManager sceneAssistantManager;
 		private SceneAssistantMenu sceneAssistantMenu;
-		
 		private List<ISceneAssistantUIField> dataFields => sceneAssistantMenu?.DataFields; 
 
 		protected override void Awake() 
@@ -52,13 +51,7 @@ namespace NaninovelSceneAssistant
 				}
 				sceneAssistantMenu.UpdateDataValues();
 				break;
-			}
-			
+			}	
 		}
-
-
-	
-
-
 	}
 }
