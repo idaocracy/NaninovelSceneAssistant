@@ -167,7 +167,6 @@ namespace NaninovelSceneAssistant
 
 		private string GetGeneratedString() => !String.IsNullOrEmpty(commandNameField.text) ? "\n\n" + "; " + commandNameField.text : string.Empty + "\n" + copyBufferField.text;
 
-
 		public void StringField(ICommandParameterData<string> data, params ICommandParameterData[] toggleGroup) 
 		{
 			InputField inputField = Instantiate(inputFieldPrototype, targetContainer);

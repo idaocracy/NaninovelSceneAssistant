@@ -53,7 +53,6 @@ namespace NaninovelSceneAssistant
             return inlined ? $"[{commandString}]" : $"@{commandString}";
         }
 
-
         public virtual string GetSpawnEffectLine(bool inlined = false, bool paramsOnly = false)
         {
             if (CommandParameters == null)

@@ -15,7 +15,7 @@ namespace NaninovelSceneAssistant
 	public class SceneAssistantUI : CustomUI, ISceneAssistantUI
 	{
 		private SceneAssistantManager sceneAssistantManager;
-		public enum SceneAssistantTab { SceneAssistant, Variables, Scripts };
+		public enum SceneAssistantTab { SceneAssistant, Variables, Scripts }
 		public SceneAssistantWindowMenu CurrentMenu { get; private set; }
 
 		[Header("Main elements")]
@@ -75,7 +75,7 @@ namespace NaninovelSceneAssistant
 				}
 				else
 				{
-					scriptPlayerInfoBox.text = null;;
+					scriptPlayerInfoBox.text = null;
 				}
 			}
 		}
@@ -107,7 +107,6 @@ namespace NaninovelSceneAssistant
 
 		public void ChangeTab(SceneAssistantTab sceneAssistantTab)
 		{
-			
 			switch(sceneAssistantTab)
 			{
 				case SceneAssistantTab.SceneAssistant:
