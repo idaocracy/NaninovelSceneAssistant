@@ -1,3 +1,6 @@
+v2.3.1 July 2023
+- Fixed missing reference exception caused by built-in camera spawn effects
+
 v2.3.0 June 2023
 - Added UI version of Scene Assistant.
 - Script Player is now visible on all tabs.
