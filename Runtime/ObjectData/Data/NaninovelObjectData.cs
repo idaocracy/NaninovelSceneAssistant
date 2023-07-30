@@ -14,13 +14,7 @@ namespace NaninovelSceneAssistant {
 		List<ICommandParameterData> CommandParameters { get; }
 		SortedList<string, VariableData> CustomVariables { get; }
 	}
-
-	//This interface is designed for objects which has more data added throughout its lifetime (like choice handler)
-	public interface IDynamicCommandParameter
-	{
-		void UpdateCommandParameters();
-	}
-
+	
 	public abstract class NaninovelObjectData<TService, TConfig> : INaninovelObjectData, IDisposable 
 		where TService : class, IEngineService
 		where TConfig : Configuration
