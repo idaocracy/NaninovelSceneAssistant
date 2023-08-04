@@ -37,13 +37,12 @@ namespace NaninovelSceneAssistant
 			var providers = resourceProviderManager.GetProviders(Metadata.Loader.ProviderTypes);
 			if(Actor is SpriteCharacter || Actor is SpriteBackground)  return await LocateResourcesAtPathAsync<Texture2D>();
 			else if(Actor is VideoCharacter || Actor is VideoBackground)  return await LocateResourcesAtPathAsync<VideoClip>();
-			else if(Actor is SceneBackground)  return await LocateResourcesAtPathAsync<Scene>();
 			else return await LocateResourcesAtPathAsync<UnityEngine.Object>();
 			
-			async UniTask <IReadOnlyCollection<string>> LocateResourcesAtPathAsync<T>() 
+			async UniTask <IReadOnlyCollection<string>> LocateResourcesAtPathAsync<T>() where T: UnityEngine.Object
 			{
 				var actorPath = "${Metadata.Loader.PathPrefix}/{Id}";
-				var resourcePaths = await providers.LocateResourcesAsync<Texture2D>(actorPath);
+				var resourcePaths = await providers.LocateResourcesAsync<T>(actorPath);
 				var appearances = new List<string>();
 				
 				foreach (var path in resourcePaths) 
