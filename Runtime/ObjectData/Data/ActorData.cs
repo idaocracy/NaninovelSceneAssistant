@@ -31,10 +31,10 @@ namespace NaninovelSceneAssistant
 		protected virtual async UniTask<IReadOnlyCollection<string>> GetAppearanceList()
 		{
 			var resourceProviderManager = Engine.GetService<IResourceProviderManager>();
+			var providers = resourceProviderManager.GetProviders(Metadata.Loader.ProviderTypes);
 			
 			// In case you are extending the data class and want to add a dropdown list for appearances, you'll need to be explicit with typing, 
 			// as otherwise the dropdown list won't appear in build. await LocateResourcesAtPathAsync<UnityEngine.Object>() will work for all types in the editor.
-			var providers = resourceProviderManager.GetProviders(Metadata.Loader.ProviderTypes);
 			if(Actor is SpriteCharacter || Actor is SpriteBackground)  return await LocateResourcesAtPathAsync<Texture2D>();
 			else if(Actor is VideoCharacter || Actor is VideoBackground)  return await LocateResourcesAtPathAsync<VideoClip>();
 			else return await LocateResourcesAtPathAsync<UnityEngine.Object>();
