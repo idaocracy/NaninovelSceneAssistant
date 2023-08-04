@@ -59,7 +59,7 @@ namespace NaninovelSceneAssistant
 		public void StringDropdownField(ICommandParameterData<string> data, string[] stringValues, params ICommandParameterData[] toggleGroup)
 		{
 			var stringIndex = stringValues.IndexOf(data.Value);
-			stringIndex = EditorGUILayout.Popup(stringValues.IndexOf(data.Value), stringValues);
+			stringIndex = EditorGUILayout.Popup(stringValues.IndexOf(data.Value), stringValues.Select(s => s.Replace("/", "\u2215")).ToArray());
 			CheckToggles(data, toggleGroup);
 
 			if(data.Selected) data.Value = stringValues[stringIndex];
