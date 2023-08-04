@@ -41,13 +41,13 @@ namespace NaninovelSceneAssistant
 			
 			async UniTask <IReadOnlyCollection<string>> LocateResourcesAtPathAsync<T>() where T: UnityEngine.Object
 			{
-				var actorPath = "${Metadata.Loader.PathPrefix}/{Id}";
+				var actorPath = Metadata.Loader.PathPrefix + "/" + Id;
 				var resourcePaths = await providers.LocateResourcesAsync<T>(actorPath);
 				var appearances = new List<string>();
 				
 				foreach (var path in resourcePaths) 
 				{
-					var appearance = path.Remove("${actorPath}/");
+					var appearance = path.Remove(actorPath + "/");
 					appearances.Add(appearance);
 				} 
 				return appearances;
