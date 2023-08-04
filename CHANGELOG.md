@@ -1,3 +1,6 @@
+v2.3.2 August 2023
+- Changed apppearance list parsing 
+
 v2.3.1 July 2023
 - Fixed missing reference exception caused by built-in camera spawn effects
 

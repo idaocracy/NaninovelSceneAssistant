@@ -42,9 +42,15 @@ namespace NaninovelSceneAssistant
 			
 			async UniTask <IReadOnlyCollection<string>> LocateResourcesAtPathAsync<T>() 
 			{
-				var paths = await providers.LocateResourcesAsync<Texture2D>(Metadata.Loader.PathPrefix + "/" + Id);
+				var actorPath = "${Metadata.Loader.PathPrefix}/{Id}";
+				var resourcePaths = await providers.LocateResourcesAsync<Texture2D>(actorPath);
 				var appearances = new List<string>();
-				foreach (var path in paths) appearances.Add(path.Split("/".ToCharArray()).Last());
+				
+				foreach (var path in resourcePaths) 
+				{
+					var appearance = path.Remove("${actorPath}/");
+					appearances.Add(appearance);
+				} 
 				return appearances;
 			} 
 		}
