@@ -1,3 +1,6 @@
+v2.4.0 August 2023
+- Added option to load and save poses for characters and backgrounds
+
 v2.3.2 August 2023
 - Changed apppearance list parsing 
 

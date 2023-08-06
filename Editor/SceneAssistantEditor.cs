@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 
 namespace NaninovelSceneAssistant
 {
-	[System.Serializable]
+	[Serializable]
 	public partial class SceneAssistantEditor : EditorWindow
 	{
 		private static SceneAssistantEditor sceneAssistantEditor;
@@ -28,8 +28,10 @@ namespace NaninovelSceneAssistant
 
 		private static int objectIndex;
 		private static int tabIndex;
+		private static int poseIndex;
 		private static string clipboardString;
 		private static string search;
+		private static string poseName;
 		private static Vector2 scrollPos;
 		private static bool logResults;
 		private static bool defaultRollbackValue;
@@ -145,8 +147,8 @@ namespace NaninovelSceneAssistant
 			if(sceneAssistantManager.IsAvailable) DrawCommandParameters(CurrentObject.CommandParameters);
 
 			EditorGUILayout.Space(5);
-
 			DrawCommandParameterOptions();
+			DrawActorPoseOptions();
 			DrawCommandTextArea();
 
 			GUILayout.EndVertical();
@@ -371,10 +373,59 @@ namespace NaninovelSceneAssistant
 		{
 			if (parameters == null || parameters.Count == 0) return;
 
+			EditorGUI.BeginChangeCheck();
 			for (int i = 0; i < parameters.Count; i++)
 			{
 				if(parameters[i] is IListCommandParameterData) parameters[i].DrawLayout(this);
 				else GenerateLayout(parameters[i]);
+			}
+			if(EditorGUI.EndChangeCheck()) poseIndex = 0;
+		}
+		
+		protected virtual void DrawActorPoseOptions()
+		{
+			if(sceneAssistantManager.IsAvailable && (CurrentObject is IOrthoActorData orthoData)) 
+			{
+				EditorGUILayout.Space(5);
+				
+				GUILayout.BeginHorizontal();
+				GUILayout.FlexibleSpace();
+				EditorGUILayout.LabelField("Pose options", EditorStyles.centeredGreyMiniLabel, GUILayout.Width(160));
+				GUILayout.FlexibleSpace();
+				GUILayout.EndHorizontal();
+				
+				GUILayout.BeginHorizontal();
+				GUILayout.Label("Load:", GUILayout.Width(40));
+				EditorGUI.BeginChangeCheck();
+				poseIndex = EditorGUILayout.Popup(poseIndex, orthoData.GetPoses(), new GUIStyle(GUI.skin.textField) { alignment = TextAnchor.MiddleCenter });
+				if(EditorGUI.EndChangeCheck())
+				{
+					if(orthoData.GetPoses()[poseIndex] != "None") 
+					{
+						var appliedPose = orthoData.GetPoses()[poseIndex].Split(":".ToCharArray()).Last();
+						orthoData.ApplyPose(appliedPose);
+					}
+				}
+				GUILayout.EndHorizontal();
+				
+				GUILayout.BeginHorizontal();
+				GUILayout.Label("Save:", GUILayout.Width(40));
+				poseName = GUILayout.TextField(poseName);
+				
+				EditorGUI.BeginDisabledGroup(String.IsNullOrEmpty(poseName));
+				EditorGUI.BeginChangeCheck();
+					if (GUILayout.Button("Save Pose", EditorStyles.miniButton, GUILayout.Width(75))) orthoData.AddPose(poseName);
+					if (GUILayout.Button("Save Shared", EditorStyles.miniButton, GUILayout.Width(90))) orthoData.AddSharedPose(poseName);
+				if(EditorGUI.EndChangeCheck())
+				{
+					var poseValue = orthoData.GetPoses().LastOrDefault(p => p.EndsWith(":" + poseName));
+					poseIndex = Array.IndexOf(orthoData.GetPoses().ToArray(), poseValue);
+					poseName = String.Empty;
+				}
+				EditorGUI.EndDisabledGroup();				
+				GUILayout.EndHorizontal();
+
+				EditorGUILayout.Space(5);
 			}
 		}
 		

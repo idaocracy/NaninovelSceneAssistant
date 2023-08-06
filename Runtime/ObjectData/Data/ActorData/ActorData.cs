@@ -1,10 +1,7 @@
 using Naninovel;
-using Naninovel.UI;
 using UnityEngine;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.SceneManagement;
 using UnityEngine.Video;
 
 namespace NaninovelSceneAssistant
@@ -25,6 +22,7 @@ namespace NaninovelSceneAssistant
 		public override GameObject GameObject => GetGameObject();
 		protected TActor Actor => (TActor)Service.GetActor(Id);
 		protected TMeta Metadata => Config.GetMetadataOrDefault(Id);
+
 		protected virtual float? DefaultZOffset { get; }
 		private string id;
 
@@ -97,79 +95,6 @@ namespace NaninovelSceneAssistant
 			}
 
 			if (includeTint) CommandParameters.Add(new CommandParameterData<Color>("Tint", () => Actor.TintColor, v => Actor.TintColor = v, (i, p) => i.ColorField(p), defaultValue: Color.white));
-		}
-	}
-
-	public class CharacterData : ActorData<CharacterManager, ICharacterActor, CharacterMetadata, CharactersConfiguration> 
-	{
-		public CharacterData(string id) : base(id) { }
-		public static string TypeId => "Character";
-		protected override string CommandNameAndId => "char " + Id;
-		protected override float? DefaultZOffset => Config.ZOffset;
-		protected override void AddCommandParameters()
-		{
-			AddBaseParameters();
-			CommandParameters.Add(new CommandParameterData<Enum>("Look", () => Actor.LookDirection, v => Actor.LookDirection = (CharacterLookDirection)v, (i,p) => i.EnumDropdownField(p), defaultValue: Metadata.BakedLookDirection));
-		}
-	}
-
-	public class BackgroundData : ActorData<BackgroundManager, IBackgroundActor, BackgroundMetadata, BackgroundsConfiguration>
-	{
-		public BackgroundData(string id) : base(id) { }
-		public static string TypeId => "Background";
-		protected override string CommandNameAndId => "back " + "id:" + Id;
-		protected override float? DefaultZOffset => Config.ZOffset;
-		protected override void AddCommandParameters()
-		{
-			AddBaseParameters();
-		}
-	}
-
-	public class TextPrinterData : ActorData<TextPrinterManager, ITextPrinterActor, TextPrinterMetadata, TextPrintersConfiguration>
-	{
-		public TextPrinterData(string id) : base(id) { }
-		public static string TypeId => "Text Printer";
-		protected override string CommandNameAndId => "printer " + Id;
-		protected override void AddCommandParameters()
-		{
-			AddBaseParameters(includeZPos:false);
-		}
-	}
-
-	public class ChoiceHandlerData : ActorData<ChoiceHandlerManager, IChoiceHandlerActor, ChoiceHandlerMetadata, ChoiceHandlersConfiguration>
-	{
-		public ChoiceHandlerData(string id) : base(id) { }
-		public static string TypeId => "ChoiceHandler";
-		protected override string CommandNameAndId => "choice";
-		protected Dictionary<ChoiceState, ChoiceHandlerButton> ChoiceButtons;
-
-		public override string GetCommandLine( bool inlined = false, bool paramsOnly = false)
-		{
-			var choiceList = new List<string>();
-
-			foreach (var param in CommandParameters)
-			{
-				if(!param.Selected) continue;
-				var choiceString = CommandNameAndId + " " + param.GetCommandValue() + " handler:" + Id;
-				choiceList.Add(inlined ? "[" + choiceString + "]" : "@" + choiceString);
-			}
-
-			return string.Join("\n", choiceList);
-		}
-
-		protected override void AddCommandParameters()
-		{
-			ChoiceButtons = new Dictionary<ChoiceState, ChoiceHandlerButton>();
-
-			foreach(var choiceState in Actor.Choices)
-			{
-				ChoiceButtons.Add(choiceState, GameObject.GetComponentsInChildren<ChoiceHandlerButton>().FirstOrDefault(c => c.ChoiceState == choiceState));
-			}
-
-			foreach (var button in ChoiceButtons)
-			{
-				CommandParameters.Add(new CommandParameterData<Vector2>(button.Value.ChoiceState.Summary + " pos", () => (Vector2)button.Value.transform.localPosition, v => button.Value.transform.localPosition = v, (i, p) => i.Vector2Field(p)));
-			}
 		}
 	}
 }

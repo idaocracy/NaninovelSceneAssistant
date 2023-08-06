@@ -1,6 +1,10 @@
 ﻿using Naninovel;
+using System;
 using System.Linq;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace NaninovelSceneAssistant
 {
@@ -77,5 +81,52 @@ namespace NaninovelSceneAssistant
 			else if (data.Conditions.All(c => c())) return true;
 			else return false;
 		} 
+		
+
+		#if UNITY_EDITOR
+		public static void SetPoseValue(this ICommandParameterData data, SerializedProperty poseProperty)
+		{
+			if(!data.Selected) return;
+			
+			var path = poseProperty.propertyPath;
+			
+			if(path.Contains("appearance") && data.Name == "Appearance") 
+			{
+				var stringData = data as ICommandParameterData<string>;
+				poseProperty.stringValue = stringData.Value;
+			}
+			
+			else if(path.EndsWith("position") && (data.Name == "Position" || data.Name == "Pos"))
+			{
+				var positionData = data as ICommandParameterData<Vector3>;		
+				poseProperty.vector3Value = positionData.Value;		
+			} 
+			
+			else if(path.EndsWith("rotation") && data.Name == "Rotation")
+			{
+				var rotationData = data as ICommandParameterData<Vector3>;
+				poseProperty.quaternionValue = Quaternion.Euler(rotationData.Value);
+			} 
+			
+			else if(path.EndsWith("scale") && data.Name == "Scale")
+			{
+				var scaleData = data as ICommandParameterData<Vector3>;		
+				poseProperty.vector3Value = scaleData.Value;		
+			} 
+			
+			else if(path.Contains("tintColor") && data.Name == "Tint")
+			{
+				var tintData = data as ICommandParameterData<Color>;		
+				poseProperty.colorValue = tintData.Value;
+			}
+			
+			else if(path.Contains("lookDirection") && data.Name == "Look")
+			{
+				var lookData = data as ICommandParameterData<Enum>;	
+				poseProperty.enumValueIndex = (int)(CharacterLookDirection)lookData.Value;
+			}
+			
+		}
+		#endif
 	}
 }
