@@ -36,8 +36,7 @@ Check this video for a quick guide on installation and usage. Please note that t
 
 ## Overview
 
-<img width="500" alt="image" src="https://user-images.githubusercontent.com/77254066/235355459-a1e9484b-39f7-4e83-8da4-d8ff9e95c21c.png">
-
+<img width="500" alt="image" src="https://github.com/idaocracy/NaninovelSceneAssistant/assets/77254066/9de32a61-ed85-4707-8d92-63604f8b10e4">
 
 **From top to bottom:**
 
@@ -48,6 +47,7 @@ Check this video for a quick guide on installation and usage. Please note that t
 **Insert/Copy all or Copy Selected:** Insert/Copy all or selected type of objects listed under the buttons. The list of object types are updated according to the currently present objects. 
 ____
 **Id**: The object ID. Click on the object Id to get the list of objects you can modify.  
+**Inspect object**: Inspect the scene object directly (Editor only)
 **Parameter options:** Each object has a list of parameters you can modify in real time. These options are available out of the box:
 - Appearance (character, background and printer)
 - Look Direction (character)
@@ -69,7 +69,11 @@ ____
 - Select/Deselect All: Will check/uncheck all the parameter options for the current object.
 - Default: Will attempt to retrieve the default value for the parameter (some which are set in the object's configuration menu)
 - Reset: Will reset all values of the current object. 
-- Rollback: Will perform a faux rollback that resets all values found in the scene. 
+- Rollback: Will perform a faux rollback that resets all values found in the scene.
+
+**Pose Options (Editor only, only available for Backgrounds and Characters):**
+- Load Pose: Use this to load one of the available poses.
+- Save Pose: Name a pose and once saved, it will be copied alongside the object's current values directly to the actor or shared configuration.  
 
 ## Current limitations
 - The float parameter fields are fugly as heck. Unfortunately due to the limitations of FloatField, I couldn't make them any prettier.
