@@ -49,7 +49,9 @@ Check this video for a quick guide on installation and usage. Please note that t
 **Insert/Copy all or Copy Selected:** Insert/Copy all or selected type of objects listed under the buttons. The list of object types are updated according to the currently present objects. 
 ____
 **Id**: The object ID. Click on the object Id to get the list of objects you can modify.  
+
 **Inspect object**: Inspect the scene object directly (Editor only)
+
 **Parameter options:** Each object has a list of parameters you can modify in real time. These options are available out of the box:
 - Appearance (character, background and printer)
 - Look Direction (character)
