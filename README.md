@@ -71,7 +71,7 @@ ____
 - Reset: Will reset all values of the current object. 
 - Rollback: Will perform a faux rollback that resets all values found in the scene.
 
-**Pose Options (Editor only, only available for Backgrounds and Characters):**
+**Pose Options (Editor only, available for Backgrounds and Characters):**
 - Load Pose: Use this to load one of the available poses.
 - Save Pose: Name a pose and once saved, it will be copied alongside the object's current values directly to the actor or shared configuration.  
 
