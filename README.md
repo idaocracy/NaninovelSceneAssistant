@@ -2,8 +2,10 @@
 
 Naninovel Scene Assistant is an extension that lets you easily modify Naninovel objects in real time and copy their corresponding command and parameters directly into the visual editor or clipboard.
 
+Naninovel is a visual novel extension for Unity: https://naninovel.com/
+
 ## Demo 
-Try the WebGL demo here: https://idaocracy.github.io/NaninovelSceneAssistantWebGLDemo/ <br/>
+Try the WebGL demo of the UI version of Scene Assistant here: https://idaocracy.github.io/NaninovelSceneAssistantWebGLDemo/ <br/>
 The Vignette and ColorGradingLDR objects displayed in the demo can be obtained from my NaninovelPostProcess extension: https://github.com/idaocracy/NaninovelPostProcess 
 
 ### Installation (v2.0+)
