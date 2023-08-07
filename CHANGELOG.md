@@ -1,5 +1,6 @@
 v2.4.0 August 2023
 - Added option to load and save poses for characters and backgrounds
+- Printer data will no longer have an appearance parameter if no appearances are specified within the prefab. Appearances will display in a list in the editor, similar to Sprite and Video actors.  
 
 v2.3.2 August 2023
 - Changed apppearance list parsing 
