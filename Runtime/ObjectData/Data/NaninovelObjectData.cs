@@ -33,6 +33,9 @@ namespace NaninovelSceneAssistant {
 		protected abstract string CommandNameAndId { get; }
 		protected abstract void AddCommandParameters();
 		protected CameraConfiguration CameraConfiguration => Engine.GetConfiguration<CameraConfiguration>();
+		
+		protected const string Appearance = "Appearance", Position = "Position", Pos = "Pos", Offset = "Offset", Rotation = "Rotation", 
+		Scale = "Scale", Tint = "Tint", Look = "Look", Params = "Params", Zoom = "Zoom", Orthographic = "Orthographic", Roll = "Roll", Set = "Set";
 
 		public virtual string GetCommandLine(bool inlined = false, bool paramsOnly = false)
 		{
@@ -46,9 +49,9 @@ namespace NaninovelSceneAssistant {
 			
 			if ((CommandParameterData.ExcludeState || CommandParameterData.ExcludeDefault) && paramString.Length == 0) return null;
 			if (paramsOnly) return paramString;
-			var commandString = CommandNameAndId + " " + paramString;
+			var commandString = $"{CommandNameAndId} {paramString}";
 
-			return inlined ? "[" + commandString + "]" : "@" + commandString;
+			return inlined ? $"[{commandString}]" : $"@{commandString}";
 		}
 
 		public List<string> GetAllCommands(Dictionary<string, INaninovelObjectData> objectList, Dictionary<Type,bool> objectTypeList,bool inlined = false, bool selectedOnly = false)

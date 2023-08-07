@@ -38,7 +38,7 @@ namespace NaninovelSceneAssistant
 
 			foreach (var button in ChoiceButtons)
 			{
-				CommandParameters.Add(new CommandParameterData<Vector2>($"{button.Value.ChoiceState.Summary} pos", () => (Vector2)button.Value.transform.localPosition, v => button.Value.transform.localPosition = v, (i, p) => i.Vector2Field(p)));
+				CommandParameters.Add(new CommandParameterData<Vector2>($"{button.Value.ChoiceState.Summary} {Pos}", () => (Vector2)button.Value.transform.localPosition, v => button.Value.transform.localPosition = v, (i, p) => i.Vector2Field(p)));
 			}
 		}
 

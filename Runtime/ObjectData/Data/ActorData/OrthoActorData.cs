@@ -23,14 +23,16 @@ namespace NaninovelSceneAssistant
 	public abstract class OrthoActorData<TService, TActor, TMeta, TConfig, TState, TPose> : ActorData<TService, TActor, TMeta, TConfig>, IOrthoActorData 
 		where TService : class, IActorManager
 		where TActor : IActor
-		where TMeta : ActorMetadata
-		where TConfig : ActorManagerConfiguration<TMeta>
+		where TMeta : OrthoActorMetadata
+		where TConfig : OrthoActorManagerConfiguration<TMeta>
 		where TState : ActorState 
 		where TPose : ActorPose<TState>, new()
 	{
 		public OrthoActorData(string id) : base(id) {}
 		
-		protected virtual async UniTask<IReadOnlyCollection<string>> GetAppearanceList()
+		protected override float? DefaultZOffset => Config.ZOffset;
+		
+		protected virtual async UniTask<IReadOnlyCollection<string>> GetOrthoAppearanceList()
 		{
 			var resourceProviderManager = Engine.GetService<IResourceProviderManager>();
 			var providers = resourceProviderManager.GetProviders(Metadata.Loader.ProviderTypes);
@@ -58,7 +60,7 @@ namespace NaninovelSceneAssistant
 
 		protected override void GetAppearanceData()
 		{
-			var appearances = GetAppearanceList().Result;
+			var appearances = GetOrthoAppearanceList().Result;
 				
 			if(appearances.Count > 0) 
 			{
@@ -70,7 +72,7 @@ namespace NaninovelSceneAssistant
 		
 		protected string GetDefaultAppearance()
 		{
-			var appearancePaths = GetAppearanceList().Result;
+			var appearancePaths = GetOrthoAppearanceList().Result;
 
 			if (appearancePaths != null && appearancePaths.Count > 0)
 			{
