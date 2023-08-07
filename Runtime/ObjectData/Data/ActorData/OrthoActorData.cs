@@ -1,7 +1,9 @@
-using Naninovel;
+using UnityEngine;
+using UnityEngine.Video;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Naninovel;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -10,10 +12,12 @@ namespace NaninovelSceneAssistant
 {
 	public interface IOrthoActorData 
 	{
+	#if UNITY_EDITOR
 		void AddPose(string poseName);
 		void AddSharedPose(string poseName);
 		string[] GetPoses(); 
 	 	void ApplyPose(string name);
+	#endif
 	}
 	
 	public abstract class OrthoActorData<TService, TActor, TMeta, TConfig, TState, TPose> : ActorData<TService, TActor, TMeta, TConfig>, IOrthoActorData 
@@ -26,8 +30,58 @@ namespace NaninovelSceneAssistant
 	{
 		public OrthoActorData(string id) : base(id) {}
 		
-	#if UNITY_EDITOR
+		protected virtual async UniTask<IReadOnlyCollection<string>> GetAppearanceList()
+		{
+			var resourceProviderManager = Engine.GetService<IResourceProviderManager>();
+			var providers = resourceProviderManager.GetProviders(Metadata.Loader.ProviderTypes);
+			
+			// In case you are extending the data class and want to add a dropdown list for appearances, you'll need to be explicit with typing, 
+			// as otherwise the dropdown list won't appear in build. await LocateResourcesAtPathAsync<UnityEngine.Object>() will work for all types in the editor.
+			if(Actor is SpriteCharacter || Actor is SpriteBackground)  return await LocateResourcesAtPathAsync<Texture2D>();
+			else if(Actor is VideoCharacter || Actor is VideoBackground)  return await LocateResourcesAtPathAsync<VideoClip>();
+			else return await LocateResourcesAtPathAsync<UnityEngine.Object>();
+			
+			async UniTask <IReadOnlyCollection<string>> LocateResourcesAtPathAsync<T>() where T: UnityEngine.Object
+			{
+				var actorPath = Metadata.Loader.PathPrefix + "/" + Id;
+				var resourcePaths = await providers.LocateResourcesAsync<T>(actorPath);
+				var appearances = new List<string>();
+				
+				foreach (var path in resourcePaths) 
+				{
+					var appearance = path.Remove(actorPath + "/");
+					appearances.Add(appearance);
+				} 
+				return appearances;
+			} 
+		}
+
+		protected override void GetAppearanceData()
+		{
+			var appearances = GetAppearanceList().Result;
+				
+			if(appearances.Count > 0) 
+			{
+				CommandParameters.Add(new CommandParameterData<string>("Appearance", () => Actor.Appearance ?? GetDefaultAppearance(), v => Actor.Appearance = (string)v, (i, p) => i.StringDropdownField(p, appearances.ToArray()), defaultValue: GetDefaultAppearance()));
+			}
+			else CommandParameters.Add(new CommandParameterData<string>("Appearance", () => Actor.Appearance, v => Actor.Appearance = (string)v, (i, p) => i.StringField(p)));
+			
+		}
 		
+		protected string GetDefaultAppearance()
+		{
+			var appearancePaths = GetAppearanceList().Result;
+
+			if (appearancePaths != null && appearancePaths.Count > 0)
+			{
+				if (appearancePaths.Any(t => t.EqualsFast(Id))) return appearancePaths.First(t => t.EqualsFast(Id));
+				if (appearancePaths.Any(t => t.EqualsFast("Default"))) return appearancePaths.First(t => t.EqualsFast("Default"));
+			}
+			return appearancePaths.FirstOrDefault();
+		}
+
+#if UNITY_EDITOR
+
 		protected TConfig EditorConfig => ProjectConfigurationProvider.LoadOrDefault<TConfig>();
 		protected List<SerializedObject> SerializedConfigs => new List<SerializedObject> { new SerializedObject(EditorConfig), new SerializedObject(Config)};
 		protected virtual List<List<TPose>> Poses { get; }
@@ -119,6 +173,6 @@ namespace NaninovelSceneAssistant
 		
 		public abstract void ApplyPose(string poseName);
 		
-		#endif
+#endif
 	}
 }

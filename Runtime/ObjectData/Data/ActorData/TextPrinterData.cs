@@ -11,6 +11,11 @@ namespace NaninovelSceneAssistant
 		{
 			AddBaseParameters(includeZPos:false);
 		}
+		
+		protected override void GetAppearanceData()
+		{
+			CommandParameters.Add(new CommandParameterData<string>("Appearance", () => Actor.Appearance, v => Actor.Appearance = (string)v, (i, p) => i.StringField(p)));
+		}
 	}
 }
 
