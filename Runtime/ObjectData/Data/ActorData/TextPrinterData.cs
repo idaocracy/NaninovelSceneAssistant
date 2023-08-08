@@ -40,7 +40,7 @@ namespace NaninovelSceneAssistant
 		{
 			#if UNITY_EDITOR
 			var appearances = GetPrinterAppearances();
-			if(appearances.Length > 0) 				
+			if(appearances != null && appearances.Length > 0) 				
 			CommandParameters.Add(new CommandParameterData<string>(Appearance, () => Actor.Appearance ?? appearances[0], v => Actor.Appearance = (string)v, (i, p) => i.StringDropdownField(p, appearances), defaultValue: appearances[0]));			
 			#else
 			CommandParameters.Add(new CommandParameterData<string>(Appearance, () => Actor.Appearance, v => Actor.Appearance = (string)v, (i, p) => i.StringField(p)));

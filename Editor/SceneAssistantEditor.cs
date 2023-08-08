@@ -13,12 +13,12 @@ namespace NaninovelSceneAssistant
 	public partial class SceneAssistantEditor : EditorWindow
 	{
 		private static SceneAssistantEditor sceneAssistantEditor;
-		public string[] Tabs { get; protected set; } = new string[] { "Objects", "Variables", "Unlockables", "Scripts" };
+		public static string[] Tabs { get; protected set; } = new string[] { "Objects", "Variables", "Unlockables", "Scripts" };
 		protected static INaninovelObjectData CurrentObject => sceneAssistantManager.ObjectList.Values?.ToArray()[objectIndex];
 		protected static string ClipboardString { get => clipboardString; set { clipboardString = value; EditorGUIUtility.systemCopyBuffer = value; if (logResults) Debug.Log(value); } }
-		protected ScriptImporterEditor[] VisualEditors => Resources.FindObjectsOfTypeAll<ScriptImporterEditor>();
-		protected bool ExcludeState { get => CommandParameterData.ExcludeState; set => CommandParameterData.ExcludeState = value; }
-		protected bool ExcludeDefault { get => CommandParameterData.ExcludeDefault; set => CommandParameterData.ExcludeDefault = value; }
+		protected static ScriptImporterEditor[] VisualEditors => Resources.FindObjectsOfTypeAll<ScriptImporterEditor>();
+		protected static bool ExcludeState { get => CommandParameterData.ExcludeState; set => CommandParameterData.ExcludeState = value; }
+		protected static bool ExcludeDefault { get => CommandParameterData.ExcludeDefault; set => CommandParameterData.ExcludeDefault = value; }
 		
 		private static SceneAssistantManager sceneAssistantManager;
 		private static IScriptPlayer scriptPlayer;
@@ -36,6 +36,9 @@ namespace NaninovelSceneAssistant
 		private static bool logResults;
 		private static bool defaultRollbackValue;
 		private static bool disableRollback;
+		
+		private static int lastIndex = 0;
+		private static string lastObject;
 
 		[MenuItem("Naninovel/Scene Assistant", false, 360)]
 		public static void ShowWindow()
@@ -65,8 +68,8 @@ namespace NaninovelSceneAssistant
 
 			if(sceneAssistantManager.Initialized) return;
 			sceneAssistantManager.InitializeSceneAssistant();
-			sceneAssistantManager.OnSceneAssistantCleared += HandleSceneAssistantUpdate;
-			sceneAssistantManager.OnSceneAssistantReset += HandleSceneAssistantUpdate;
+			sceneAssistantManager.OnSceneAssistantCleared += HandleSceneAssistantCleared;
+			sceneAssistantManager.OnSceneAssistantReset += HandleSceneAssistantReset;
 
 			defaultRollbackValue = inputManager.GetRollback().Enabled;
 		}
@@ -76,14 +79,28 @@ namespace NaninovelSceneAssistant
 			if (sceneAssistantManager != null && sceneAssistantManager.Initialized)
 			{
 				sceneAssistantManager.DestroySceneAssistant();
-				sceneAssistantManager.OnSceneAssistantCleared -= HandleSceneAssistantUpdate;
-				sceneAssistantManager.OnSceneAssistantReset -= HandleSceneAssistantUpdate;
+				sceneAssistantManager.OnSceneAssistantCleared -= HandleSceneAssistantCleared;
+				sceneAssistantManager.OnSceneAssistantReset -= HandleSceneAssistantReset;
 			}
 		}
 
-		private static void HandleSceneAssistantUpdate() 
+		private static void HandleSceneAssistantCleared() 
 		{
+			lastObject = CurrentObject.Id;
+			lastIndex = objectIndex;
 			objectIndex = 0;
+			sceneAssistantEditor.Repaint();
+		} 
+		
+		
+		private static void HandleSceneAssistantReset() 
+		{
+			if(!string.IsNullOrEmpty(lastObject)) 
+			{
+				if(sceneAssistantManager.ObjectList.Keys.ElementAt(lastIndex) == lastObject) objectIndex = lastIndex;
+			}
+			else objectIndex = 0;
+			
 			sceneAssistantEditor.Repaint();
 		} 
 

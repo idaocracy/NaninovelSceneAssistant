@@ -32,7 +32,7 @@ namespace NaninovelSceneAssistant
 		
 		protected override float? DefaultZOffset => Config.ZOffset;
 		
-		protected virtual async UniTask<IReadOnlyCollection<string>> GetOrthoAppearanceList()
+		protected virtual async UniTask<string[]> GetOrthoAppearanceList()
 		{
 			var resourceProviderManager = Engine.GetService<IResourceProviderManager>();
 			var providers = resourceProviderManager.GetProviders(Metadata.Loader.ProviderTypes);
@@ -43,7 +43,7 @@ namespace NaninovelSceneAssistant
 			else if(Actor is VideoCharacter || Actor is VideoBackground)  return await LocateResourcesAtPathAsync<VideoClip>();
 			else return await LocateResourcesAtPathAsync<UnityEngine.Object>();
 			
-			async UniTask <IReadOnlyCollection<string>> LocateResourcesAtPathAsync<T>() where T: UnityEngine.Object
+			async UniTask <string[]> LocateResourcesAtPathAsync<T>() where T: UnityEngine.Object
 			{
 				var actorPath = Metadata.Loader.PathPrefix + "/" + Id;
 				var resourcePaths = await providers.LocateResourcesAsync<T>(actorPath);
@@ -54,7 +54,7 @@ namespace NaninovelSceneAssistant
 					var appearance = path.Remove(actorPath + "/");
 					appearances.Add(appearance);
 				} 
-				return appearances;
+				return appearances.ToArray();
 			} 
 		}
 
@@ -62,24 +62,22 @@ namespace NaninovelSceneAssistant
 		{
 			var appearances = GetOrthoAppearanceList().Result;
 				
-			if(appearances.Count > 0) 
+			if(appearances.Length > 0) 
 			{
-				CommandParameters.Add(new CommandParameterData<string>(Appearance, () => Actor.Appearance ?? GetDefaultAppearance(), v => Actor.Appearance = (string)v, (i, p) => i.StringDropdownField(p, appearances.ToArray()), defaultValue: GetDefaultAppearance()));
+				CommandParameters.Add(new CommandParameterData<string>(Appearance, () => Actor.Appearance ?? GetDefaultAppearance(appearances), v => Actor.Appearance = (string)v, (i, p) => i.StringDropdownField(p, appearances), defaultValue: GetDefaultAppearance(appearances)));
 			}
 			else CommandParameters.Add(new CommandParameterData<string>(Appearance, () => Actor.Appearance, v => Actor.Appearance = (string)v, (i, p) => i.StringField(p)));
 			
 		}
 		
-		protected string GetDefaultAppearance()
+		protected string GetDefaultAppearance(string[] appearances)
 		{
-			var appearancePaths = GetOrthoAppearanceList().Result;
-
-			if (appearancePaths != null && appearancePaths.Count > 0)
+			if (appearances != null && appearances.Length > 0)
 			{
-				if (appearancePaths.Any(t => t.EqualsFast(Id))) return appearancePaths.First(t => t.EqualsFast(Id));
-				if (appearancePaths.Any(t => t.EqualsFast("Default"))) return appearancePaths.First(t => t.EqualsFast("Default"));
+				if (appearances.Any(t => t.EqualsFast(Id))) return appearances.First(t => t.EqualsFast(Id));
+				if (appearances.Any(t => t.EqualsFast("Default"))) return appearances.First(t => t.EqualsFast("Default"));
 			}
-			return appearancePaths.FirstOrDefault();
+			return appearances.FirstOrDefault();
 		}
 
 #if UNITY_EDITOR

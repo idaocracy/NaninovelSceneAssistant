@@ -40,6 +40,9 @@ namespace NaninovelSceneAssistant
 		public List<ObjectTypeToggle> ObjectTypeToggles { get => objectTypeToggleContainer.GetComponentsInChildren<ObjectTypeToggle>().ToList(); }
 		public INaninovelObjectData CurrentObject { get; protected set; }
 		
+		private static int lastIndex;
+		private static string lastObject;
+		
 		public TMP_InputField CopyBufferField => copyBufferField;
 		
 		private Transform targetContainer;
@@ -74,11 +77,38 @@ namespace NaninovelSceneAssistant
 			commandNameField.onSubmit.RemoveListener(SaveCommandString);
 		}
 		
+		protected override void ClearMenu()
+		{
+			if(CurrentObject != null)
+			{
+				lastIndex = idDropdown.value;
+				lastObject = idDropdown.options.ElementAt(lastIndex).text;
+			}
+			
+			idDropdown.ClearOptions();
+			ClearParameterFields();
+			ClearToggles();
+			saveInfoBox.text = String.Empty;
+		}
+		
 		protected override void ResetMenu()
 		{
 			idDropdown.AddOptions(Manager.ObjectList.Keys.Select(v => new TMP_Dropdown.OptionData(v)).ToList());
 			ResetToggles();
-			DisplayObjectParameters(0);
+			//DisplayObjectParameters(0);
+			if(!string.IsNullOrEmpty(lastObject))
+			{
+				if(Manager.ObjectList.Keys.ElementAt(lastIndex) == lastObject) 
+				{
+					idDropdown.value = lastIndex;
+					DisplayObjectParameters(lastIndex);
+				}
+			}
+			else 
+			{
+				idDropdown.value = 0;
+				DisplayObjectParameters(0);
+			}
 		}
 
 		private void ResetToggles()
@@ -95,14 +125,6 @@ namespace NaninovelSceneAssistant
 			ClearParameterFields();	
 			CurrentObject = Manager.ObjectList.ElementAt(index).Value;
 			GenerateLayout(CurrentObject.CommandParameters, parameterContainer);
-			saveInfoBox.text = String.Empty;
-		}
-
-		protected override void ClearMenu()
-		{
-			idDropdown.ClearOptions();
-			ClearParameterFields();
-			ClearToggles();
 			saveInfoBox.text = String.Empty;
 		}
 
