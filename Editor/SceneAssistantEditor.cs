@@ -98,6 +98,12 @@ namespace NaninovelSceneAssistant
 			if(!string.IsNullOrEmpty(lastObject)) 
 			{
 				if(sceneAssistantManager.ObjectList.Keys.ElementAt(lastIndex) == lastObject) objectIndex = lastIndex;
+				else if(sceneAssistantManager.ObjectList.Keys.Contains(lastObject)) 
+				{
+					var newIndex = sceneAssistantManager.ObjectList.Keys.ToArray().IndexOf(lastObject);
+					objectIndex = newIndex;
+				}
+				else objectIndex = 0;
 			}
 			else objectIndex = 0;
 			

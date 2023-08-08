@@ -115,7 +115,7 @@ namespace NaninovelSceneAssistant
 			ResetObjectList();
 			foreach (var variable in variableManager.GetAllVariables()) CustomVarList.Add(variable.Name, new VariableData(variable.Name));
 			foreach (var unlockable in unlockableManager.GetAllItems()) UnlockablesList.Add(unlockable.Key, new UnlockableData(unlockable.Key));
-			
+						
 			IsAvailable = true;
 			OnSceneAssistantReset?.Invoke();
 		}

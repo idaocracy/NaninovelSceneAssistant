@@ -95,20 +95,27 @@ namespace NaninovelSceneAssistant
 		{
 			idDropdown.AddOptions(Manager.ObjectList.Keys.Select(v => new TMP_Dropdown.OptionData(v)).ToList());
 			ResetToggles();
-			//DisplayObjectParameters(0);
+			
 			if(!string.IsNullOrEmpty(lastObject))
 			{
 				if(Manager.ObjectList.Keys.ElementAt(lastIndex) == lastObject) 
 				{
 					idDropdown.value = lastIndex;
 					DisplayObjectParameters(lastIndex);
+					return;
+				}
+				else if(idDropdown.options.Any(o => o.text == lastObject))
+				{
+					var newIndex = idDropdown.options.FindIndex(o => o.text == lastObject);
+					idDropdown.value = newIndex;
+					DisplayObjectParameters(newIndex);
+					return;
 				}
 			}
-			else 
-			{
-				idDropdown.value = 0;
-				DisplayObjectParameters(0);
-			}
+
+			idDropdown.value = 0;
+			DisplayObjectParameters(0);
+			
 		}
 
 		private void ResetToggles()
