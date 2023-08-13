@@ -131,7 +131,7 @@ namespace NaninovelSceneAssistant
 				var lastPoseIndex = SharedPoses[1].Count-1;
 				var element = config.FindProperty("SharedPoses").GetArrayElementAtIndex(lastPoseIndex);
 				
-				var overriddenProperties = element.FindPropertyRelative("overriddenProperties")
+				var overriddenProperties = element.FindPropertyRelative("overriddenProperties");
 
 				for(int i = 0; i < overrides.Count; i++)
 				{
