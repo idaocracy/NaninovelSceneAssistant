@@ -118,6 +118,12 @@ namespace NaninovelSceneAssistant
 		
 		private void SetPoseOverrides()
 		{
+			var overrides = CommandParameters.Where(p => p.Selected).Select(p => p.Name.ToLower()).ToList();
+			overrides.Add("visible");
+			if(overrides.Contains("look")) overrides[overrides.IndexOf("look")] = "lookDirection";
+			if(overrides.Contains("tint")) overrides[overrides.IndexOf("tint")] = "tintColor";
+			if(overrides.Contains("pos")) overrides[overrides.IndexOf("pos")] = "position";
+			
 			foreach(var config in SerializedConfigs)
 			{
 				config.Update();
@@ -125,13 +131,7 @@ namespace NaninovelSceneAssistant
 				var lastPoseIndex = SharedPoses[1].Count-1;
 				var element = config.FindProperty("SharedPoses").GetArrayElementAtIndex(lastPoseIndex);
 				
-				var overrides = CommandParameters.Where(p => p.Selected).Select(p => p.Name.ToLower()).ToList();
-				var overriddenProperties = element.FindPropertyRelative("overriddenProperties");
-						
-				overrides.Add("visible");
-				if(overrides.Contains("look")) overrides[overrides.IndexOf("look")] = "lookDirection";
-				if(overrides.Contains("tint")) overrides[overrides.IndexOf("tint")] = "tintColor";
-				if(overrides.Contains("pos")) overrides[overrides.IndexOf("pos")] = "position";
+				var overriddenProperties = element.FindPropertyRelative("overriddenProperties")
 
 				for(int i = 0; i < overrides.Count; i++)
 				{
