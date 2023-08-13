@@ -21,7 +21,6 @@ namespace NaninovelSceneAssistant
 		}
 				
 		#if UNITY_EDITOR
-		
 		protected string[] GetPrinterAppearances() 
 		{
 			var printerPanel = GetGameObject().GetComponent<UITextPrinterPanel>();
@@ -33,7 +32,6 @@ namespace NaninovelSceneAssistant
 			List<CanvasGroup> appearanceList = (List<CanvasGroup>)fieldInfo.GetValue(GetGameObject().GetComponent(printerType));
 			return appearanceList.Select(c => c.name).ToArray();
 		}	
-		
 		#endif
 		
 		protected override void GetAppearanceData()
@@ -46,8 +44,6 @@ namespace NaninovelSceneAssistant
 			CommandParameters.Add(new CommandParameterData<string>(Appearance, () => Actor.Appearance, v => Actor.Appearance = (string)v, (i, p) => i.StringField(p)));
 			#endif
 		}
-		
-
 	}
 }
 

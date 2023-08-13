@@ -115,7 +115,6 @@ namespace NaninovelSceneAssistant
 
 			idDropdown.value = 0;
 			DisplayObjectParameters(0);
-			
 		}
 
 		private void ResetToggles()

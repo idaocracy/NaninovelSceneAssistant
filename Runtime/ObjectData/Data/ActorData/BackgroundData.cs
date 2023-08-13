@@ -11,9 +11,8 @@ namespace NaninovelSceneAssistant
 		protected override string CommandNameAndId => $"back id:{Id}";
 		
 		#if UNITY_EDITOR
-		
-		protected override List<List<BackgroundMetadata.Pose>> Poses => new List<List<BackgroundMetadata.Pose>> { Metadata.Poses, EditorConfig.GetMetadataOrDefault(Id).Poses };
-		protected override List<List<BackgroundMetadata.Pose>> SharedPoses => new List<List<BackgroundMetadata.Pose>> { Config.SharedPoses, EditorConfig.SharedPoses };
+		protected override List<BackgroundMetadata.Pose>[] Poses => new List<BackgroundMetadata.Pose>[] { Metadata.Poses, EditorConfig.GetMetadataOrDefault(Id).Poses };
+		protected override List<BackgroundMetadata.Pose>[] SharedPoses => new List<BackgroundMetadata.Pose>[] { Config.SharedPoses, EditorConfig.SharedPoses };
 		public override void ApplyPose(string poseName) => new ModifyBackground{ Id = Id, Pose = poseName, Duration = 0f }.ExecuteAsync().Forget();
 		#endif
 		

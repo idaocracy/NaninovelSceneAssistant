@@ -12,18 +12,15 @@ namespace NaninovelSceneAssistant
 		protected override string CommandNameAndId => $"char {Id}";
 		
 		#if UNITY_EDITOR
-		protected override List<List<CharacterMetadata.Pose>> Poses => new List<List<CharacterMetadata.Pose>> { Metadata.Poses, EditorConfig.GetMetadataOrDefault(Id).Poses };
-		protected override List<List<CharacterMetadata.Pose>> SharedPoses => new List<List<CharacterMetadata.Pose>> { Config.SharedPoses, EditorConfig.SharedPoses };
-		
+		protected override List<CharacterMetadata.Pose>[] Poses => new List<CharacterMetadata.Pose>[] { Metadata.Poses, EditorConfig.GetMetadataOrDefault(Id).Poses };
+		protected override List<CharacterMetadata.Pose>[] SharedPoses => new List<CharacterMetadata.Pose>[] { Config.SharedPoses, EditorConfig.SharedPoses };
 		public override void ApplyPose(string poseName) => new ModifyCharacter{ Id = Id, Pose = poseName, Duration = 0f }.ExecuteAsync().Forget();
-
 		#endif
 		
 		protected override void AddCommandParameters()
-		{
+		{			
 			AddBaseParameters();
 			CommandParameters.Add(new CommandParameterData<Enum>(Look, () => Actor.LookDirection, v => Actor.LookDirection = (CharacterLookDirection)v, (i,p) => i.EnumDropdownField(p), defaultValue: Metadata.BakedLookDirection));
 		}
 	}
-	
 }

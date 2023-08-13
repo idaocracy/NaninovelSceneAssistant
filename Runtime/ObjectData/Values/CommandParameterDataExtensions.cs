@@ -81,7 +81,6 @@ namespace NaninovelSceneAssistant
 			else if (data.Conditions.All(c => c())) return true;
 			else return false;
 		} 
-		
 
 		#if UNITY_EDITOR
 		public static void SetPoseValue(this ICommandParameterData data, SerializedProperty poseProperty)
@@ -125,7 +124,6 @@ namespace NaninovelSceneAssistant
 				var lookData = data as ICommandParameterData<Enum>;	
 				poseProperty.enumValueIndex = (int)(CharacterLookDirection)lookData.Value;
 			}
-			
 		}
 		#endif
 	}

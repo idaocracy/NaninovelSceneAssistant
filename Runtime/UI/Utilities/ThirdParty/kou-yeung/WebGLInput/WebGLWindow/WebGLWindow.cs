@@ -28,7 +28,6 @@ namespace WebGLSupport
         public static void WebGLWindowOnResize(Action cb) { }
         public static void WebGLWindowInjectFullscreen() { }
 #endif
-
     }
 
     public static class WebGLWindow

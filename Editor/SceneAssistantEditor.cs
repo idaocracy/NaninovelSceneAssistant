@@ -92,7 +92,6 @@ namespace NaninovelSceneAssistant
 			sceneAssistantEditor.Repaint();
 		} 
 		
-		
 		private static void HandleSceneAssistantReset() 
 		{
 			if(!string.IsNullOrEmpty(lastObject)) 

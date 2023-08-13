@@ -84,13 +84,14 @@ namespace NaninovelSceneAssistant
 
 		protected TConfig EditorConfig => ProjectConfigurationProvider.LoadOrDefault<TConfig>();
 		protected List<SerializedObject> SerializedConfigs => new List<SerializedObject> { new SerializedObject(EditorConfig), new SerializedObject(Config)};
-		protected virtual List<List<TPose>> Poses { get; }
-		protected virtual List<List<TPose>> SharedPoses { get; }
+		protected virtual List<TPose>[] Poses { get; }
+		protected virtual List<TPose>[] SharedPoses { get; }
 						
 		public void AddPose(string poseName)
 		{
 			AddSharedPose(poseName);
 			TransferPose();
+			AssetDatabase.SaveAssets();
 		}
 		
 		public void AddSharedPose(string poseName)
@@ -98,6 +99,7 @@ namespace NaninovelSceneAssistant
 			AddPoseToList(SharedPoses);
 			SetPoseOverrides();
 			SetPoseValues(poseName);
+			AssetDatabase.SaveAssets();
 		}
 		
 		public string[] GetPoses() 
@@ -108,7 +110,7 @@ namespace NaninovelSceneAssistant
 			return nullList.Concat(namedPoseList).Concat(namedSharedPoseList).ToArray();
 		}
 		
-		private void AddPoseToList(List<List<TPose>> poses)
+		private void AddPoseToList(List<TPose>[] poses)
 		{
 			foreach(var poseslist in poses) poseslist.Add(new TPose());
 			foreach(var config in SerializedConfigs) config.ApplyModifiedProperties();
@@ -154,21 +156,16 @@ namespace NaninovelSceneAssistant
 					else if(element.propertyPath.Contains(".name")) element.stringValue = poseName;
 					
 					foreach(var data in CommandParameters) data.SetPoseValue(element);
-				}
-				
+				}	
 				config.ApplyModifiedProperties();
-				AssetDatabase.SaveAssets();
 			}
 		}
 		
 		private void TransferPose()
 		{
 			AddPoseToList(Poses);
-			
 			foreach (var posesList in Poses) posesList[posesList.Count-1] = SharedPoses[1].Last();
 			foreach(var posesList in SharedPoses) posesList.RemoveLastItem();
-			
-			foreach(var config in SerializedConfigs) AssetDatabase.SaveAssets();
 		}
 		
 		public abstract void ApplyPose(string poseName);

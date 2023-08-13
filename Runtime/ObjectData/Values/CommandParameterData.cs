@@ -56,7 +56,6 @@ namespace NaninovelSceneAssistant
 		public T State { get; private set; }
 		public T Default { get; }
 
-
 		private Action<ISceneAssistantLayout, ICommandParameterData<T>> getLayout;
 
 		public CommandParameterData(string name, Func<T> getValue, Action<T> setValue, Action<ISceneAssistantLayout, ICommandParameterData<T>> getLayout, 
