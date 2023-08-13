@@ -36,7 +36,7 @@ namespace NaninovelSceneAssistant
 		public void BoolField(ICommandParameterData<bool> data, params ICommandParameterData[] toggleGroup)
 			=> WrapInLayout(() => EditorGUILayout.Toggle(data.Value), data, toggleGroup);
 		public void IntField(ICommandParameterData<int> data, int? min = null, int? max = null, params ICommandParameterData[] toggleGroup)
-			=> WrapInLayout(() => EditorGUILayout.IntField(Mathf.Clamp(data.Value, min ?? int.MinValue, max ?? int.MaxValue)), data, toggleGroup);
+			=> WrapInLayout(() => EditorGUILayout.IntField("\n", Mathf.Clamp(data.Value, min ?? int.MinValue, max ?? int.MaxValue), GUILayout.MinWidth(20)), data, toggleGroup);
 		public void IntSliderField(ICommandParameterData<int> data, int min, int max, params ICommandParameterData[] toggleGroup)
 			=> WrapInLayout(() => EditorGUILayout.IntSlider(data.Value, min, max), data, toggleGroup);
 		public void StringField(ICommandParameterData<string> data, params ICommandParameterData[] toggleGroup)
