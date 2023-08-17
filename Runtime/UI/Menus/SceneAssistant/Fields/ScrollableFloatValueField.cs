@@ -52,7 +52,7 @@ namespace NaninovelSceneAssistant
 		public override void OnPointerEnter(PointerEventData eventData)
 		{
 			base.OnPointerEnter(eventData);
-			if(!mainCanvasGroup.interactable) return;
+			if(mainCanvasGroup != null && !mainCanvasGroup.interactable) return;
 			Cursor.SetCursor(sceneAssistantUI.CursorTexture, hotSpot, CursorMode.ForceSoftware);
 		}
 
@@ -65,10 +65,12 @@ namespace NaninovelSceneAssistant
 		public override void OnDrag(PointerEventData eventData)
 		{
 			base.OnDrag(eventData);
-			if(!mainCanvasGroup.interactable) return;
+			if(mainCanvasGroup != null && !mainCanvasGroup.interactable) return;
 
 			var currentValue = FloatValue;
-			var newValue = currentValue + (float)(eventData.delta.x * 0.1);
+			var newValue = contentType == ContentType.DecimalNumber ? 
+			currentValue + (float)(eventData.delta.x * 0.1) : Mathf.Round(currentValue) + (int)(eventData.delta.x * 1);
+			
 			FloatValue = newValue;
 			SendOnSubmit();
 		}
@@ -79,7 +81,7 @@ namespace NaninovelSceneAssistant
 			if(minValue != null && floatValue < minValue) floatValue = (float)minValue;
 			if(maxValue != null && floatValue > maxValue) floatValue = (float)maxValue;
 			setDataValue(floatValue);
-			sceneAssistantMenu.UpdateDataValues();
+			if(sceneAssistantMenu != null) sceneAssistantMenu.UpdateDataValues();
 		}
 
 		public void GetDataValue() 
