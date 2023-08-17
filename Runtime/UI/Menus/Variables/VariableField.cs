@@ -22,39 +22,45 @@ namespace NaninovelSceneAssistant
 			Data = data;
 			label.text = data.Name;
 			
-			if(float.TryParse(data.Value, out var floatValue))
-			{
-				ScrollableFloatValueField floatField = Instantiate(floatValueFieldPrototype, container);
-				floatField.Initialize(() => floatField.FloatValue = float.Parse(data.Value), v => data.Value = v.ToString());
-				
-				var floatDropDown = floatField.GetComponentInChildren<TMP_Dropdown>();
-				floatDropDown.onValueChanged.AddListener(ChangeFloatValueContentType);
-				onDestroy = () => floatDropDown.onValueChanged.RemoveListener(ChangeFloatValueContentType);
-				
-				void ChangeFloatValueContentType(int value)
-				{
-					floatField.contentType = value == 0 ? TMP_InputField.ContentType.DecimalNumber : TMP_InputField.ContentType.IntegerNumber;
-				}
-			}
-			else if(bool.TryParse(data.Value, out var boolValue))
-			{
-				var boolField = Instantiate(boolValueFieldProtoype, container);
-				
-				boolField.isOn = boolValue;
-				boolField.onValueChanged.AddListener(SetBoolValue);
-				onDestroy = () => boolField.onValueChanged.RemoveListener(SetBoolValue);
-			}
-			else
-			{
-				var stringField = Instantiate(stringValueFieldPrototype, container);
+			if(float.TryParse(data.Value, out _)) InitializeFloatValueField(data);
+            else if(bool.TryParse(data.Value, out _)) InitializeBoolValueField(data); 
+            else InitializeStringValueField(data);
+        }
 
-				stringField.text = data.Value.ToString();
-				stringField.onSubmit.AddListener(SetStringValue);
-				onDestroy = () => stringField.onSubmit.RemoveListener(SetStringValue);
-			}
-		}
+        private void InitializeStringValueField(VariableData data)
+        {
+            var stringField = Instantiate(stringValueFieldPrototype, container);
 
-		protected override void OnDestroy() 
+            stringField.text = data.Value.ToString();
+            stringField.onSubmit.AddListener(SetStringValue);
+            onDestroy = () => stringField.onSubmit.RemoveListener(SetStringValue);
+        }
+
+        private void InitializeBoolValueField(VariableData data)
+        {
+            var boolField = Instantiate(boolValueFieldProtoype, container);
+
+            boolField.isOn = bool.Parse(data.Value);
+            boolField.onValueChanged.AddListener(SetBoolValue);
+            onDestroy = () => boolField.onValueChanged.RemoveListener(SetBoolValue);
+        }
+
+        private void InitializeFloatValueField(VariableData data)
+        {
+            ScrollableFloatValueField floatField = Instantiate(floatValueFieldPrototype, container);
+            floatField.Initialize(() => floatField.FloatValue = float.Parse(data.Value), v => data.Value = v.ToString());
+
+            var floatDropDown = floatField.GetComponentInChildren<TMP_Dropdown>();
+            floatDropDown.onValueChanged.AddListener(ChangeFloatValueContentType);
+            onDestroy = () => floatDropDown.onValueChanged.RemoveListener(ChangeFloatValueContentType);
+
+            void ChangeFloatValueContentType(int value)
+            {
+                floatField.contentType = value == 0 ? TMP_InputField.ContentType.DecimalNumber : TMP_InputField.ContentType.IntegerNumber;
+            }
+        }
+
+        protected override void OnDestroy() 
 		{
 			base.OnDestroy();
 			onDestroy();	

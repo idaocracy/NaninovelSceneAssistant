@@ -1401,6 +1401,11 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3904208297297190060, guid: d6486ea1c76e968449ba4079c852cec1,
+        type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5969014795617225407, guid: d6486ea1c76e968449ba4079c852cec1,
         type: 3}
       propertyPath: m_MinWidth
