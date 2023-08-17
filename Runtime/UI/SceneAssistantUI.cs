@@ -2,7 +2,6 @@ using UnityEngine;
 using Naninovel;
 using Naninovel.UI;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
 using TMPro;
 
 namespace NaninovelSceneAssistant
