@@ -22,9 +22,9 @@ namespace NaninovelSceneAssistant
 			if (value is Vector2 || value is Vector3 || value is Vector4) 
 			{
 				if(data.Name == "Pos" && value is Vector3 vector) return GetPosValue(vector);
-				else return value.ToString().Replace(" ", "").Replace("(", "").Replace(")", ""); 
+				else return value.TrimVectorValues();
 			}
-			else if (value is Quaternion q) return q.eulerAngles.ToString("0.##").Replace(" ", "").Replace("(", "").Replace(")", "");
+			else if (value is Quaternion q) return q.eulerAngles.ToString("0.#").TrimVectorValues();
 			else if (value is bool) return value.ToString().ToLower();
 			else if (value is float f) return f.ToString("0.###").ToLower();
 			else if (value is Color c) return "#" + ColorUtility.ToHtmlStringRGBA(c);
@@ -32,10 +32,15 @@ namespace NaninovelSceneAssistant
 			else return value?.ToString();
 		}
 
+		private static string TrimVectorValues<T>(this T value)
+		{
+			return value.ToString().Replace(" ", "").Replace("(", "").Replace(")", ""); 
+		}
+
 		private static string GetPosValue(Vector3 vector)
 		{
 			var config = Engine.GetConfiguration<CameraConfiguration>();
-			return new Vector3(config.WorldToSceneSpace(vector).x * 100, config.WorldToSceneSpace(vector).y * 100, vector.z).ToString().Replace(" ", "").Replace("(", "").Replace(")", "");
+			return new Vector3(config.WorldToSceneSpace(vector).x * 100, config.WorldToSceneSpace(vector).y * 100, vector.z).TrimVectorValues();
 		}
 
 		public static string GetCommandValue<T>(this ICommandParameterData<T> data, bool paramOnly = false)
