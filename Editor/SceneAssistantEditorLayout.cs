@@ -120,8 +120,21 @@ namespace NaninovelSceneAssistant
 		public void VariableField(VariableData var)
 		{
 			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.LabelField(var.Name, GUILayout.Width(150));
-			var.Value = EditorGUILayout.DelayedTextField(var.Value);
+			
+			if(float.TryParse(var.Value, out var floatValue)) {
+				if(numberTypeIndex == 0) var.Value =  EditorGUILayout.FloatField(var.Name, floatValue, GUILayout.MinWidth(20)).ToString();
+				else var.Value =  EditorGUILayout.IntField(var.Name, (int)floatValue, GUILayout.MinWidth(20)).ToString();
+				
+				numberTypeIndex = EditorGUILayout.Popup(numberTypeIndex, numberTypes, GUILayout.Width(30));
+			}
+			else 
+			{
+				EditorGUILayout.LabelField(var.Name, GUILayout.Width(148));
+
+				if(bool.TryParse(var.Value, out var boolValue)) var.Value = EditorGUILayout.Toggle("", boolValue).ToString();
+				else var.Value = EditorGUILayout.DelayedTextField(var.Value);
+			}
+
 			EditorGUILayout.EndHorizontal();
 		}
 

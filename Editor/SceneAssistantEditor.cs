@@ -29,6 +29,7 @@ namespace NaninovelSceneAssistant
 		private static int objectIndex;
 		private static int tabIndex;
 		private static int poseIndex;
+		private static int numberTypeIndex;
 		private static string clipboardString;
 		private static string search;
 		private static string poseName;
@@ -36,6 +37,7 @@ namespace NaninovelSceneAssistant
 		private static bool logResults;
 		private static bool defaultRollbackValue;
 		private static bool disableRollback;
+		private static string[] numberTypes = new string[]{"f", "i"};
 		
 		private static int lastIndex = 0;
 		private static string lastObject;
