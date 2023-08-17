@@ -9,8 +9,11 @@ namespace NaninovelSceneAssistant
 	public class ChoiceHandlerData : ActorData<ChoiceHandlerManager, IChoiceHandlerActor, ChoiceHandlerMetadata, ChoiceHandlersConfiguration>
 	{
 		public ChoiceHandlerData(string id) : base(id) { }
-		public static string TypeId => "ChoiceHandler";
-		protected override string CommandNameAndId => "choice";
+		
+		protected const string ChoiceHandlerName = "ChoiceHandler", ChoiceHandlerCommandName = "choice";
+		public static string TypeId => ChoiceHandlerName;
+		protected override string CommandNameAndId => ChoiceHandlerCommandName;
+		
 		protected Dictionary<ChoiceState, ChoiceHandlerButton> ChoiceButtons;
 
 		public override string GetCommandLine( bool inlined = false, bool paramsOnly = false)
@@ -42,7 +45,7 @@ namespace NaninovelSceneAssistant
 			}
 		}
 
-        protected override void GetAppearanceData() {}
-    }
+		protected override void GetAppearanceData() {}
+	}
 }
 	

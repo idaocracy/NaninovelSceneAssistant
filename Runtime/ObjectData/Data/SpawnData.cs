@@ -13,13 +13,16 @@ namespace NaninovelSceneAssistant
 			Initialize();
 		}
 
+		protected const string SpawnName = "Spawn", SpawnCommandName = "spawn";
+
 		protected SpawnedObject Spawned { get => Engine.GetService<SpawnManager>().GetSpawned(Id); }
+		
 		public override string Id => id;
-		public static string TypeId => "Spawn";
+		public static string TypeId => SpawnName;
 		protected Transform Transform => Spawned.Transform;
 		public override GameObject GameObject => Spawned.GameObject;
 		protected ISceneAssistantSpawn SpawnSceneAssistant => GameObject.GetComponent<ISceneAssistantSpawn>() ?? null;
-		protected override string CommandNameAndId => "spawn " + Id;
+		protected override string CommandNameAndId => $"{SpawnCommandName} {Id}";
 		protected bool IsTransformable => SpawnSceneAssistant?.IsTransformable ?? true;
 
 		private string id;
@@ -40,7 +43,7 @@ namespace NaninovelSceneAssistant
 				{
 					if (IsTransformData(parameter.Name))
 					{
-						if (parameter.Selected & parameter.GetCommandValue() != null) transformString = transformString + parameter.GetCommandValue() + " ";
+						if (parameter.GetCommandValue() != null) transformString = transformString + parameter.GetCommandValue() + " ";
 						tempParams.Remove(parameter);
 					}
 				}

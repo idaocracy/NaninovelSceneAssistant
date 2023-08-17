@@ -17,10 +17,13 @@ namespace NaninovelSceneAssistant
 
 		public static string GetFormattedValue<T>(this ICommandParameterData<T> data)
 		{
-			if (data.Name == "Pos" && data.Value is Vector3 vector) return GetPosValue(vector);
-			
 			var value = data.Value;
-			if (value is Vector2 || value is Vector3 || value is Vector4) return value.ToString().Replace(" ", "").Replace("(", "").Replace(")", "");
+			
+			if (value is Vector2 || value is Vector3 || value is Vector4) 
+			{
+				if(data.Name == "Pos" && value is Vector3 vector) return GetPosValue(vector);
+				else return value.ToString().Replace(" ", "").Replace("(", "").Replace(")", ""); 
+			}
 			else if (value is Quaternion q) return q.eulerAngles.ToString("0.##").Replace(" ", "").Replace("(", "").Replace(")", "");
 			else if (value is bool) return value.ToString().ToLower();
 			else if (value is float f) return f.ToString("0.###").ToLower();

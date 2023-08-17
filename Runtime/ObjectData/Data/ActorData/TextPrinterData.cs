@@ -12,8 +12,10 @@ namespace NaninovelSceneAssistant
 	public class TextPrinterData : ActorData<TextPrinterManager, ITextPrinterActor, TextPrinterMetadata, TextPrintersConfiguration>
 	{
 		public TextPrinterData(string id) : base(id) { }
-		public static string TypeId => "Text Printer";
-		protected override string CommandNameAndId => $"printer {Id}";
+		
+		protected const string TextPrinterName = "Text Printer", TextPrinterCommandName = "printer";
+		public static string TypeId => TextPrinterName;
+		protected override string CommandNameAndId => $"{TextPrinterCommandName} {Id}";
 				
 		protected override void AddCommandParameters()
 		{

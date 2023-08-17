@@ -8,8 +8,10 @@ namespace NaninovelSceneAssistant
 	public class CharacterData : OrthoActorData<CharacterManager, ICharacterActor, CharacterMetadata, CharactersConfiguration, CharacterState, CharacterMetadata.Pose>
 	{
 		public CharacterData(string id) : base(id) { }
-		public static string TypeId => "Character";
-		protected override string CommandNameAndId => $"char {Id}";
+		
+		protected const string CharacterName = "Character", CharacterCommandName = "char";
+		public static string TypeId => CharacterName;
+		protected override string CommandNameAndId => $"{CharacterCommandName} {Id}";
 		
 		#if UNITY_EDITOR
 		protected override List<CharacterMetadata.Pose>[] Poses => new List<CharacterMetadata.Pose>[] { Metadata.Poses, EditorConfig.GetMetadataOrDefault(Id).Poses };

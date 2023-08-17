@@ -29,9 +29,7 @@ namespace NaninovelSceneAssistant
 		where TPose : ActorPose<TState>, new()
 	{
 		public OrthoActorData(string id) : base(id) {}
-		
 		protected override float? DefaultZOffset => Config.ZOffset;
-		
 		protected virtual async UniTask<string[]> GetOrthoAppearanceList()
 		{
 			var resourceProviderManager = Engine.GetService<IResourceProviderManager>();

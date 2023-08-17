@@ -8,11 +8,13 @@ namespace NaninovelSceneAssistant
 	public class CameraData : NaninovelObjectData<ICameraManager, CameraConfiguration>, INaninovelObjectData
 	{
 		public CameraData() => Initialize();
-		protected ICameraManager CameraManager => Service;
+		
+		protected const string CameraName = "Camera", CameraCommandName = "camera";
+		public static string TypeId => CameraName;
+		protected override string CommandNameAndId => CameraCommandName;
 		public override string Id => GameObject.name.Replace("(Clone)", "");
-		public static string TypeId => "Camera";
+		protected ICameraManager CameraManager => Service;
 		public override GameObject GameObject => CameraManager.Camera.gameObject; 
-		protected override string CommandNameAndId => "camera";
 		protected List<MonoBehaviour> CameraComponents => CameraManager.Camera.GetComponents<MonoBehaviour>().Where(c => c.GetType() != typeof(Camera)).ToList();
 		protected override void AddCommandParameters()
 		{
