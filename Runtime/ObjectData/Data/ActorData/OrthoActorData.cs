@@ -66,10 +66,8 @@ namespace NaninovelSceneAssistant
 			{
 				CommandParameters.Add(new CommandParameterData<string>(Appearance, () => Actor.Appearance ?? GetDefaultAppearance(appearances), v => Actor.Appearance = (string)v, (i, p) => i.StringDropdownField(p, appearances), defaultValue: GetDefaultAppearance(appearances)));
 			}
-			else CommandParameters.Add(new CommandParameterData<string>(Appearance, () => Actor.Appearance, v => Actor.Appearance = (string)v, (i, p) => i.StringField(p)));
-			
+			else CommandParameters.Add(new CommandParameterData<string>(Appearance, () => Actor.Appearance, v => Actor.Appearance = (string)v, (i, p) => i.StringField(p)));	
 		}
-		
 		protected string GetDefaultAppearance(string[] appearances)
 		{
 			if (appearances != null && appearances.Length > 0)
