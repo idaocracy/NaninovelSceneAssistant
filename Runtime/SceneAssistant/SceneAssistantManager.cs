@@ -14,7 +14,6 @@ namespace NaninovelSceneAssistant
 		private IScriptPlayer scriptPlayer;
 		private ICustomVariableManager variableManager;
 		private IUnlockableManager unlockableManager;
-		private IStateManager stateManager;
 
 		public Dictionary<string, INaninovelObjectData> ObjectList { get; protected set; } = new Dictionary<string, INaninovelObjectData>();
 		public Dictionary<Type, bool> ObjectTypeList { get; protected set; } = new Dictionary<Type, bool>();
@@ -42,7 +41,6 @@ namespace NaninovelSceneAssistant
 			scriptPlayer = Engine.GetService<IScriptPlayer>();
 			variableManager = Engine.GetService<ICustomVariableManager>();
 			unlockableManager = Engine.GetService<IUnlockableManager>();
-			stateManager = Engine.GetService<IStateManager>();
 		}
 		public virtual async void InitializeSceneAssistant()
 		{

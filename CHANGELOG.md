@@ -1,3 +1,6 @@
+v 2.4.2 August 2023
+- Custom variable fields will now parse the variable type and choose the field type accordingly.
+
 v 2.4.1 August 2023
 - Scene Assistant will now attempt to save and retrieve the last selected object in the Id dropdown.
 - Printer data will no longer have an appearance parameter if no appearances are specified within the prefab. Appearances will display in a list in the editor, similar to Sprite and Video actors.  
