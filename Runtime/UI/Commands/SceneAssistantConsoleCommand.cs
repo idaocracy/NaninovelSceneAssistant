@@ -12,5 +12,3 @@ namespace NaninovelSceneAssistant
 		} 
 	}
 }
-
-
