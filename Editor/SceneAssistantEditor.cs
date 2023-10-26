@@ -43,10 +43,7 @@ namespace NaninovelSceneAssistant
 		private static string lastObject;
 
 		[MenuItem("Naninovel/Scene Assistant", false, 360)]
-		public static void ShowWindow()
-		{
-			sceneAssistantEditor = GetWindow<SceneAssistantEditor>("Naninovel Scene Assistant");
-		}
+		public static void ShowWindow() => sceneAssistantEditor = GetWindow<SceneAssistantEditor>("Naninovel Scene Assistant");
 
 		[InitializeOnEnterPlayMode]
 		private static void DetectEngineInitialization()
@@ -74,7 +71,17 @@ namespace NaninovelSceneAssistant
 			sceneAssistantManager.OnSceneAssistantReset += HandleSceneAssistantReset;
 
 			defaultRollbackValue = inputManager.GetRollback().Enabled;
-		}
+
+            int temp = EditorPrefs.GetInt("NaniAssistantTab", -1);
+            if (temp > -1)
+                tabIndex = temp;
+            if (tabIndex == 3)
+            {
+                string searchString = EditorPrefs.GetString("NaniAssistantScriptSearch", "");
+                if (searchString != "")
+                    search = searchString;
+            }
+        }
 
 		private void OnDestroy()
 		{
@@ -125,7 +132,11 @@ namespace NaninovelSceneAssistant
 			GUILayout.Space(10f);
 			EditorGUI.BeginChangeCheck();
 			tabIndex = GUILayout.Toolbar(tabIndex, Tabs, EditorStyles.toolbarButton);
-			if (EditorGUI.EndChangeCheck()) search = string.Empty;
+			if (EditorGUI.EndChangeCheck()) 
+			{
+                search = string.Empty;
+                EditorPrefs.SetInt("NaniAssistantTab", tabIndex);
+            } 
 
 			GUILayout.Space(5f);
 
@@ -236,7 +247,7 @@ namespace NaninovelSceneAssistant
 				SyncAndExecuteAsync(() => scriptPlayer.SetWaitingForInputEnabled(true));
 			}
 
-			GUILayout.FlexibleSpace();
+            GUILayout.FlexibleSpace();
 			GUILayout.EndHorizontal();
 
 			bool DrawScriptPlayerButton(string content, Color color, bool condition, int fontSize = 10)
@@ -533,7 +544,7 @@ namespace NaninovelSceneAssistant
 			GUILayout.BeginHorizontal();
 			GUILayout.Label("Search: ", GUILayout.Width(50));
 			search = GUILayout.TextField(search);
-			GUILayout.EndHorizontal();
+            GUILayout.EndHorizontal();
 
 			scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
 			GUILayout.Space(5);
@@ -557,7 +568,9 @@ namespace NaninovelSceneAssistant
 
 			EditorGUILayout.EndScrollView();
 
-			async void PlayScriptAsync(string script)
+            EditorPrefs.SetString("NaniAssistantScriptSearch", search);
+
+            async void PlayScriptAsync(string script)
 			{
 				Engine.GetService<IUIManager>()?.GetUI<ITitleUI>()?.Hide();
 				await stateManager.ResetStateAsync(() => scriptPlayer.PreloadAndPlayAsync(script));

@@ -29,7 +29,7 @@ namespace NaninovelSceneAssistant
 			AddCameraComponentParams();
 		}
 
-		private void AddCameraComponentParams()
+		protected void AddCameraComponentParams()
 		{
 			if (CameraComponents.Count <= 0) return;
 

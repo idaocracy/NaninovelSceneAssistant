@@ -125,10 +125,10 @@ namespace NaninovelSceneAssistant
 			ResetObjectTypeList();
 		}
 		
-		private void ResetCamera()
+		protected virtual void ResetCamera()
 		{
 			var camera = new CameraData();
-			ObjectList.Add(camera.Id, new CameraData());
+			ObjectList.Add(camera.Id, camera);
 		}
 
 		protected virtual void ResetActorList()
