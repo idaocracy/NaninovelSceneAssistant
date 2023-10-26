@@ -1,6 +1,6 @@
 {
   "name": "com.idaocracy.naninovelsceneassistant",
-  "version": "2.4.2",
+  "version": "2.4.3",
   "displayName": "Naninovel Scene Assistant",
   "description": "Transform Naninovel objects in real time and easily copy over their values to scenario scripts.",
   "unity": "2019.4",

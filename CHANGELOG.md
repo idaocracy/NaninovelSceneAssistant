@@ -1,3 +1,6 @@
+v 2.4.3 October 2023
+- Current tab and search value will be saved and restored on reopening. 
+
 v 2.4.2 August 2023
 - Custom variable fields will now parse the variable type and choose the field type accordingly.
 
