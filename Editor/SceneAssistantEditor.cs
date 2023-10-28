@@ -393,7 +393,7 @@ namespace NaninovelSceneAssistant
 
 				foreach (var type in list)
 				{
-					var typeText = type.GetProperty("TypeId").GetValue(null).ToString() ?? type.Name;
+					var typeText = type.GetProperty("TypeId")?.GetValue(null).ToString() ?? type.Name;
 					float typeTextWidth = EditorStyles.label.CalcSize(new GUIContent(typeText)).x;
 					sceneAssistantManager.ObjectTypeList[type] = EditorGUILayout.Toggle("", sceneAssistantManager.ObjectTypeList[type], GUILayout.Width(15));
 					EditorGUILayout.LabelField(typeText, EditorStyles.miniLabel, GUILayout.Width(typeTextWidth));

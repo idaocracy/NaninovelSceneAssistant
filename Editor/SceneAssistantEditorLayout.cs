@@ -27,13 +27,14 @@ namespace NaninovelSceneAssistant
 			EditorGUILayout.EndHorizontal();
 		}
 
-		public void WrapInLayout<T>(Func<T> layoutField, ICommandParameterData<T> data, params ICommandParameterData[] toggleGroup)
-		{
-			data.Value = layoutField();
-			CheckToggles(data, toggleGroup);
-		}
+        public void WrapInLayout<T>(Func<T> layoutField, ICommandParameterData<T> data, params ICommandParameterData[] toggleGroup)
+        {
+            var value = layoutField();
+            if (data.Selected) data.Value = value;
+            CheckToggles(data, toggleGroup);
+        }
 
-		public void BoolField(ICommandParameterData<bool> data, params ICommandParameterData[] toggleGroup)
+        public void BoolField(ICommandParameterData<bool> data, params ICommandParameterData[] toggleGroup)
 			=> WrapInLayout(() => EditorGUILayout.Toggle(data.Value), data, toggleGroup);
 		public void IntField(ICommandParameterData<int> data, int? min = null, int? max = null, params ICommandParameterData[] toggleGroup)
 			=> WrapInLayout(() => EditorGUILayout.IntField("\n", Mathf.Clamp(data.Value, min ?? int.MinValue, max ?? int.MaxValue), GUILayout.MinWidth(20)), data, toggleGroup);
