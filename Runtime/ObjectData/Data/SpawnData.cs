@@ -77,8 +77,8 @@ namespace NaninovelSceneAssistant
 			ICommandParameterData posData = null;
 			ICommandParameterData positionData = null;
 
-			CommandParameters.Add(positionData = new CommandParameterData<Vector3>(Position, () => Transform.localPosition, v => Transform.localPosition = v, (i, p) => i.Vector3Field(p, toggleGroup: posData), defaultValue: new Vector3(0, 0, 99)));
-			CommandParameters.Add(posData = new CommandParameterData<Vector3>(Pos, () => Transform.localPosition, v => Transform.localPosition = v, (i, p) => i.PosField(p, CameraConfiguration, toggleGroup: positionData), defaultValue: new Vector3(0, 0, 99)));
+			CommandParameters.Add(positionData = new CommandParameterData<Vector3>(Position, () => Transform.localPosition, v => Transform.localPosition = v, (i, p) => i.Vector3Field(p, toggleGroup: new ToggleGroupData(posData, false)), defaultValue: new Vector3(0, 0, 99)));
+			CommandParameters.Add(posData = new CommandParameterData<Vector3>(Pos, () => Transform.localPosition, v => Transform.localPosition = v, (i, p) => i.PosField(p, CameraConfiguration, new ToggleGroupData(positionData, false)), defaultValue: new Vector3(0, 0, 99)));
 			CommandParameters.Add(new CommandParameterData<Vector3>(Rotation, () => Transform.localRotation.eulerAngles, v => Transform.localRotation = Quaternion.Euler(v), (i, p) => i.Vector3Field(p)));
 			CommandParameters.Add(new CommandParameterData<Vector3>(Scale, () => Transform.localScale, v => Transform.localScale = v, (i, p) => i.Vector3Field(p), defaultValue: Vector3.one));
 		}

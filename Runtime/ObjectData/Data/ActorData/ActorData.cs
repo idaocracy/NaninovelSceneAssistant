@@ -39,8 +39,8 @@ namespace NaninovelSceneAssistant
 				ICommandParameterData posData = null;
 				ICommandParameterData positionData = null;
 
-				CommandParameters.Add(positionData = new CommandParameterData<Vector3>(Position, () => Actor.Position, v => Actor.Position = v, (i, p) => i.Vector3Field(p, toggleGroup:posData), defaultValue: new Vector3(0,-5.4f, DefaultZOffset ?? 0)));
-				CommandParameters.Add(posData = new CommandParameterData<Vector3>(Pos, () => Actor.Position, v => Actor.Position = v, (i, p) => i.PosField(p, CameraConfiguration, toggleGroup:positionData), defaultValue: new Vector3(0, -5.4f, DefaultZOffset ?? 0)));
+				CommandParameters.Add(positionData = new CommandParameterData<Vector3>(Position, () => Actor.Position, v => Actor.Position = v, (i, p) => i.Vector3Field(p, new ToggleGroupData(posData, false)), defaultValue: new Vector3(0,-5.4f, DefaultZOffset ?? 0)));
+				CommandParameters.Add(posData = new CommandParameterData<Vector3>(Pos, () => Actor.Position, v => Actor.Position = v, (i, p) => i.PosField(p, CameraConfiguration, new ToggleGroupData(positionData, false)), defaultValue: new Vector3(0, -5.4f, DefaultZOffset ?? 0)));
 				CommandParameters.Add(new CommandParameterData<Vector3>(Rotation, () => Actor.Rotation.eulerAngles, v => Actor.Rotation = Quaternion.Euler(v), (i, p) => i.Vector3Field(p)));
 				CommandParameters.Add(new CommandParameterData<Vector3>(Scale, () => Actor.Scale, v => Actor.Scale = v, (i, p) => i.Vector3Field(p), defaultValue: Vector3.one));
 			}

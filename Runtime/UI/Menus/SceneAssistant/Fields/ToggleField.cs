@@ -8,7 +8,7 @@ namespace NaninovelSceneAssistant
         protected bool ToggleValue { get => ValueComponent.isOn; set => ValueComponent.isOn = value; }
         protected override UnityEvent<bool> Event => ValueComponent?.onValueChanged;
 
-        public virtual void Initialize(ICommandParameterData data, params ICommandParameterData[] toggleGroup)
+        public virtual void Initialize(ICommandParameterData data, params ToggleGroupData[] toggleGroup)
         {
             InitializeBaseData(data, toggleGroup);
 

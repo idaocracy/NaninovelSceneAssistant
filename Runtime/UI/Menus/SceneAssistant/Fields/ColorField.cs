@@ -25,7 +25,7 @@ namespace NaninovelSceneAssistant
 		private ICameraManager cameraManager;
 		private bool isSampling;
 
-		public virtual void Initialize(ICommandParameterData data, bool includeAlpha = true, bool includeHDR = false, params ICommandParameterData[] toggleGroup)
+		public virtual void Initialize(ICommandParameterData data, bool includeAlpha = true, bool includeHDR = false, params ToggleGroupData[] toggleGroup)
 		{
 			InitializeBaseData(data, toggleGroup);
 			cameraManager = Engine.GetService<ICameraManager>();

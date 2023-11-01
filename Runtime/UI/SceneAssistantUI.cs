@@ -14,7 +14,7 @@ namespace NaninovelSceneAssistant
 	public class SceneAssistantUI : CustomUI, ISceneAssistantUI
 	{
 		private SceneAssistantManager sceneAssistantManager;
-		public enum SceneAssistantTab { SceneAssistant, Variables, Scripts }
+		public enum SceneAssistantTab { SceneAssistant, Variables, Scripts, Unlockables }
 		public SceneAssistantWindowMenu CurrentMenu { get; private set; }
 
 		[Header("Main elements")]
@@ -27,6 +27,7 @@ namespace NaninovelSceneAssistant
 		[SerializeField] private SceneAssistantMenu sceneAssistantMenu;
 		[SerializeField] private VariablesMenu variablesMenu;
 		[SerializeField] private ScriptsMenu scriptsMenu;
+		[SerializeField] private UnlockablesMenu unlockablesMenu;
 
 		public Texture2D CursorTexture;
 		
@@ -112,6 +113,7 @@ namespace NaninovelSceneAssistant
 					sceneAssistantMenu.gameObject.SetActive(true);
 					variablesMenu.gameObject.SetActive(false);
 					scriptsMenu.gameObject.SetActive(false);
+					unlockablesMenu.gameObject.SetActive(false);
 
 					CurrentMenu = sceneAssistantMenu;
 				break;
@@ -120,18 +122,29 @@ namespace NaninovelSceneAssistant
 					sceneAssistantMenu.gameObject.SetActive(false);
 					variablesMenu.gameObject.SetActive(true);
 					scriptsMenu.gameObject.SetActive(false);
+                    unlockablesMenu.gameObject.SetActive(false);
 
-					CurrentMenu = variablesMenu;
+                    CurrentMenu = variablesMenu;
 				break;
 
 				case SceneAssistantTab.Scripts:
 					sceneAssistantMenu.gameObject.SetActive(false);
 					variablesMenu.gameObject.SetActive(false);
 					scriptsMenu.gameObject.SetActive(true);
-					
-					CurrentMenu = scriptsMenu;
+                    unlockablesMenu.gameObject.SetActive(false);
+
+                    CurrentMenu = scriptsMenu;
 				break;
-			}
+
+                case SceneAssistantTab.Unlockables:
+                    sceneAssistantMenu.gameObject.SetActive(false);
+                    variablesMenu.gameObject.SetActive(false);
+                    scriptsMenu.gameObject.SetActive(false);
+                    unlockablesMenu.gameObject.SetActive(true);
+
+                    CurrentMenu = unlockablesMenu;
+                break;
+            }
 
 			if(sceneAssistantManager.IsAvailable) CurrentMenu.InitializeMenu();
 		} 

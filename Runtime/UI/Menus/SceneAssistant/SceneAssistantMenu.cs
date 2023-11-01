@@ -195,91 +195,91 @@ namespace NaninovelSceneAssistant
 
 		private string GetGeneratedString() => !String.IsNullOrEmpty(commandNameField.text) ? "\n\n" + "; " + commandNameField.text : string.Empty + "\n" + copyBufferField.text;
 
-		public void StringField(ICommandParameterData<string> data, params ICommandParameterData[] toggleGroup) 
+		public void StringField(ICommandParameterData<string> data, params ToggleGroupData[] toggleGroup) 
 		{
 			InputField inputField = Instantiate(inputFieldPrototype, targetContainer);
 			inputField.Initialize(data, toggleGroup);
 		}
 
-		public void StringDropdownField(ICommandParameterData<string> data, string[] stringValues, params ICommandParameterData[] toggleGroup) 
+		public void StringDropdownField(ICommandParameterData<string> data, string[] stringValues, params ToggleGroupData[] toggleGroup) 
 		{
 			DropdownField inputField = Instantiate(dropdownFieldPrototype, targetContainer);
 			inputField.Initialize(data, stringValues:stringValues, toggleGroup:toggleGroup);
 		}
 
-		public void TypeDropdownField<T>(ICommandParameterData<T> data, Dictionary<string, T> values, params ICommandParameterData[] toggleGroup) 
+		public void TypeDropdownField<T>(ICommandParameterData<T> data, Dictionary<string, T> values, params ToggleGroupData[] toggleGroup) 
 		{
 			DropdownField dropdownField = Instantiate(dropdownFieldPrototype, targetContainer);
 			dropdownField.Initialize(data, stringValues:values.Keys.ToArray(), typeValues:values.Values.ToArray(), toggleGroup:toggleGroup);
 		}
 
-		public void BoolField(ICommandParameterData<bool> data, params ICommandParameterData[] toggleGroup) 
+		public void BoolField(ICommandParameterData<bool> data, params ToggleGroupData[] toggleGroup) 
 		{
 			ToggleField toggleField = Instantiate(toggleFieldPrototype, targetContainer);
 			toggleField.Initialize(data, toggleGroup);
 		}
 
-		public void IntField(ICommandParameterData<int> data, int? min, int? max, params ICommandParameterData[] toggleGroup) 
+		public void IntField(ICommandParameterData<int> data, int? min, int? max, params ToggleGroupData[] toggleGroup) 
 		{
 			ScrollableInputField inputField = Instantiate(scrollableFieldPrototype, targetContainer);
 			inputField.Initialize(data, min:min, max:max, toggleGroup: toggleGroup);
 		}
 
-		public void FloatField(ICommandParameterData<float> data, float? min = null, float? max = null, params ICommandParameterData[] toggleGroup) 
+		public void FloatField(ICommandParameterData<float> data, float? min = null, float? max = null, params ToggleGroupData[] toggleGroup) 
 		{
 			ScrollableInputField inputField = Instantiate(scrollableFieldPrototype, targetContainer);
 			inputField.Initialize(data, min:min, max:max, toggleGroup:toggleGroup);
 		}
 
-		public void FloatSliderField(ICommandParameterData<float> data, float min, float max, params ICommandParameterData[] toggleGroup)
+		public void FloatSliderField(ICommandParameterData<float> data, float min, float max, params ToggleGroupData[] toggleGroup)
 		{
 			SliderField sliderField = Instantiate(sliderFieldPrototype, targetContainer);
 			sliderField.Initialize(data, min, max, toggleGroup);
 		}
 
-		public void IntSliderField(ICommandParameterData<int> data, int min, int max, params ICommandParameterData[] toggleGroup) 
+		public void IntSliderField(ICommandParameterData<int> data, int min, int max, params ToggleGroupData[] toggleGroup) 
 		{
 			SliderField sliderField = Instantiate(sliderFieldPrototype, targetContainer);
 			sliderField.Initialize(data, min, max, toggleGroup);
 		}
 
-		public void ColorField(ICommandParameterData<Color> data, bool includeAlpha = true, bool includeHDR = false, params ICommandParameterData[] toggleGroup) 
+		public void ColorField(ICommandParameterData<Color> data, bool includeAlpha = true, bool includeHDR = false, params ToggleGroupData[] toggleGroup) 
 		{
 			ColorField colorField = Instantiate(colorFieldPrototype, targetContainer);
 			colorField.Initialize(data, includeAlpha, includeHDR, toggleGroup);
 		}
 
-		public void EnumDropdownField(ICommandParameterData<Enum> data, params ICommandParameterData[] toggleGroup) 
+		public void EnumDropdownField(ICommandParameterData<Enum> data, params ToggleGroupData[] toggleGroup) 
 		{
 			DropdownField dropdownField = Instantiate(dropdownFieldPrototype, targetContainer);
 			dropdownField.Initialize(data, toggleGroup:toggleGroup);
 		}
 
-		public void Vector2Field(ICommandParameterData<Vector2> data, params ICommandParameterData[] toggleGroup) 
+		public void Vector2Field(ICommandParameterData<Vector2> data, params ToggleGroupData[] toggleGroup) 
 		{
 			ScrollableInputField inputField = Instantiate(scrollableFieldPrototype, targetContainer);
 			inputField.Initialize(data, toggleGroup:toggleGroup);
 		}
 
-		public void Vector3Field(ICommandParameterData<Vector3> data, params ICommandParameterData[] toggleGroup) 
+		public void Vector3Field(ICommandParameterData<Vector3> data, params ToggleGroupData[] toggleGroup) 
 		{
 			ScrollableInputField inputField = Instantiate(scrollableFieldPrototype, targetContainer);
 			inputField.Initialize(data, toggleGroup:toggleGroup);
 		}
 
-		public void Vector4Field(ICommandParameterData<Vector4> data, params ICommandParameterData[] toggleGroup) 
+		public void Vector4Field(ICommandParameterData<Vector4> data, params ToggleGroupData[] toggleGroup) 
 		{
 			ScrollableInputField inputField = Instantiate(scrollableFieldPrototype, targetContainer);
 			inputField.Initialize(data, toggleGroup:toggleGroup);
 		}
 
-		public void PosField(ICommandParameterData<Vector3> data, CameraConfiguration cameraConfiguration, params ICommandParameterData[] toggleGroup) 
+		public void PosField(ICommandParameterData<Vector3> data, CameraConfiguration cameraConfiguration, params ToggleGroupData[] toggleGroup) 
 		{
 			ScrollableInputField inputField = Instantiate(scrollableFieldPrototype, targetContainer);
 			inputField.Initialize(data, cameraConfiguration:cameraConfiguration, isPos:true, toggleGroup:toggleGroup);
 		}
 
-		public void ListField(IListCommandParameterData list, params ICommandParameterData[] toggleGroup) 
+		public void ListField(IListCommandParameterData list, params ToggleGroupData[] toggleGroup) 
 		{
 			ListField listField = Instantiate(listFieldPrototype, targetContainer);
 			listField.Initialize(list, toggleGroup);

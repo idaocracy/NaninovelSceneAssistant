@@ -25,7 +25,7 @@ namespace NaninovelSceneAssistant
 		public GameObject GameObject => this.gameObject;
 		public override Toggle UIComponent => toggle;
 		protected virtual TComponent ValueComponent { get; }
-		protected ICommandParameterData[] toggleGroup { get; set; }
+		protected ToggleGroupData[] toggleGroup { get; set; }
 
 		protected virtual TextMeshProUGUI Label => button.GetComponentInChildren<TextMeshProUGUI>();
 		protected SceneAssistantMenu SceneAssistantMenu;
@@ -50,7 +50,7 @@ namespace NaninovelSceneAssistant
 			button.onClick.RemoveListener(CopyValueToBuffer);
 		}
 
-		protected void InitializeBaseData(ICommandParameterData data, ICommandParameterData[] toggleGroup)
+		protected void InitializeBaseData(ICommandParameterData data, ToggleGroupData[] toggleGroup)
 		{
 			Data = data;
 			Label.text = Data.Name;
@@ -71,16 +71,24 @@ namespace NaninovelSceneAssistant
 				{
 					foreach(var toggle in toggleGroup)
 					{
-						if(field.Data == toggle) field.ToggleInteractability(false);                    
+						if(field.Data == toggle.Data) field.ToggleInteractability(false);                    
 					} 
 				}
 			}
 			
 			if (!interactable)
 			{
-				if(toggleGroup.Length == 0) Data.ResetState();
-				else if (toggleGroup.Length > 0 && toggleGroup.Any(t => t.Selected)) return;
+				if (toggleGroup.Length == 0) Data.ResetState();
+				else if (toggleGroup.Length > 0 && toggleGroup.Any(t => t.Data.Selected)) 
+				{
+					var selected = toggleGroup.FirstOrDefault(t => t.Data.Selected);
+					if (selected.ResetOnToggle)
+					{
+						Data.ResetState();
+					}
+				} 
 				else Data.ResetState();
+
 				SceneAssistantMenu.UpdateDataValues();
 			}
 		}

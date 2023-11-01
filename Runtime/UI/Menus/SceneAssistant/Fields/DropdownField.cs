@@ -12,7 +12,7 @@ namespace NaninovelSceneAssistant
 		protected List<TMP_Dropdown.OptionData> DropdownOptions => ValueComponent.options;
 		protected override UnityEvent<int> Event => ValueComponent?.onValueChanged;
 
-		public virtual void Initialize<T>(ICommandParameterData<T> data, string[] stringValues = null, T[] typeValues = null,  params ICommandParameterData[] toggleGroup)
+		public virtual void Initialize<T>(ICommandParameterData<T> data, string[] stringValues = null, T[] typeValues = null,  params ToggleGroupData[] toggleGroup)
 		{
 			InitializeBaseData(data, toggleGroup);
 			ValueComponent.ClearOptions();

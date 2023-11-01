@@ -27,37 +27,37 @@ namespace NaninovelSceneAssistant
 			EditorGUILayout.EndHorizontal();
 		}
 
-        public void WrapInLayout<T>(Func<T> layoutField, ICommandParameterData<T> data, params ICommandParameterData[] toggleGroup)
+        public void WrapInLayout<T>(Func<T> layoutField, ICommandParameterData<T> data, params ToggleGroupData[] toggleGroup)
         {
             var value = layoutField();
             if (data.Selected) data.Value = value;
             CheckToggles(data, toggleGroup);
         }
 
-        public void BoolField(ICommandParameterData<bool> data, params ICommandParameterData[] toggleGroup)
+        public void BoolField(ICommandParameterData<bool> data, params ToggleGroupData[] toggleGroup)
 			=> WrapInLayout(() => EditorGUILayout.Toggle(data.Value), data, toggleGroup);
-		public void IntField(ICommandParameterData<int> data, int? min = null, int? max = null, params ICommandParameterData[] toggleGroup)
+		public void IntField(ICommandParameterData<int> data, int? min = null, int? max = null, params ToggleGroupData[] toggleGroup)
 			=> WrapInLayout(() => EditorGUILayout.IntField("\n", Mathf.Clamp(data.Value, min ?? int.MinValue, max ?? int.MaxValue), GUILayout.MinWidth(20)), data, toggleGroup);
-		public void IntSliderField(ICommandParameterData<int> data, int min, int max, params ICommandParameterData[] toggleGroup)
+		public void IntSliderField(ICommandParameterData<int> data, int min, int max, params ToggleGroupData[] toggleGroup)
 			=> WrapInLayout(() => EditorGUILayout.IntSlider(data.Value, min, max), data, toggleGroup);
-		public void StringField(ICommandParameterData<string> data, params ICommandParameterData[] toggleGroup)
+		public void StringField(ICommandParameterData<string> data, params ToggleGroupData[] toggleGroup)
 			=> WrapInLayout(() => EditorGUILayout.DelayedTextField(data.Value), data, toggleGroup);
-		public void ColorField(ICommandParameterData<Color> data, bool includeAlpha = true, bool includeHDR = false, params ICommandParameterData[] toggleGroup)
+		public void ColorField(ICommandParameterData<Color> data, bool includeAlpha = true, bool includeHDR = false, params ToggleGroupData[] toggleGroup)
 			=> WrapInLayout(() => EditorGUILayout.ColorField(GUIContent.none, data.Value, true, includeAlpha, includeHDR), data, toggleGroup);
-		public void FloatField(ICommandParameterData<float> data, float? min = null, float? max = null, params ICommandParameterData[] toggleGroup)
+		public void FloatField(ICommandParameterData<float> data, float? min = null, float? max = null, params ToggleGroupData[] toggleGroup)
 			=> WrapInLayout(() => EditorGUILayout.FloatField("\n", Mathf.Clamp(data.Value, min ?? float.MinValue, max ?? float.MaxValue), GUILayout.MinWidth(20)), data, toggleGroup);
-		public void FloatSliderField(ICommandParameterData<float> data, float min, float max, params ICommandParameterData[] toggleGroup)
+		public void FloatSliderField(ICommandParameterData<float> data, float min, float max, params ToggleGroupData[] toggleGroup)
 			=> WrapInLayout(() => EditorGUILayout.Slider((float)data.Value, min, max), data, toggleGroup);
-		public void Vector2Field(ICommandParameterData<Vector2> data, params ICommandParameterData[] toggleGroup)
+		public void Vector2Field(ICommandParameterData<Vector2> data, params ToggleGroupData[] toggleGroup)
 			=> WrapInLayout(() => EditorGUILayout.Vector2Field("", data.Value), data, toggleGroup);
-		public void Vector3Field(ICommandParameterData<Vector3> data, params ICommandParameterData[] toggleGroup)
+		public void Vector3Field(ICommandParameterData<Vector3> data, params ToggleGroupData[] toggleGroup)
 			=> WrapInLayout(() => EditorGUILayout.Vector3Field("", data.Value), data, toggleGroup);
-		public void Vector4Field(ICommandParameterData<Vector4> data, params ICommandParameterData[] toggleGroup)
+		public void Vector4Field(ICommandParameterData<Vector4> data, params ToggleGroupData[] toggleGroup)
 			=> WrapInLayout(() => EditorGUILayout.Vector4Field("", data.Value), data, toggleGroup);
-		public void EnumDropdownField(ICommandParameterData<Enum> data, params ICommandParameterData[] toggleGroup)
+		public void EnumDropdownField(ICommandParameterData<Enum> data, params ToggleGroupData[] toggleGroup)
 			=> WrapInLayout(() => EditorGUILayout.EnumPopup((Enum)data.Value), data, toggleGroup);
 
-		public void StringDropdownField(ICommandParameterData<string> data, string[] stringValues, params ICommandParameterData[] toggleGroup)
+		public void StringDropdownField(ICommandParameterData<string> data, string[] stringValues, params ToggleGroupData[] toggleGroup)
 		{
 			var stringIndex = stringValues.IndexOf(data.Value);
 			stringIndex = EditorGUILayout.Popup(stringValues.IndexOf(data.Value), stringValues.Select(s => s.Replace("/", "\u2215")).ToArray());
@@ -66,7 +66,7 @@ namespace NaninovelSceneAssistant
 			if(data.Selected) data.Value = stringValues[stringIndex];
 		}
 
-		public void TypeDropdownField<T>(ICommandParameterData<T> data, Dictionary<string, T> values, params ICommandParameterData[] toggleGroup)
+		public void TypeDropdownField<T>(ICommandParameterData<T> data, Dictionary<string, T> values, params ToggleGroupData[] toggleGroup)
 		{
 			var stringIndex = values.Values.Contains(data.Value) ? Array.IndexOf(values.Values.ToArray(), data.Value) : Array.IndexOf(values.Keys.ToArray(), "None");
 			stringIndex = EditorGUILayout.Popup(stringIndex, values.Keys.ToArray());
@@ -74,7 +74,7 @@ namespace NaninovelSceneAssistant
 			if(data.Selected) data.Value = (T)values.FirstOrDefault(s => s.Key == values.Keys.ToArray()[stringIndex]).Value;
 		}
 
-		public void PosField(ICommandParameterData<Vector3> data, CameraConfiguration cameraConfiguration, params ICommandParameterData[] toggleGroup)
+		public void PosField(ICommandParameterData<Vector3> data, CameraConfiguration cameraConfiguration, params ToggleGroupData[] toggleGroup)
 		{
 			var position = cameraConfiguration.WorldToSceneSpace((Vector3)data.Value);
 			position.x *= 100;
@@ -87,7 +87,7 @@ namespace NaninovelSceneAssistant
 			if(data.Selected) data.Value = position;
 		}
 
-		public void ListField(IListCommandParameterData data, params ICommandParameterData[] toggleGroup)
+		public void ListField(IListCommandParameterData data, params ToggleGroupData[] toggleGroup)
 		{
 			EditorGUILayout.BeginHorizontal();
 			DrawDataToggle(data);
@@ -149,14 +149,20 @@ namespace NaninovelSceneAssistant
 			EditorGUILayout.EndHorizontal();
 		}
 
-		private static void CheckToggles(ICommandParameterData data, params ICommandParameterData[] toggleGroup)
+		private static void CheckToggles(ICommandParameterData data, params ToggleGroupData[] toggleGroup)
 		{
 			if (!data.Selected && toggleGroup.Length == 0) data.ResetState();
-			else if (toggleGroup != null && data.Selected && toggleGroup.Any(c => c.Selected)) toggleGroup.FirstOrDefault(c => c.Selected).Selected = false;
-			else if (toggleGroup != null && !data.Selected && toggleGroup.Any(c => !c.Selected))
+			else if (toggleGroup != null && data.Selected && toggleGroup.Any(c => c.Data.Selected))
+			{
+				var selected = toggleGroup.FirstOrDefault(c => c.Data.Selected);	
+				if (selected.ResetOnToggle) selected.Data.ResetState();
+                
+				selected.Data.Selected = false;
+			}
+			else if (toggleGroup != null && !data.Selected && toggleGroup.Any(c => !c.Data.Selected))
 			{
 				data.ResetState();
-				foreach (var toggleData in toggleGroup) toggleData.ResetState();
+				foreach (var toggleData in toggleGroup) toggleData.Data.ResetState();
 			}
 		}
 

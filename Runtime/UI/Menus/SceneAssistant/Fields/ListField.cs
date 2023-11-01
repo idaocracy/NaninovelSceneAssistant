@@ -7,7 +7,7 @@ namespace NaninovelSceneAssistant
 	{
 		[SerializeField] private Transform parameterContainer;
 
-		public virtual void Initialize(IListCommandParameterData list, params ICommandParameterData[] toggleGroup)
+		public virtual void Initialize(IListCommandParameterData list, params ToggleGroupData[] toggleGroup)
 		{
 			InitializeBaseData(list, toggleGroup);
 			SceneAssistantMenu.GenerateLayout(list.Values, parameterContainer);

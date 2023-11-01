@@ -12,7 +12,7 @@ namespace NaninovelSceneAssistant
 
 		protected ScrollableFloatValueField[] FloatFields => GetComponentsInChildren<ScrollableFloatValueField>();
 
-		public void Initialize<T>(ICommandParameterData<T> data, float? min = null, float? max = null, CameraConfiguration cameraConfiguration = null, bool isPos = false, params ICommandParameterData[] toggleGroup)
+		public void Initialize<T>(ICommandParameterData<T> data, float? min = null, float? max = null, CameraConfiguration cameraConfiguration = null, bool isPos = false, params ToggleGroupData[] toggleGroup)
 		{
 			InitializeBaseData(data, toggleGroup);
 			this.cameraConfiguration = cameraConfiguration;

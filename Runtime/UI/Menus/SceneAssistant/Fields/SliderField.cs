@@ -11,7 +11,7 @@ namespace NaninovelSceneAssistant
 		protected override UnityEvent<float> Event => ValueComponent.onValueChanged;
 		[SerializeField] private TMP_InputField inputField;
 
-		public virtual void Initialize(ICommandParameterData data, float min, float max, params ICommandParameterData[] toggleGroup)
+		public virtual void Initialize(ICommandParameterData data, float min, float max, params ToggleGroupData[] toggleGroup)
 		{
 			InitializeBaseData(data, toggleGroup);
 

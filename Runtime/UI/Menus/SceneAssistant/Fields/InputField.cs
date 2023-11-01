@@ -7,7 +7,7 @@ namespace NaninovelSceneAssistant
 	{
 		protected override UnityEvent<string> Event => ValueComponent.onSubmit;
 		protected string InputValue { get => ValueComponent.text; set => ValueComponent.text = value; }
-		public virtual void Initialize(ICommandParameterData data, params ICommandParameterData[] toggleGroup)
+		public virtual void Initialize(ICommandParameterData data, params ToggleGroupData[] toggleGroup)
 		{
 			InitializeBaseData(data, toggleGroup);
 
