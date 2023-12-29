@@ -8,8 +8,8 @@ namespace NaninovelSceneAssistant
 	public class CameraData : NaninovelObjectData<ICameraManager, CameraConfiguration>, INaninovelObjectData
 	{
 		public CameraData() => Initialize();
-		
-		protected const string CameraName = "Camera", CameraCommandName = "camera";
+
+		private const string CameraName = "Camera", CameraCommandName = "camera";
 		public static string TypeId => CameraName;
 		protected override string CommandNameAndId => CameraCommandName;
 		public override string Id => GameObject.name.Replace("(Clone)", "");

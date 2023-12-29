@@ -29,7 +29,6 @@ namespace NaninovelSceneAssistant
             t.fontSize = 12;
             t.alignment = TextAlignmentOptions.Center;
             t.text = "Unlockables are unavailable in build.";
-
 #endif
 
             foreach (var data in list.Values)

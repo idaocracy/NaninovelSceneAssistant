@@ -7,14 +7,14 @@ public class VariableData
     public string Name { get; }
     public string Value { get => getValue(); set => setValue(value); }
 
-    private Func<string> getValue;
-    private Action<string> setValue;
-    private ICustomVariableManager customVariableManager;
+    private readonly Func<string> getValue;
+    private readonly Action<string> setValue;
 
     public VariableData(string name)
     {
         Name = name;
-        customVariableManager = Engine.GetService<ICustomVariableManager>();
+        
+        var customVariableManager = Engine.GetService<ICustomVariableManager>();
         getValue = () => customVariableManager.GetVariableValue(Name);
         setValue = (value) => customVariableManager.SetVariableValue(Name, value);
     }

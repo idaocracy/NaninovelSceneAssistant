@@ -40,7 +40,6 @@ namespace NaninovelSceneAssistant
 		public List<ObjectTypeToggle> ObjectTypeToggles { get => objectTypeToggleContainer.GetComponentsInChildren<ObjectTypeToggle>().ToList(); }
 		public INaninovelObjectData CurrentObject { get; protected set; }
 		
-		private static int lastIndex;
 		private static string lastObject;
 		
 		public TMP_InputField CopyBufferField => copyBufferField;
@@ -81,8 +80,7 @@ namespace NaninovelSceneAssistant
 		{
 			if(CurrentObject != null)
 			{
-				lastIndex = idDropdown.value;
-				lastObject = idDropdown.options.ElementAt(lastIndex).text;
+				lastObject = idDropdown.options[idDropdown.value].text;
 			}
 			
 			idDropdown.ClearOptions();
@@ -98,13 +96,7 @@ namespace NaninovelSceneAssistant
 			
 			if(!string.IsNullOrEmpty(lastObject))
 			{
-				if(Manager.ObjectList.Keys.ElementAt(lastIndex) == lastObject) 
-				{
-					idDropdown.value = lastIndex;
-					DisplayObjectParameters(lastIndex);
-					return;
-				}
-				else if(idDropdown.options.Any(o => o.text == lastObject))
+				if(idDropdown.options.Any(o => o.text == lastObject))
 				{
 					var newIndex = idDropdown.options.FindIndex(o => o.text == lastObject);
 					idDropdown.value = newIndex;

@@ -155,7 +155,7 @@ namespace NaninovelSceneAssistant
 			else if (toggleGroup != null && data.Selected && toggleGroup.Any(c => c.Data.Selected))
 			{
 				var selected = toggleGroup.FirstOrDefault(c => c.Data.Selected);	
-				if (selected.ResetOnToggle) selected.Data.ResetState();
+				if (selected != null && selected.ResetOnToggle) selected.Data.ResetState();
                 
 				selected.Data.Selected = false;
 			}

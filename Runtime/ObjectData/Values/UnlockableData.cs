@@ -9,15 +9,15 @@ public class UnlockableData
     public enum UnlockableState { Unlocked, Locked }
     public UnlockableState EnumValue { get => enumValue; set => enumValue = value; }
 
-    private Func<bool> getValue;
-    private Action<bool> setValue;
+    private readonly Func<bool> getValue;
+    private readonly Action<bool> setValue;
     private UnlockableState enumValue;
-    private IUnlockableManager unlockableManager;
 
     public UnlockableData(string name)
     {
         Name = name;
-        unlockableManager = Engine.GetService<IUnlockableManager>();
+        
+        var unlockableManager = Engine.GetService<IUnlockableManager>();
         getValue = () => unlockableManager.ItemUnlocked(Name);
         setValue = (value) => unlockableManager.SetItemUnlocked(Name, value);
         enumValue = getValue() ? UnlockableState.Unlocked : UnlockableState.Locked;

@@ -17,7 +17,7 @@ namespace NaninovelSceneAssistant
         }
 
         public List<ICommandParameterData> Values { get; }
-        private Action<ISceneAssistantLayout, IListCommandParameterData> getLayout;
+        private readonly Action<ISceneAssistantLayout, IListCommandParameterData> getLayout;
 
         public override string GetCommandValue(bool paramOnly = false) => CommandParameterDataExtensions.GetListValue(this, paramOnly);
         public override void DrawLayout(ISceneAssistantLayout layout) => getLayout(layout, this);

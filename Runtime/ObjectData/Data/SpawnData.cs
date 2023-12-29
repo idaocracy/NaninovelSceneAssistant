@@ -15,7 +15,7 @@ namespace NaninovelSceneAssistant
 
 		protected const string SpawnName = "Spawn", SpawnCommandName = "spawn";
 
-		protected SpawnedObject Spawned { get => Engine.GetService<SpawnManager>().GetSpawned(Id); }
+		protected SpawnedObject Spawned => Engine.GetService<SpawnManager>().GetSpawned(Id); 
 		
 		public override string Id => id;
 		public static string TypeId => SpawnName;

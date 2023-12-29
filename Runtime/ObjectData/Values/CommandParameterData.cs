@@ -50,13 +50,13 @@ namespace NaninovelSceneAssistant
 			get => getValue();  
 			set => setValue(value);
 		}
-		private Func<T> getValue;
-		public Action<T> setValue;
+		private readonly Func<T> getValue;
+		private readonly Action<T> setValue;
 
 		public T State { get; private set; }
 		public T Default { get; }
 
-		private Action<ISceneAssistantLayout, ICommandParameterData<T>> getLayout;
+		private readonly Action<ISceneAssistantLayout, ICommandParameterData<T>> getLayout;
 
 		public CommandParameterData(string name, Func<T> getValue, Action<T> setValue, Action<ISceneAssistantLayout, ICommandParameterData<T>> getLayout, 
 			T defaultValue = default, params Func<bool>[] conditions) : base(name, conditions) 

@@ -15,7 +15,7 @@ namespace NaninovelSceneAssistant
 	{
 		private SceneAssistantManager sceneAssistantManager;
 		public enum SceneAssistantTab { SceneAssistant, Variables, Scripts, Unlockables }
-		public SceneAssistantWindowMenu CurrentMenu { get; private set; }
+		private SceneAssistantWindowMenu currentMenu;
 
 		[Header("Main elements")]
 		[SerializeField] private Toggle rollbackToggle;
@@ -43,7 +43,7 @@ namespace NaninovelSceneAssistant
 			inputManager = Engine.GetService<IInputManager>();
 			scriptPlayer = Engine.GetService<IScriptPlayer>();
 			stateManager = Engine.GetService<IStateManager>();
-			CurrentMenu = sceneAssistantMenu;
+			currentMenu = sceneAssistantMenu;
 		}
 
 		protected override void OnEnable()
@@ -92,7 +92,7 @@ namespace NaninovelSceneAssistant
 			{
 				if(sceneAssistantManager != null && sceneAssistantManager.Initialized)
 				{
-					CurrentMenu.DestroyMenu();
+					currentMenu.DestroyMenu();
 					sceneAssistantManager.DestroySceneAssistant();
 					inputManager.GetRollback().Enabled = defaultRollbackValue;
 				}
@@ -115,7 +115,7 @@ namespace NaninovelSceneAssistant
 					scriptsMenu.gameObject.SetActive(false);
 					unlockablesMenu.gameObject.SetActive(false);
 
-					CurrentMenu = sceneAssistantMenu;
+					currentMenu = sceneAssistantMenu;
 				break;
 
 				case SceneAssistantTab.Variables:
@@ -124,7 +124,7 @@ namespace NaninovelSceneAssistant
 					scriptsMenu.gameObject.SetActive(false);
                     unlockablesMenu.gameObject.SetActive(false);
 
-                    CurrentMenu = variablesMenu;
+                    currentMenu = variablesMenu;
 				break;
 
 				case SceneAssistantTab.Scripts:
@@ -133,7 +133,7 @@ namespace NaninovelSceneAssistant
 					scriptsMenu.gameObject.SetActive(true);
                     unlockablesMenu.gameObject.SetActive(false);
 
-                    CurrentMenu = scriptsMenu;
+                    currentMenu = scriptsMenu;
 				break;
 
                 case SceneAssistantTab.Unlockables:
@@ -142,17 +142,17 @@ namespace NaninovelSceneAssistant
                     scriptsMenu.gameObject.SetActive(false);
                     unlockablesMenu.gameObject.SetActive(true);
 
-                    CurrentMenu = unlockablesMenu;
+                    currentMenu = unlockablesMenu;
                 break;
             }
 
-			if(sceneAssistantManager.IsAvailable) CurrentMenu.InitializeMenu();
+			if(sceneAssistantManager.IsAvailable) currentMenu.InitializeMenu();
 		} 
 		
 		public override void Show()
 		{
 			if(!sceneAssistantManager.Initialized) sceneAssistantManager.InitializeSceneAssistant();
-			CurrentMenu.InitializeMenu();
+			currentMenu.InitializeMenu();
 			base.Show();
 		}
 	}

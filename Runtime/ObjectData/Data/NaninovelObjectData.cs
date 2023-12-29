@@ -24,8 +24,8 @@ namespace NaninovelSceneAssistant {
 			AddCommandParameters();
 		}
 
-		protected TService Service { get => Engine.GetService<TService>(); }
-		protected TConfig Config { get => Engine.GetConfiguration<TConfig>(); }
+		protected TService Service => Engine.GetService<TService>();
+		protected TConfig Config => Engine.GetConfiguration<TConfig>();
 		public abstract string Id { get; }
 		public abstract GameObject GameObject { get; }
 		public virtual List<ICommandParameterData> CommandParameters { get; protected set; } = new List<ICommandParameterData>();
