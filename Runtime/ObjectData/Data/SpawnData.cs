@@ -76,11 +76,14 @@ namespace NaninovelSceneAssistant
 		{
 			ICommandParameterData posData = null;
 			ICommandParameterData positionData = null;
-
+			ICommandParameterData vectorScaleData = null;
+			ICommandParameterData uniformScaleData = null;
+			
 			CommandParameters.Add(positionData = new CommandParameterData<Vector3>(Position, () => Transform.localPosition, v => Transform.localPosition = v, (i, p) => i.Vector3Field(p, toggleGroup: new ToggleGroupData(posData, false)), defaultValue: new Vector3(0, 0, 99)));
 			CommandParameters.Add(posData = new CommandParameterData<Vector3>(Pos, () => Transform.localPosition, v => Transform.localPosition = v, (i, p) => i.PosField(p, CameraConfiguration, new ToggleGroupData(positionData, false)), defaultValue: new Vector3(0, 0, 99)));
 			CommandParameters.Add(new CommandParameterData<Vector3>(Rotation, () => Transform.localRotation.eulerAngles, v => Transform.localRotation = Quaternion.Euler(v), (i, p) => i.Vector3Field(p)));
-			CommandParameters.Add(new CommandParameterData<Vector3>(Scale, () => Transform.localScale, v => Transform.localScale = v, (i, p) => i.Vector3Field(p), defaultValue: Vector3.one));
+			CommandParameters.Add(vectorScaleData = new CommandParameterData<Vector3>(Scale, () => Transform.localScale, v => Transform.localScale = v, (i, p) => i.Vector3Field(p, new ToggleGroupData(uniformScaleData)), defaultValue: Vector3.one));
+			CommandParameters.Add(uniformScaleData = new CommandParameterData<float>(Scale, () => Transform.localScale.x, v => Transform.localScale = new Vector3(v,v,v), (i, p) => i.FloatField(p, toggleGroup:new ToggleGroupData(vectorScaleData)), defaultValue: 1f));
 		}
 
 		protected override void AddCommandParameters()
