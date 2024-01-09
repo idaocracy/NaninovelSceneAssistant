@@ -18,7 +18,7 @@ namespace NaninovelSceneAssistant
 
         protected override void ClearMenu() => DataFields.ForEach(f => Destroy(f.gameObject));
 
-        protected override void ResetMenu() => GenerateLayout(Manager.UnlockablesList);
+        protected override void ResetMenu() => GenerateLayout(Manager.UnlockableDataList);
 
         public void GenerateLayout(SortedList<string, UnlockableData> list)
         {
@@ -48,7 +48,7 @@ namespace NaninovelSceneAssistant
             base.EvaluateSearch(search);
 
             ClearMenu();
-            foreach (UnlockableData unlockable in Manager.UnlockablesList.Values)
+            foreach (UnlockableData unlockable in Manager.UnlockableDataList.Values)
             {
                 if (!string.IsNullOrEmpty(search) && unlockable.Name.IndexOf(search, StringComparison.OrdinalIgnoreCase) < 0) continue;
                 unlockable.DisplayField(this);

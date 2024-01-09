@@ -20,10 +20,10 @@ namespace NaninovelSceneAssistant
 
 		protected override void ResetMenu() 
 		{
-			foreach(var scriptName in Manager.ScriptsList) ScriptField(scriptName);
+			foreach(var script in Manager.ScriptDataList) ScriptField(script.Key, script.Value.Labels);
 		}
 		
-		public void ScriptField(string name)
+		public void ScriptField(string name, List<string> labels)
 		{
 			var scriptField = Instantiate(scriptFieldPrototype, dataContainer);
 			scriptField.Initialize(name);
@@ -34,10 +34,10 @@ namespace NaninovelSceneAssistant
 			base.EvaluateSearch(search);
 
 			ClearMenu();
-			foreach (var scriptName in Manager.ScriptsList)
+			foreach (var script in Manager.ScriptDataList.Values)
 			{
-				if (!string.IsNullOrEmpty(search) && scriptName.IndexOf(search, StringComparison.OrdinalIgnoreCase) < 0) continue;
-				ScriptField(scriptName);
+				if (!string.IsNullOrEmpty(search) && script.Name.IndexOf(search, StringComparison.OrdinalIgnoreCase) < 0) continue;
+				script.DisplayField(this);
 			}
 		}
 	}

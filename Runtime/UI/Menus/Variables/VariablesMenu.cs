@@ -17,7 +17,7 @@ namespace NaninovelSceneAssistant
 		protected override void ClearMenu() => DataFields.ForEach(f => Destroy(f.gameObject));
 		protected override void ResetMenu() 
 		{
-			GenerateLayout(Manager.CustomVarList);
+			GenerateLayout(Manager.VariableDataList);
 		}
 		
 		public void GenerateLayout(SortedList<string, VariableData> list)
@@ -36,7 +36,7 @@ namespace NaninovelSceneAssistant
 			base.EvaluateSearch(search);
 
 			ClearMenu();
-			foreach (VariableData variable in Manager.CustomVarList.Values)
+			foreach (VariableData variable in Manager.VariableDataList.Values)
 			{
 				if (!string.IsNullOrEmpty(search) && variable.Name.IndexOf(search, StringComparison.OrdinalIgnoreCase) < 0) continue;
 				variable.DisplayField(this);

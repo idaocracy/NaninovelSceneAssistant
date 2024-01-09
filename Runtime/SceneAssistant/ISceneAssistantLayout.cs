@@ -35,6 +35,6 @@ namespace NaninovelSceneAssistant {
 	
 	public interface IScriptLayout
 	{
-		void ScriptField(string scriptName);
+		void ScriptField(string scriptName, List<string> labels);
 	}
 }

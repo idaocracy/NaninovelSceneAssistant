@@ -1,14 +1,17 @@
 ﻿using Naninovel;
 using Naninovel.Commands;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace NaninovelSceneAssistant
 {
 	[InitializeAtRuntime]
-	public class SceneAssistantManager : IEngineService
+	public class SceneAssistantManager : IEngineService<SceneAssistantConfiguration>
 	{
+		public SceneAssistantConfiguration Configuration { get; }
+		public SceneAssistantManager(SceneAssistantConfiguration config) => Configuration = config;
+		
 		private IReadOnlyCollection<IActorManager> actorServices;
 		private ISpawnManager spawnManager;
 		private IScriptPlayer scriptPlayer;
@@ -17,9 +20,14 @@ namespace NaninovelSceneAssistant
 
 		public Dictionary<string, INaninovelObjectData> ObjectList { get; protected set; } = new Dictionary<string, INaninovelObjectData>();
 		public Dictionary<Type, bool> ObjectTypeList { get; protected set; } = new Dictionary<Type, bool>();
-		public SortedList<string, VariableData> CustomVarList { get; protected set; } = new SortedList<string, VariableData> { };
-		public SortedList<string, UnlockableData> UnlockablesList { get; protected set; } = new SortedList<string, UnlockableData> { };
-		public List<string> ScriptsList { get; protected set; } = new List<string>();
+		public SortedList<string, VariableData> VariableDataList { get; protected set; } = new SortedList<string, VariableData> { };
+		public SortedList<string, UnlockableData> UnlockableDataList { get; protected set; } = new SortedList<string, UnlockableData> { };
+		public SortedList<string, ScriptData> ScriptDataList { get; protected set; } = new SortedList<string, ScriptData>();
+		public Dictionary<string, string[]> VariableFilterMenus { get; protected set; } = new Dictionary<string, string[]>() { };
+		public Dictionary<string, string> UnlockableFilterMenus { get; protected set; } = new Dictionary<string, string>() { };
+
+		public Dictionary<string, string> ScriptFilterMenus { get; protected set; } = new Dictionary<string, string>() { };
+
 		public bool IsAvailable { get; protected set; }
 		public bool Initialized {get; protected set; }
 
@@ -45,17 +53,84 @@ namespace NaninovelSceneAssistant
 		public virtual async void InitializeSceneAssistant()
 		{
 			if(Initialized) return;
-			
 			GetServices();
-			await LocateScriptsAsync();
-
 			ResetSceneAssistant();
 
 			scriptPlayer.OnCommandExecutionStart += ClearSceneAssistantOnCommandStart;
 			scriptPlayer.OnCommandExecutionFinish += ResetSceneAssistantOnCommandFinish;
+			
+			foreach (var variable in variableManager.GetAllVariables()) 
+				VariableDataList.Add(variable.Name, new VariableData(variable.Name));
+			variableManager.OnVariableUpdated += HandleOnVariableUpdated;
+			InitializeVariableFilterMenus();
 
+			foreach (var unlockable in unlockableManager.GetAllItems()) 
+				UnlockableDataList.Add(unlockable.Key, new UnlockableData(unlockable.Key));
+			unlockableManager.OnItemUpdated += HandleOnUnlockableUpdated;
+			InitializeUnlockableFilterMenus();
+			
+			await LocateScriptsAsync();
+			InitializeScriptFilterMenus();
+			
 			Initialized = true;
 		}
+
+		private void InitializeVariableFilterMenus()
+		{
+			VariableFilterMenus.Add("All", Array.Empty<string>());
+
+			if (Configuration.CreateCharactersVariableMenu)
+			{
+				var actorMap = Engine.GetService<ICharacterManager>().Configuration.ActorMetadataMap;
+				VariableFilterMenus.Add("Characters", actorMap.GetAllIds().Select(id => id).ToArray());
+			}
+			
+			foreach (var menu in Configuration.CustomVariableMenus) 
+				if(!string.IsNullOrEmpty(menu)) VariableFilterMenus.Add(FormatFilterMenuItem(menu), new string[] { menu });
+		}
+        
+		private void InitializeScriptFilterMenus()
+		{
+			ScriptFilterMenus.Add("All", string.Empty);
+			if (Configuration.CreateChaptersMenu) ScriptFilterMenus.Add("Chapters", Configuration.ChapterVariableTemplate);
+			foreach (var menu in Configuration.ScriptsMenus)
+				if(!string.IsNullOrEmpty(menu)) ScriptFilterMenus.Add(FormatFilterMenuItem(menu), menu);
+		}
+
+		private void InitializeUnlockableFilterMenus()
+		{
+			UnlockableFilterMenus.Add("All", string.Empty);
+			if (Configuration.CreateCGMenu) UnlockableFilterMenus.Add("CG", "CG/");
+			foreach (var menu in Configuration.UnlockableMenus)
+				if(!string.IsNullOrEmpty(menu)) UnlockableFilterMenus.Add(FormatFilterMenuItem(menu), menu);
+		}
+		
+		private static string FormatFilterMenuItem(string value)
+		{
+			if (!value.EndsWith("_")) return value;
+			return value.Substring(0, value.Length - 1);
+		}
+		
+		private void HandleOnVariableUpdated(CustomVariableUpdatedArgs args)
+		{
+			if(!VariableDataList.ContainsKey(args.Name)) VariableDataList.Add(args.Name, new VariableData(args.Name));
+			else
+			{
+				var variable = VariableDataList.FirstOrDefault(v => v.Key == args.Name);
+				if (variable.Value.Value != args.Value) variable.Value.Value = args.Value;
+			}
+		}
+
+		private void HandleOnUnlockableUpdated(UnlockableItemUpdatedArgs args)
+		{
+			if(!UnlockableDataList.ContainsKey(args.Id)) VariableDataList.Add(args.Id, new VariableData(args.Id));
+			else
+			{
+				var unlockable = UnlockableDataList.FirstOrDefault(u => u.Key == args.Id);
+				if (unlockable.Value.Value != args.Unlocked) unlockable.Value.Value = args.Unlocked;
+			}
+		}
+		
 		private async UniTask LocateScriptsAsync()
 		{
 			var resourceProviderManager = Engine.GetService<IResourceProviderManager>();
@@ -64,15 +139,33 @@ namespace NaninovelSceneAssistant
 			foreach (var provider in resourceProviderManager.GetProviders(scriptsConfiguration.Loader.ProviderTypes))
 			{
 				var paths = await provider.LocateResourcesAsync<Script>(scriptsConfiguration.Loader.PathPrefix);
-				foreach (var path in paths) ScriptsList.Add(path.Split("/".ToCharArray()).Last());
+				foreach (var path in paths)
+				{
+					var scriptName = path.Split("/".ToCharArray()).Last();
+					ScriptDataList.Add(scriptName, new ScriptData(scriptName));
+				}
 			}
-
+			
 			await UniTask.CompletedTask;
 		}
 		public virtual void DestroySceneAssistant()
 		{
 			ClearSceneAssistant();
 
+			scriptPlayer.OnCommandExecutionStart -= ClearSceneAssistantOnCommandStart;
+			scriptPlayer.OnCommandExecutionFinish -= ResetSceneAssistantOnCommandFinish;
+			
+			variableManager.OnVariableUpdated -= HandleOnVariableUpdated;
+			unlockableManager.OnItemUpdated -= HandleOnUnlockableUpdated;
+			
+			VariableDataList.Clear();
+			UnlockableDataList.Clear();
+			ScriptDataList.Clear();
+			
+			VariableFilterMenus.Clear();
+			UnlockableFilterMenus.Clear();
+			ScriptFilterMenus.Clear();
+			
 			if (scriptPlayer.PlayedScript != null && !scriptPlayer.Playing)
 			{
 				scriptPlayer.SetWaitingForInputEnabled(true);
@@ -81,6 +174,7 @@ namespace NaninovelSceneAssistant
 			
 			Initialized = false;
 		}
+		
 		private void ClearSceneAssistantOnCommandStart(Command command) 
 		{
 			ClearSceneAssistant();
@@ -99,9 +193,6 @@ namespace NaninovelSceneAssistant
 			{
 				foreach(var data in obj.CommandParameters) if(data is IDisposable disposable) disposable.Dispose();
 			}
-
-			CustomVarList.Clear();
-			UnlockablesList.Clear();
 			ObjectTypeList.Clear();
 			ObjectList.Clear();
 		}
@@ -111,9 +202,6 @@ namespace NaninovelSceneAssistant
 			if(IsAvailable) return;
 			
 			ResetObjectList();
-			foreach (var variable in variableManager.GetAllVariables()) CustomVarList.Add(variable.Name, new VariableData(variable.Name));
-			foreach (var unlockable in unlockableManager.GetAllItems()) UnlockablesList.Add(unlockable.Key, new UnlockableData(unlockable.Key));
-						
 			IsAvailable = true;
 			OnSceneAssistantReset?.Invoke();
 		}
