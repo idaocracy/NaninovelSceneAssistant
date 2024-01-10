@@ -609,14 +609,13 @@ namespace NaninovelSceneAssistant
 
         private static bool CheckScriptRegex(string scriptName, params string[] filters)
         {
-
             if (filters.Any(scriptName.StartsWith)) return true;
 
             if (filters.Any(f => f.Contains("{%") && f.Contains("%}")))
             {
                 var config = sceneAssistantManager.Configuration;
-                var startFilter = config.ChapterVariableTemplate.GetBefore("{%");
-                var endFilter = config.ChapterVariableTemplate.GetAfter("%}");
+                var startFilter = config.ChapterVariableFilterTemplate.GetBefore("{%");
+                var endFilter = config.ChapterVariableFilterTemplate.GetAfter("%}");
 
                 var regex = String.Empty;
                 if (filters.Any(f => f.Contains("{%NUMBER%}"))) regex = @"\d+";

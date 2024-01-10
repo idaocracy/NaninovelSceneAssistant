@@ -11,8 +11,8 @@ namespace NaninovelSceneAssistant
         protected override Dictionary<string, Action<SerializedProperty>> OverrideConfigurationDrawers ()
         {
             var drawers = base.OverrideConfigurationDrawers();
-            drawers[nameof(SceneAssistantConfiguration.CharacterVariableTemplate)] = p => DrawWhen(Configuration.CreateCharactersVariableMenu, p);
-            drawers[nameof(SceneAssistantConfiguration.ChapterVariableTemplate)] = p => DrawWhen(Configuration.CreateChaptersMenu, p);
+            drawers[nameof(SceneAssistantConfiguration.CharacterVariableFilterTemplate)] = p => DrawWhen(Configuration.CreateCharactersVariableFilterMenu, p);
+            drawers[nameof(SceneAssistantConfiguration.ChapterVariableFilterTemplate)] = p => DrawWhen(Configuration.CreateChapterFilterMenu, p);
 
             return drawers;
         }

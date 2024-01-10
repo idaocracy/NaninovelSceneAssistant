@@ -2,9 +2,7 @@
 using Naninovel.Commands;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using UnityEngine;
 
 namespace NaninovelSceneAssistant
 {
@@ -81,29 +79,29 @@ namespace NaninovelSceneAssistant
 		{
 			VariableFilterMenus.Add("All", Array.Empty<string>());
 
-			if (Configuration.CreateCharactersVariableMenu)
+			if (Configuration.CreateCharactersVariableFilterMenu)
 			{
 				var actorMap = Engine.GetService<ICharacterManager>().Configuration.ActorMetadataMap;
 				VariableFilterMenus.Add("Characters", actorMap.GetAllIds().Select(id => id).ToArray());
 			}
 			
-			foreach (var menu in Configuration.CustomVariableMenus) 
+			foreach (var menu in Configuration.CustomVariableFilterMenus) 
 				if(!string.IsNullOrEmpty(menu)) VariableFilterMenus.Add(FormatFilterMenuItem(menu), new string[] { menu });
 		}
         
 		private void InitializeScriptFilterMenus()
 		{
 			ScriptFilterMenus.Add("All", string.Empty);
-			if (Configuration.CreateChaptersMenu) ScriptFilterMenus.Add("Chapters", Configuration.ChapterVariableTemplate);
-			foreach (var menu in Configuration.ScriptsMenus)
+			if (Configuration.CreateChapterFilterMenu) ScriptFilterMenus.Add("Chapters", Configuration.ChapterVariableFilterTemplate);
+			foreach (var menu in Configuration.ScriptFilterMenus)
 				if(!string.IsNullOrEmpty(menu)) ScriptFilterMenus.Add(FormatFilterMenuItem(menu), menu);
 		}
 
 		private void InitializeUnlockableFilterMenus()
 		{
 			UnlockableFilterMenus.Add("All", string.Empty);
-			if (Configuration.CreateCGMenu) UnlockableFilterMenus.Add("CG", "CG/");
-			foreach (var menu in Configuration.UnlockableMenus)
+			if (Configuration.CreateCGFilterMenu) UnlockableFilterMenus.Add("CG", "CG/");
+			foreach (var menu in Configuration.UnlockableFilterMenus)
 				if(!string.IsNullOrEmpty(menu)) UnlockableFilterMenus.Add(FormatFilterMenuItem(menu), menu);
 		}
 		
