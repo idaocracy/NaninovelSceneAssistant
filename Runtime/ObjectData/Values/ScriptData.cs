@@ -16,11 +16,13 @@ namespace  NaninovelSceneAssistant
         private readonly Func<List<string>> getLabels;
 
         protected IScriptManager ScriptManager = Engine.GetService<IScriptManager>();
+        protected IResourceProviderManager ResourceProviderManager = Engine.GetService<IResourceProviderManager>();
+        
 
-        public ScriptData(string name)
+        public ScriptData(Script value)
         {
-            Name = name;
-            Value = ScriptManager.GetScript(name);
+            Name = value.Name;
+            Value = value;
 
             getLabels = () => Value.Lines
                 .OfType<LabelScriptLine>()

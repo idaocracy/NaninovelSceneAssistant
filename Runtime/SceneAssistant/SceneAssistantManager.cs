@@ -2,7 +2,9 @@
 using Naninovel.Commands;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using UnityEngine;
 
 namespace NaninovelSceneAssistant
 {
@@ -138,11 +140,11 @@ namespace NaninovelSceneAssistant
 
 			foreach (var provider in resourceProviderManager.GetProviders(scriptsConfiguration.Loader.ProviderTypes))
 			{
-				var paths = await provider.LocateResourcesAsync<Script>(scriptsConfiguration.Loader.PathPrefix);
-				foreach (var path in paths)
+				var paths = await provider.LoadResourcesAsync<Script>(scriptsConfiguration.Loader.PathPrefix);
+				foreach (var resource in paths)
 				{
-					var scriptName = path.Split("/".ToCharArray()).Last();
-					ScriptDataList.Add(scriptName, new ScriptData(scriptName));
+					var scriptName = resource.Path.Split("/".ToCharArray()).Last();
+					ScriptDataList.Add(scriptName, new ScriptData(resource));
 				}
 			}
 			
