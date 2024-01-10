@@ -7,7 +7,7 @@ public class VariableData : IDisposable
     public string Name { get; }
     public string Value { get => getValue(); set => setValue(value); }
     public bool Changed { get; set; }
-    public string State { get; set; }
+    //public string State { get; set; }
 
     private readonly Func<string> getValue;
     private readonly Action<string> setValue;
@@ -22,7 +22,7 @@ public class VariableData : IDisposable
         getValue = () => customVariableManager.GetVariableValue(Name);
         setValue = (value) => customVariableManager.SetVariableValue(Name, value);
 
-        State = Value;
+        //State = Value;
 
         SceneAssistantManager = Engine.GetService<SceneAssistantManager>();
         SceneAssistantManager.OnSceneAssistantReset += HandleReset;
@@ -30,7 +30,7 @@ public class VariableData : IDisposable
 
     private void HandleReset()
     {
-        //todo get the state previous state, not initial value
+        //todo get the previous state, not initial value
         Changed = false;
     }
     
