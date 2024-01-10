@@ -38,7 +38,7 @@ Check this video for a quick guide on installation and usage. Please note that t
 
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/Qc5XYE-ojx8/0.jpg)](https://www.youtube.com/watch?v=Qc5XYE-ojx8)  
 
-## Overview
+## Scene Assistant Overview
 
 <img width="500" alt="image" src="https://github.com/idaocracy/NaninovelSceneAssistant/assets/77254066/9de32a61-ed85-4707-8d92-63604f8b10e4">
 
@@ -81,8 +81,18 @@ ____
 - Load Pose: Use this to load one of the available poses.
 - Save Pose: Name a pose and once saved, it will be copied alongside the object's current values directly to the actor or shared configuration.  
 
+## Debug menus  
+
+In addition, Naninovel Scene Assistant has debug menus for the following items: custom variables, unlockables and naniscripts.<br /><br />
+On top of searching for specific items, it's possible to create filter menus as well as generate a menu based on a regex template (available for characters and chapters). All of these can be configured in the Scene Assistant configuration (available in 2.5.0+)
+<br /><br />
+<img width="783" alt="image" src="https://github.com/idaocracy/NaninovelSceneAssistant/assets/77254066/8cbe30f8-f710-492f-99ec-ef5bc49e221d"><br />
+The above screenshot demonstrates how a Characters filter menu is generated as well as two other filter menus specified in the filter menu options list.
+<br /><br />
+Please be aware that the filter menus are only available in the editor version, they will be added to the UI version at a later point.
+
 ## Current limitations
-- The float parameter fields are fugly as heck. Unfortunately due to the limitations of FloatField, I couldn't make them any prettier.
+- The float parameter fields in the editor version are fugly as heck. Unfortunately due to the limitations of FloatField, I couldn't make them any prettier.
 
 ## Contact
 If you need help with the extension, you can contact me on here or on Discord. I am the tech support person (only yellow username) on the Naninovel discord.  
