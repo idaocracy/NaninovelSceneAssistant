@@ -197,11 +197,11 @@ namespace NaninovelSceneAssistant
 
 			if (var.Changed)
 			{
-				if (GUILayout.Button(resetIcon, GUILayout.Width(25), GUILayout.Height(18)))
-				{
-					var.Value = var.State;
-					var.Changed = false;
-				}
+				// if (GUILayout.Button(resetIcon, GUILayout.Width(25), GUILayout.Height(18)))
+				// {
+				// 	var.Value = var.State;
+				// 	var.Changed = false;
+				// }
 			}
 
 			EditorGUILayout.EndHorizontal();
