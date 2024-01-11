@@ -5,14 +5,14 @@ using System;
 public class VariableData : IDisposable
 {
     public string Name { get; }
-    public string Value { get => getValue(); set => setValue(value); }
+    public string Value { get => getValue(); set { if(SceneAssistantManager.IsAvailable) setValue(value); } }
     public bool Changed { get; set; }
     //public string State { get; set; }
 
     private readonly Func<string> getValue;
     private readonly Action<string> setValue;
 
-    protected SceneAssistantManager SceneAssistantManager;
+    protected SceneAssistantManager SceneAssistantManager => Engine.GetService<SceneAssistantManager>();
 
     public VariableData(string name)
     {
@@ -24,7 +24,6 @@ public class VariableData : IDisposable
 
         //State = Value;
 
-        SceneAssistantManager = Engine.GetService<SceneAssistantManager>();
         SceneAssistantManager.OnSceneAssistantReset += HandleReset;
     }
 

@@ -3,6 +3,7 @@ using Naninovel.Commands;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace NaninovelSceneAssistant
 {
@@ -17,6 +18,7 @@ namespace NaninovelSceneAssistant
 		private IScriptPlayer scriptPlayer;
 		private ICustomVariableManager variableManager;
 		private IUnlockableManager unlockableManager;
+		private IStateManager stateManager;
 
 		public Dictionary<string, INaninovelObjectData> ObjectList { get; protected set; } = new Dictionary<string, INaninovelObjectData>();
 		public Dictionary<Type, bool> ObjectTypeList { get; protected set; } = new Dictionary<Type, bool>();
@@ -49,6 +51,7 @@ namespace NaninovelSceneAssistant
 			scriptPlayer = Engine.GetService<IScriptPlayer>();
 			variableManager = Engine.GetService<ICustomVariableManager>();
 			unlockableManager = Engine.GetService<IUnlockableManager>();
+			stateManager = Engine.GetService<IStateManager>();
 		}
 		public virtual async void InitializeSceneAssistant()
 		{
@@ -58,6 +61,10 @@ namespace NaninovelSceneAssistant
 
 			scriptPlayer.OnCommandExecutionStart += ClearSceneAssistantOnCommandStart;
 			scriptPlayer.OnCommandExecutionFinish += ResetSceneAssistantOnCommandFinish;
+			
+			stateManager.OnGameLoadFinished += HandleGameLoadFinished;
+			stateManager.OnResetFinished += UpdateDataLists;
+			stateManager.OnRollbackFinished += UpdateDataLists;
 			
 			foreach (var variable in variableManager.GetAllVariables()) 
 				VariableDataList.Add(variable.Name, new VariableData(variable.Name));
@@ -73,6 +80,17 @@ namespace NaninovelSceneAssistant
 			InitializeScriptFilterMenus();
 			
 			Initialized = true;
+		}
+
+		private void HandleGameLoadFinished(GameSaveLoadArgs args) => UpdateDataLists();
+
+		private void UpdateDataLists()
+		{
+			foreach (var variableData in VariableDataList.ToList())
+			{
+				if (variableManager.GetAllVariables().All(v => v.Name != variableData.Key))
+					VariableDataList.Remove(variableData.Key);
+			}
 		}
 
 		private void InitializeVariableFilterMenus()
@@ -152,6 +170,10 @@ namespace NaninovelSceneAssistant
 		{
 			ClearSceneAssistant();
 
+			stateManager.OnGameLoadFinished -= HandleGameLoadFinished;
+			stateManager.OnResetFinished -= UpdateDataLists;
+			stateManager.OnRollbackFinished -= UpdateDataLists;
+			
 			scriptPlayer.OnCommandExecutionStart -= ClearSceneAssistantOnCommandStart;
 			scriptPlayer.OnCommandExecutionFinish -= ResetSceneAssistantOnCommandFinish;
 			

@@ -5,7 +5,7 @@ using System;
 public class UnlockableData
 {
     public string Name { get; }
-    public bool Value { get => getValue(); set => setValue(value); }
+    public bool Value { get => getValue(); set { if(SceneAssistantManager.IsAvailable) setValue(value); } }
     public enum UnlockableState { Unlocked, Locked }
     public UnlockableState EnumValue { get => enumValue; set => enumValue = value; }
 
@@ -13,6 +13,8 @@ public class UnlockableData
     private readonly Action<bool> setValue;
     private UnlockableState enumValue;
 
+    protected SceneAssistantManager SceneAssistantManager => Engine.GetService<SceneAssistantManager>();
+    
     public UnlockableData(string name)
     {
         Name = name;
