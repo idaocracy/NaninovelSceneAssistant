@@ -533,11 +533,11 @@ namespace NaninovelSceneAssistant
             
             EditorGUILayout.EndScrollView();
 
-            void DrawVariables(string[] filterMenus)
+            void DrawVariables(string[] filters)
             {
                 foreach (VariableData variable in sceneAssistantManager.VariableDataList.Values)
                 {
-                    if(filterMenus.Length > 0 && !CheckScriptRegex(variable.Name, filterMenus)) continue;
+                    if(filters.Length > 0 && !CheckScriptRegex(variable.Name, filters)) continue;
                     if (!string.IsNullOrEmpty(search) && variable.Name.IndexOf(search, StringComparison.OrdinalIgnoreCase) < 0) continue;
 
                     EditorGUILayout.BeginHorizontal();
