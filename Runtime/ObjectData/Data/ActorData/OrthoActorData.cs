@@ -4,6 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Naninovel;
+#if SPRITE_DICING_AVAILABLE
+using SpriteDicing;
+#endif
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -39,6 +42,9 @@ namespace NaninovelSceneAssistant
 			// as otherwise the dropdown list won't appear in build. await LocateResourcesAtPathAsync<UnityEngine.Object>() will work for all types in the editor.
 			if(Actor is SpriteCharacter || Actor is SpriteBackground)  return await LocateResourcesAtPathAsync<Texture2D>();
 			else if(Actor is VideoCharacter || Actor is VideoBackground)  return await LocateResourcesAtPathAsync<VideoClip>();
+			#if SPRITE_DICING_AVAILABLE
+			else if (Actor is DicedSpriteCharacter || Actor is DicedSpriteBackground) return GetAtlasSprites();
+			#endif
 			else return await LocateResourcesAtPathAsync<UnityEngine.Object>();
 			
 			async UniTask <string[]> LocateResourcesAtPathAsync<T>() where T: UnityEngine.Object
@@ -54,6 +60,23 @@ namespace NaninovelSceneAssistant
 				} 
 				return appearances.ToArray();
 			} 
+			
+			#if SPRITE_DICING_AVAILABLE
+			string[] GetAtlasSprites()
+			{
+				var actorPath = Metadata.Loader.PathPrefix + "/" + Id;
+				var resourcePath = providers.GetLoadedResourceOrNull<DicedSpriteAtlas>(actorPath);
+				var resourcePaths = resourcePath.Object.Sprites;
+				var appearances = new List<string>();
+				
+				foreach (var path in resourcePaths)
+				{
+					var appearance = path.name;
+					appearances.Add(appearance);
+				} 
+				return appearances.ToArray();
+			} 
+			#endif
 		}
 
 		protected override void GetAppearanceData()
@@ -61,7 +84,7 @@ namespace NaninovelSceneAssistant
 			var appearances = GetOrthoAppearanceList().Result;
 				
 			if(appearances.Length > 0) 
-			{
+			{ 
 				CommandParameters.Add(new CommandParameterData<string>(Appearance, () => Actor.Appearance ?? GetDefaultAppearance(appearances), v => Actor.Appearance = (string)v, (i, p) => i.StringDropdownField(p, appearances), defaultValue: GetDefaultAppearance(appearances)));
 			}
 			else CommandParameters.Add(new CommandParameterData<string>(Appearance, () => Actor.Appearance, v => Actor.Appearance = (string)v, (i, p) => i.StringField(p)));	

@@ -1,9 +1,11 @@
 {
     "name": "Idaocracy.NaninovelSceneAssistant.Editor",
+    "rootNamespace": "",
     "references": [
         "GUID:08ab4e9b32bfd234da6fed8acbd71909",
         "GUID:299f0e1d2253c7f42906a1f24d2d2eb0",
-        "GUID:ba4fd33f43dbc57468b814e0df5b9036"
+        "GUID:ba4fd33f43dbc57468b814e0df5b9036",
+        "GUID:88c54edcfcc58e24c8b704cdd7d780e1"
     ],
     "includePlatforms": [
         "Editor"
@@ -14,6 +16,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.elringus.spritedicing",
+            "expression": "",
+            "define": "SPRITE_DICING_AVAILABLE"
+        }
+    ],
     "noEngineReferences": false
 }

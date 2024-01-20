@@ -85,12 +85,15 @@ namespace NaninovelSceneAssistant
 		public void StringDropdownField(ICommandParameterData<string> data, string[] stringValues,
 			params ToggleGroupData[] toggleGroup)
 		{
+			EditorGUI.BeginChangeCheck();
 			var stringIndex = stringValues.IndexOf(data.Value);
 			stringIndex = EditorGUILayout.Popup(stringValues.IndexOf(data.Value),
 				stringValues.Select(s => s.Replace("/", "\u2215")).ToArray());
 			CheckToggles(data, toggleGroup);
-
-			if (data.Selected) data.Value = stringValues[stringIndex];
+			if (EditorGUI.EndChangeCheck())
+			{
+				if (data.Selected) data.Value = stringValues[stringIndex];
+			}
 		}
 
 		public void TypeDropdownField<T>(ICommandParameterData<T> data, Dictionary<string, T> values,
@@ -272,7 +275,10 @@ namespace NaninovelSceneAssistant
 
 		private static void CheckToggles(ICommandParameterData data, params ToggleGroupData[] toggleGroup)
 		{
-			if (!data.Selected && toggleGroup.Length == 0) data.ResetState();
+			if (!data.Selected && toggleGroup?.Length == 0)
+			{
+				data.ResetState();
+			}
 			else if (toggleGroup != null && data.Selected && toggleGroup.Any(c => c.Data.Selected))
 			{
 				var selected = toggleGroup.FirstOrDefault(c => c.Data.Selected);	
