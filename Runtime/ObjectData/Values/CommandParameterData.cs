@@ -80,7 +80,7 @@ namespace NaninovelSceneAssistant
 		public override void ResetDefault() => Value = Default;
 		public override void ResetState() 
 		{
-			if(!Value.Equals(State)) Value = State;
+			if(State != null && !Value.Equals(State)) Value = State;
 		}
 
 		public void Dispose() 
