@@ -1,3 +1,7 @@
+v 2.5.1 January 2024
+- Fixed incompatibility issues with Naninovel 1.20.
+- Fixed incompatibility issues with NaninovelPostProcess 2.1.0
+
 v 2.5.0 January 2024
 - It's now possible to add filter options in custom variable, unlockable and script debug menus. The newly added Scene Assistant configuration menu lets you add and modify these options, as well as automatically create filter options based on a regex template (available for characters and chapters).
 - Added a secondary Scale parameter data option for adjusting uniform scale. 
