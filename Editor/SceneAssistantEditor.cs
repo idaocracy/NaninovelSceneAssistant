@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Linq;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -221,7 +222,14 @@ namespace NaninovelSceneAssistant
 
             if (DrawScriptPlayerButton("\u25B6", Color.green, scriptPlayer.Playing))
             {
-                if (!scriptPlayer.Playing) scriptPlayer.Play();
+                if(!scriptPlayer.Playing)
+                {
+                    Type type = typeof(IScriptPlayer);
+                    MethodInfo methodInfo = type.GetMethod("Resume");
+                    if (methodInfo != null) methodInfo.Invoke(scriptPlayer, new object[] { null });
+                    else type.GetMethod("Play").Invoke(scriptPlayer, new object[] { null });
+                }
+
                 inputManager.GetContinue().Activate(1);
                 inputManager.GetRollback().Enabled = defaultRollbackValue;
             }

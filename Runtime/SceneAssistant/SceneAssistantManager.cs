@@ -3,6 +3,7 @@ using Naninovel.Commands;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 
 namespace NaninovelSceneAssistant
@@ -191,7 +192,14 @@ namespace NaninovelSceneAssistant
 			if (scriptPlayer.PlayedScript != null && !scriptPlayer.Playing)
 			{
 				scriptPlayer.SetWaitingForInputEnabled(true);
-				scriptPlayer.Play();
+
+				if (!scriptPlayer.Playing)
+				{
+					Type type = typeof(IScriptPlayer);
+					MethodInfo methodInfo = type.GetMethod("Resume");
+					if (methodInfo != null) methodInfo.Invoke(scriptPlayer, new object[] { null });
+					else type.GetMethod("Play").Invoke(scriptPlayer, new object[] { null });
+				}
 			}
 			
 			Initialized = false;

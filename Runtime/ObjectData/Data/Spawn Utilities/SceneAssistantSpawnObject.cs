@@ -10,8 +10,9 @@ namespace NaninovelSceneAssistant
     public abstract class SceneAssistantSpawnObject : MonoBehaviour, ISceneAssistantSpawn
     {
         public abstract bool IsTransformable { get; }
-        public abstract string CommandId { get; }
+        public virtual string CommandId => SpawnId;
         public string SpawnId => GetType().Name;
+        public abstract bool IsSpawnEffect { get; }
         public abstract List<ICommandParameterData> GetParams();
         public SpawnData ObjectSpawnData => sceneAssistantManager.ObjectList[SpawnId] as SpawnData;
 
@@ -51,18 +52,18 @@ namespace NaninovelSceneAssistant
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
-            //GUILayout.Space(5f);
+            GUILayout.Space(5f);
 
-            //if(!string.IsNullOrEmpty(spawnObject.CommandId))
-            //{ 
-            //    GUILayout.BeginHorizontal();
-            //    GUILayout.FlexibleSpace();
-            //    DrawButton(target.name, isSpawnEffect:true, logResult: logResult);
-            //    GUILayout.Space(5f);
-            //    DrawButton(target.name, isSpawnEffect: true, inlined: true, logResult: logResult);
-            //    GUILayout.FlexibleSpace();
-            //    GUILayout.EndHorizontal();
-            //}
+            if (!string.IsNullOrEmpty(spawnObject.CommandId))
+            {
+                GUILayout.BeginHorizontal();
+                GUILayout.FlexibleSpace();
+                DrawButton(target.name, isSpawnEffect: true, logResult: logResult);
+                GUILayout.Space(5f);
+                DrawButton(target.name, isSpawnEffect: true, inlined: true, logResult: logResult);
+                GUILayout.FlexibleSpace();
+                GUILayout.EndHorizontal();
+            }
 
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
@@ -81,7 +82,7 @@ namespace NaninovelSceneAssistant
         {
             if (GUILayout.Button(paramsOnly ? "params" : (inlined ? "[" + (isSpawnEffect ? FormatName() : "spawn") + "]" : "@" + (isSpawnEffect ? FormatName() : "spawn")), GUILayout.Height(30), GUILayout.MaxWidth(150)))
             {
-                var spawnString = isSpawnEffect ? spawnObject.ObjectSpawnData.GetSpawnEffectLine(inlined, paramsOnly) : spawnObject.ObjectSpawnData.GetCommandLine(inlined, paramsOnly);
+                var spawnString = isSpawnEffect ? spawnObject.ObjectSpawnData.GetSpawnEffectLine(inlined, paramsOnly) : spawnObject.ObjectSpawnData.GetSpawnLine(inlined, paramsOnly);
                 EditorGUIUtility.systemCopyBuffer = spawnString;
                 if (logResult) Debug.Log(spawnString);
             }
