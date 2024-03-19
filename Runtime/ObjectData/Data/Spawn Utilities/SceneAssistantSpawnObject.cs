@@ -87,7 +87,11 @@ namespace NaninovelSceneAssistant
                 if (logResult) Debug.Log(spawnString);
             }
 
-            string FormatName() => char.ToLower(name[0]) + name.Substring(1);
+            string FormatName()
+            {
+                var strippedName = name.GetBefore("#") ?? name;
+                return char.ToLower(strippedName[0]) + strippedName.Substring(1);
+            }
 
         }
     }
