@@ -17,7 +17,8 @@ namespace NaninovelSceneAssistant
 
 		public static string GetFormattedCommandName(this INaninovelObjectData data)
 		{
-			return char.ToLower(data.Id[0]) + data.Id.Substring(1);
+			var strippedName = data.Id.GetBefore("#") ?? data.Id;
+			return char.ToLower(strippedName[0]) + strippedName.Substring(1);
 		}
 
 		public static string GetFormattedValue<T>(this ICommandParameterData<T> data)

@@ -11,10 +11,10 @@ namespace NaninovelSceneAssistant
     {
         public abstract bool IsTransformable { get; }
         public virtual string CommandId => SpawnId;
-        public string SpawnId => GetType().Name;
+        public string SpawnId => gameObject.name;
         public abstract bool IsSpawnEffect { get; }
         public abstract List<ICommandParameterData> GetParams();
-        public SpawnData ObjectSpawnData => sceneAssistantManager.ObjectList[SpawnId] as SpawnData;
+        public SpawnData ObjectSpawnData => sceneAssistantManager.IsAvailable ? sceneAssistantManager.ObjectList[SpawnId] as SpawnData : new SpawnData(CommandId);
 
         private SceneAssistantManager sceneAssistantManager;
 
@@ -44,11 +44,11 @@ namespace NaninovelSceneAssistant
 
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
-            DrawButton(target.name, logResult: logResult);
+            DrawButton(spawnObject.name, logResult: logResult);
             GUILayout.Space(5f);
-            DrawButton(target.name, inlined: true, logResult: logResult);
+            DrawButton(spawnObject.name, inlined: true, logResult: logResult);
             GUILayout.Space(5f);
-            DrawButton(target.name, paramsOnly: true, logResult: logResult);
+            DrawButton(spawnObject.name, paramsOnly: true, logResult: logResult);
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
@@ -82,9 +82,13 @@ namespace NaninovelSceneAssistant
         {
             if (GUILayout.Button(paramsOnly ? "params" : (inlined ? "[" + (isSpawnEffect ? FormatName() : "spawn") + "]" : "@" + (isSpawnEffect ? FormatName() : "spawn")), GUILayout.Height(30), GUILayout.MaxWidth(150)))
             {
-                var spawnString = isSpawnEffect ? spawnObject.ObjectSpawnData.GetSpawnEffectLine(inlined, paramsOnly) : spawnObject.ObjectSpawnData.GetSpawnLine(inlined, paramsOnly);
+                var data = spawnObject.ObjectSpawnData;
+
+                var spawnString = isSpawnEffect ? data.GetSpawnEffectLine(inlined, paramsOnly) : data.GetSpawnLine(inlined, paramsOnly);
                 EditorGUIUtility.systemCopyBuffer = spawnString;
                 if (logResult) Debug.Log(spawnString);
+
+                data.Dispose();
             }
 
             string FormatName()
@@ -92,7 +96,6 @@ namespace NaninovelSceneAssistant
                 var strippedName = name.GetBefore("#") ?? name;
                 return char.ToLower(strippedName[0]) + strippedName.Substring(1);
             }
-
         }
     }
 
