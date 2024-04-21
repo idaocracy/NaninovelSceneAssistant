@@ -371,8 +371,31 @@ namespace NaninovelSceneAssistant
 
         protected string InsertGenericLine(string content)
         {
-            var genericTextLine = new GenericTextLineView(scriptPlayer.PlayedIndex, content, new VisualElement());
-            VisualEditors[0].VisualEditor.InsertLine(genericTextLine, scriptPlayer.PlayedIndex);
+            Type type = typeof(GenericTextLineView);
+
+            Type[] updatedConstructorParameterTypes = new Type[] { typeof(int), typeof(int), typeof(string), typeof(VisualElement) };
+            object[] updatedConstructorArguments = new object[] { scriptPlayer.PlayedIndex, 0, content, new VisualElement() };
+
+            Type[] legacyConstructorParameterTypes = new Type[] { typeof(int), typeof(string), typeof(VisualElement) };
+            object[] legacyConstructorArguments = new object[] { scriptPlayer.PlayedIndex, content, new VisualElement() };
+
+
+            ConstructorInfo constructor;
+            GenericTextLineView instance;
+
+            if (type.GetConstructor(updatedConstructorParameterTypes) != null)
+            {
+                constructor = type.GetConstructor(updatedConstructorParameterTypes);
+                instance = (GenericTextLineView)constructor.Invoke(updatedConstructorArguments);
+            }
+            else
+            {
+                constructor = type.GetConstructor(legacyConstructorParameterTypes);
+                instance = (GenericTextLineView)constructor.Invoke(legacyConstructorArguments);
+            }
+            
+            VisualEditors[0].VisualEditor.InsertLine(instance, scriptPlayer.PlayedIndex);
+
             return content;
         }
 
