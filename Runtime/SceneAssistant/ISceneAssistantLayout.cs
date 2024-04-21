@@ -37,4 +37,9 @@ namespace NaninovelSceneAssistant {
 	{
 		void ScriptField(string scriptName, List<string> labels);
 	}
+
+	public interface IUILayout
+    {
+		void UIField(IUIData ui);
+    }
 }

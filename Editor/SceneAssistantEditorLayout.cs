@@ -9,7 +9,7 @@ using UnityEngine;
 namespace NaninovelSceneAssistant
 {
 	public partial class SceneAssistantEditor : EditorWindow, ISceneAssistantLayout, ICustomVariableLayout,
-		IUnlockableLayout, IScriptLayout
+		IUnlockableLayout, IScriptLayout, IUILayout
 	{
 		private static int buttonWidth = 150;
 		private static int buttonSize = 12;
@@ -317,6 +317,31 @@ namespace NaninovelSceneAssistant
 		public void DrawDataButton(ICommandParameterData data)
 		{
 			if (DrawButton(data.Name)) ClipboardString = data.GetCommandValue(paramOnly:true);
+		}
+
+        public void UIField(IUIData ui)
+        {
+
+			GUILayout.BeginHorizontal();
+			GUILayout.Label(ui.Name);
+			GUILayout.FlexibleSpace();
+
+			GUILayout.Label(ui.ModalGroup, new GUIStyle(GUI.skin.label) { fontSize = 10, alignment = TextAnchor.MiddleRight});
+			if (GUILayout.Button(EditorGUIUtility.IconContent("d_Prefab Icon").image, GUILayout.Height(20), GUILayout.Width(25))) Selection.activeGameObject = ui.GameObject;
+			var label = ui.Visible ? EditorGUIUtility.IconContent("d_scenevis_hidden_hover@2x") : EditorGUIUtility.IconContent("d_scenevis_visible_hover@2x");
+
+			if (GUILayout.Button(label, GUILayout.Width(25), GUILayout.Height(20)))
+			{
+				ChangeVisibility();
+			}
+            
+			GUILayout.EndHorizontal();
+
+			async void ChangeVisibility()
+            {
+				await ui.ChangeVisibility(!ui.Visible);
+				Repaint();
+			}
 		}
 	}
 }

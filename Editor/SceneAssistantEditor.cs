@@ -14,7 +14,7 @@ namespace NaninovelSceneAssistant
     public partial class SceneAssistantEditor : EditorWindow
     {
         private static SceneAssistantEditor sceneAssistantEditor;
-        public static string[] Tabs { get; protected set; } = new string[] { "Objects", "Variables", "Unlockables", "Scripts"};
+        public static string[] Tabs { get; protected set; } = new string[] { "Objects", "Variables", "Unlockables", "Scripts", "UI"};
         protected static INaninovelObjectData CurrentObject => sceneAssistantManager.ObjectList.Values?.ToArray()[objectIndex];
         protected static string ClipboardString { get => clipboardString; set { clipboardString = value; EditorGUIUtility.systemCopyBuffer = value; if (logResults) Debug.Log(value); } }
         protected static ScriptImporterEditor[] VisualEditors => Resources.FindObjectsOfTypeAll<ScriptImporterEditor>();
@@ -45,6 +45,9 @@ namespace NaninovelSceneAssistant
         private static string lastObject;
 
         private static bool[] scriptFoldouts;
+
+        private static bool uiFoldout;
+        private static bool modalUiFoldout = true;
         
         private static GUIContent documentIcon;
         private static GUIContent resetIcon;
@@ -163,6 +166,9 @@ namespace NaninovelSceneAssistant
                     break;
                 case 3:
                     DrawScripts(sceneAssistantManager.ScriptDataList);
+                    break;
+                case 4:
+                    DrawUIs(sceneAssistantManager.UIDataList, sceneAssistantManager.ModalUIDataList);
                     break;
             }
         }
@@ -614,6 +620,51 @@ namespace NaninovelSceneAssistant
 
             EditorPrefs.SetString("NaniAssistantScriptSearch", search);
         }
+
+        protected virtual void DrawUIs(List<IUIData> uis, List<IUIData> modalUis)
+        {
+            if (uis == null) return;
+            GUILayout.Space(5);
+
+            DrawSearchField();
+
+            scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
+            GUILayout.Space(5);
+
+            modalUiFoldout = DrawUI("ModalUI", modalUiFoldout, modalUis);
+            uiFoldout = DrawUI("UI", uiFoldout, uis);
+
+            EditorGUILayout.EndScrollView();
+
+            EditorPrefs.SetString("NaniAssistantScriptSearch", search);
+
+            bool DrawUI(string name, bool foldout, List<IUIData> uis)
+            {
+                GUILayout.BeginHorizontal();
+                GUILayout.BeginVertical();
+                foldout = EditorGUILayout.Foldout(foldout, name);
+
+                if (foldout)
+                {
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Space(20);
+                    GUILayout.BeginVertical();
+                    foreach (var ui in uis.ToList())
+                    {
+                        if (!string.IsNullOrEmpty(search) && ui.Name.IndexOf(search, StringComparison.OrdinalIgnoreCase) < 0) continue;
+                        ui.DisplayField(this);
+                    }
+                    GUILayout.EndHorizontal();
+                    GUILayout.EndHorizontal();
+                }
+
+                GUILayout.EndVertical();
+                GUILayout.EndHorizontal();
+
+                return foldout;
+            }
+        }
+
 
         private static bool CheckScriptRegex(string scriptName, params string[] filters)
         {

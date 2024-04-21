@@ -1,3 +1,6 @@
+v 2.6.0 April 2024
+- Added UI tab to ease the access to UIs and their visibility functions
+
 v 2.5.1 January 2024
 - Fixed incompatibility issues with Naninovel 1.20.
 - Fixed incompatibility issues with NaninovelPostProcess 2.1.0

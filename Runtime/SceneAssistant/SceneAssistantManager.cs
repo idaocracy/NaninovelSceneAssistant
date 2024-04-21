@@ -1,4 +1,5 @@
 ﻿using Naninovel;
+using Naninovel.UI;
 using Naninovel.Commands;
 using System;
 using System.Collections.Generic;
@@ -20,15 +21,17 @@ namespace NaninovelSceneAssistant
 		private ICustomVariableManager variableManager;
 		private IUnlockableManager unlockableManager;
 		private IStateManager stateManager;
+		private IUIManager uiManager;
 
 		public Dictionary<string, INaninovelObjectData> ObjectList { get; protected set; } = new Dictionary<string, INaninovelObjectData>();
 		public Dictionary<Type, bool> ObjectTypeList { get; protected set; } = new Dictionary<Type, bool>();
 		public SortedList<string, VariableData> VariableDataList { get; protected set; } = new SortedList<string, VariableData> { };
 		public SortedList<string, UnlockableData> UnlockableDataList { get; protected set; } = new SortedList<string, UnlockableData> { };
 		public SortedList<string, ScriptData> ScriptDataList { get; protected set; } = new SortedList<string, ScriptData>();
+		public List<IUIData> ModalUIDataList { get; protected set; } = new List<IUIData>();
+		public List<IUIData> UIDataList { get; protected set; } = new List<IUIData>();
 		public Dictionary<string, string[]> VariableFilterMenus { get; protected set; } = new Dictionary<string, string[]>() { };
 		public Dictionary<string, string> UnlockableFilterMenus { get; protected set; } = new Dictionary<string, string>() { };
-
 		public Dictionary<string, string> ScriptFilterMenus { get; protected set; } = new Dictionary<string, string>() { };
 
 		public bool IsAvailable { get; protected set; }
@@ -53,6 +56,7 @@ namespace NaninovelSceneAssistant
 			variableManager = Engine.GetService<ICustomVariableManager>();
 			unlockableManager = Engine.GetService<IUnlockableManager>();
 			stateManager = Engine.GetService<IStateManager>();
+			uiManager = Engine.GetService<IUIManager>();
 		}
 		public virtual async void InitializeSceneAssistant()
 		{
@@ -79,7 +83,8 @@ namespace NaninovelSceneAssistant
 			
 			await LocateScriptsAsync();
 			InitializeScriptFilterMenus();
-			
+
+
 			Initialized = true;
 		}
 
@@ -184,6 +189,8 @@ namespace NaninovelSceneAssistant
 			VariableDataList.Clear();
 			UnlockableDataList.Clear();
 			ScriptDataList.Clear();
+			UIDataList.Clear();
+			ModalUIDataList.Clear();
 			
 			VariableFilterMenus.Clear();
 			UnlockableFilterMenus.Clear();
@@ -225,6 +232,8 @@ namespace NaninovelSceneAssistant
 			}
 			ObjectTypeList.Clear();
 			ObjectList.Clear();
+			UIDataList.Clear();
+			ModalUIDataList.Clear();
 		}
 
 		protected virtual void ResetSceneAssistant()
@@ -232,9 +241,11 @@ namespace NaninovelSceneAssistant
 			if(IsAvailable) return;
 			
 			ResetObjectList();
+			ResetUIDataList();
 			IsAvailable = true;
 			OnSceneAssistantReset?.Invoke();
 		}
+
 		protected virtual void ResetObjectList()
 		{
 			ResetCamera();
@@ -242,7 +253,32 @@ namespace NaninovelSceneAssistant
 			ResetSpawnList();
 			ResetObjectTypeList();
 		}
-		
+
+		public virtual void ResetUIDataList()
+		{
+			var uiObjects = Engine.RootObject.transform.Find("UI").GetComponentsInChildren<CustomUI>();
+			foreach (var ui in uiObjects) AddUIData(UIDataList, ui);
+			UIDataList = UIDataList.OrderBy(u => u.GameObject.GetComponent<Canvas>().sortingOrder).Reverse().ToList();
+
+			var modalUiObjects = Engine.RootObject.transform.Find("ModalUI").GetComponentsInChildren<CustomUI>();
+			foreach (var ui in modalUiObjects) AddUIData(ModalUIDataList, ui);
+			ModalUIDataList = ModalUIDataList.OrderBy(u => u.GameObject.GetComponent<Canvas>().sortingOrder).Reverse().ToList();
+
+			void AddUIData(List<IUIData> uIDatas, CustomUI ui)
+            {
+				if (ui is SaveLoadMenu saveLoadMenu)
+				{
+					uIDatas.Add(new SaveUIData(saveLoadMenu));
+					uIDatas.Add(new LoadUIData(saveLoadMenu));
+					uIDatas.Add(new QuickLoadUIData(saveLoadMenu));
+				}
+				else if (ui is ToastUI toastUI) uIDatas.Add(new ToastUIData(toastUI));
+				else if (ui is UITextPrinterPanel textPrinter) uIDatas.Add(new TextPrinterUIData(textPrinter));
+				else if (ui is ChoiceHandlerPanel choiceHandler) uIDatas.Add(new ChoiceHandlerUIData(choiceHandler));
+				else uIDatas.Add(new UIData<CustomUI>(ui));
+			}
+		}
+
 		protected virtual void ResetCamera()
 		{
 			var camera = new CameraData();
