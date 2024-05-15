@@ -661,7 +661,7 @@ namespace NaninovelSceneAssistant
 
             EditorPrefs.SetString("NaniAssistantScriptSearch", search);
 
-            bool DrawUI(string name, bool foldout, List<IUIData> uis)
+            bool DrawUI(string name, bool foldout, List<IUIData> uiList)
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.BeginVertical();
@@ -672,7 +672,7 @@ namespace NaninovelSceneAssistant
                     GUILayout.BeginHorizontal();
                     GUILayout.Space(20);
                     GUILayout.BeginVertical();
-                    foreach (var ui in uis.ToList())
+                    foreach (var ui in uiList.ToList())
                     {
                         if (!string.IsNullOrEmpty(search) && ui.Name.IndexOf(search, StringComparison.OrdinalIgnoreCase) < 0) continue;
                         ui.DisplayField(this);
