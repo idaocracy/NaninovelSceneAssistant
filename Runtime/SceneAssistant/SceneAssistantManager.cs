@@ -256,12 +256,28 @@ namespace NaninovelSceneAssistant
 
 		public virtual void ResetUIDataList()
 		{
-			var uiObjects = Engine.RootObject.transform.Find("UI").GetComponentsInChildren<CustomUI>();
-			foreach (var ui in uiObjects) AddUIData(UIDataList, ui);
+			var uiTransform = Engine.RootObject.transform.Find("UI").transform;
+			for(int i = 0; i < uiTransform.childCount; i++)
+			{
+				if(uiTransform.GetChild(i).TryGetComponent<CustomUI>(out var ui)) AddUIData(UIDataList, ui);
+				else if(uiTransform.GetChild(i).name == "TextPrinter" || uiTransform.GetChild(i).name == "ChoiceHandler") 
+				{
+					var uiActorTransform = uiTransform.GetChild(i);
+					for (int t = 0; t < uiActorTransform.childCount; t++)
+                    {
+						if (uiActorTransform.GetChild(t).TryGetComponent<CustomUI>(out var uiActor))
+							AddUIData(UIDataList, uiActor);
+					}
+				}
+			}
+
 			UIDataList = UIDataList.OrderBy(u => u.GameObject.GetComponent<Canvas>().sortingOrder).Reverse().ToList();
 
-			var modalUiObjects = Engine.RootObject.transform.Find("ModalUI").GetComponentsInChildren<CustomUI>();
-			foreach (var ui in modalUiObjects) AddUIData(ModalUIDataList, ui);
+			var modalUiTransform = Engine.RootObject.transform.Find("ModalUI").transform;
+			for (int i = 0; i < modalUiTransform.childCount; i++)
+			{
+				if (modalUiTransform.GetChild(i).TryGetComponent<CustomUI>(out var ui)) AddUIData(ModalUIDataList, ui);
+			}
 			ModalUIDataList = ModalUIDataList.OrderBy(u => u.GameObject.GetComponent<Canvas>().sortingOrder).Reverse().ToList();
 
 			void AddUIData(List<IUIData> uIDatas, CustomUI ui)
