@@ -12,6 +12,7 @@ namespace NaninovelSceneAssistant
 	{
 		private static string GetFormattedParameterName(this ICommandParameterData data)
 		{
+			if (data.Name.Contains(" ")) return data.Name;
 			return char.ToLower(data.Name[0]) + data.Name.Substring(1);
 		}
 
