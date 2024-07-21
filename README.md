@@ -1,10 +1,9 @@
-[![CodeFactor](https://www.codefactor.io/repository/github/idaocracy/naninovelsceneassistant/badge)](https://www.codefactor.io/repository/github/idaocracy/naninovelsceneassistant)
-
 ## Introduction & Installation
 
-Naninovel Scene Assistant is an extension that lets you easily modify Naninovel objects in real time and copy their corresponding command and parameters directly into the visual editor or clipboard.
+Naninovel Scene Assistant is an extension that lets you easily modify Naninovel objects in real time and copy their corresponding command and parameters directly into the visual editor or clipboard. Naninovel is a visual novel extension for Unity: https://naninovel.com/
 
-Naninovel is a visual novel extension for Unity: https://naninovel.com/
+Found this extension useful? This extension was made during my spare time so any donations are appreciated. 
+https://ko-fi.com/idaot
 
 ## Demo 
 Try the WebGL demo of the UI version of Scene Assistant here: https://idaocracy.github.io/NaninovelSceneAssistantWebGLDemo/ <br/>
