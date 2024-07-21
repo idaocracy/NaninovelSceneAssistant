@@ -23,7 +23,7 @@ namespace NaninovelSceneAssistant
             var customVariableManager = Engine.GetService<ICustomVariableManager>();
 
             // 1.20 workaround
-            getValue = () => ExpressionEvaluator.Evaluate<string>(Name);
+            getValue = () => Naninovel.ExpressionEvaluator.Evaluate<string>(Name);
             setValue = (value) => new SetCustomVariable { Expression = Name + "=\"" + value + "\"" }.ExecuteAsync().Forget();
 
             // 1.19 legacy

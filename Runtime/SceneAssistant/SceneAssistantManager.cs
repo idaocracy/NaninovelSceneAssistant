@@ -141,7 +141,7 @@ namespace NaninovelSceneAssistant
 			else
 			{
 				var variable = VariableDataList.FirstOrDefault(v => v.Key == args.Name);
-				var argsValue = ExpressionEvaluator.Evaluate<string>(args.Name);
+				var argsValue = Naninovel.ExpressionEvaluator.Evaluate<string>(args.Name);
 				if (variable.Value.Value != argsValue) variable.Value.Value = argsValue;
 			}
 		}
