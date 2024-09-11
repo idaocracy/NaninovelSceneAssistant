@@ -267,9 +267,9 @@ namespace NaninovelSceneAssistant
 			async void PlayScriptAsync(string script, string label = null)
 			{
 				Engine.GetService<IUIManager>()?.GetUI<ITitleUI>()?.Hide();
-				await stateManager.ResetStateAsync(async () => await scriptPlayer.PreloadAndPlayAsync(script));
+				await stateManager.ResetState(async () => await scriptPlayer.LoadAndPlay(script));
 				if (!string.IsNullOrEmpty(label))
-					await scriptPlayer.RewindAsync(scriptPlayer.PlayedScript.GetLineIndexForLabel(label));
+					await scriptPlayer.Rewind(scriptPlayer.PlayedScript.GetLineIndexForLabel(label));
 			}
 		}
 
