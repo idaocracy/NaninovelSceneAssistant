@@ -39,7 +39,7 @@ namespace NaninovelSceneAssistant
 
 		public Action OnSceneAssistantCleared;
 		public Action OnSceneAssistantReset;
-		public virtual UniTask InitializeServiceAsync() => UniTask.CompletedTask;
+		public virtual UniTask InitializeService() => UniTask.CompletedTask;
 		public virtual void ResetService()
 		{
 			if(Initialized) ClearSceneAssistant();
@@ -163,7 +163,7 @@ namespace NaninovelSceneAssistant
 
 			foreach (var provider in resourceProviderManager.GetProviders(scriptsConfiguration.Loader.ProviderTypes))
 			{
-				var paths = await provider.LoadResourcesAsync<Script>(scriptsConfiguration.Loader.PathPrefix);
+				var paths = await provider.LoadResources<Script>(scriptsConfiguration.Loader.PathPrefix);
 				foreach (var resource in paths)
 				{
 					var scriptName = resource.Path.Split("/".ToCharArray()).Last();
