@@ -20,7 +20,7 @@ namespace  NaninovelSceneAssistant
 
         public ScriptData(Script value)
         {
-            Name = value.Name;
+            Name = value.name;
             Value = value;
 
             getLabels = () => Value.Lines
