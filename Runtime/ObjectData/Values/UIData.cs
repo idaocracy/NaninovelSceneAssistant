@@ -42,7 +42,7 @@ namespace NaninovelSceneAssistant
 
         protected virtual async UniTask ChangeVisibilityAsync(bool visible)
         {
-            await UI.ChangeVisibility(visible, null).ContinueWith(ClearAndResetUIData);
+            await UI.ChangeVisibilityAsync(visible, null).ContinueWith(ClearAndResetUIData);
         }
 
         protected virtual void ClearAndResetUIData()
@@ -53,8 +53,8 @@ namespace NaninovelSceneAssistant
             sceneAssistantManager.ResetUIDataList();
         }
 
-        protected virtual void Show() => UI.ChangeVisibility(true, null).Forget();
-        protected virtual void Hide() => UI.ChangeVisibility(false, null).Forget();
+        protected virtual void Show() => UI.ChangeVisibilityAsync(true, null).Forget();
+        protected virtual void Hide() => UI.ChangeVisibilityAsync(false, null).Forget();
 
         public virtual void DisplayField(IUILayout layout) => layout.UIField(this);
     }

@@ -290,11 +290,11 @@ namespace NaninovelSceneAssistant
             }
         }
 
-        public async void RollbackAsync() => await stateManager.Rollback(s => s.PlayerRollbackAllowed);
+        public async void RollbackAsync() => await stateManager.RollbackAsync(s => s.PlayerRollbackAllowed);
 
         public async void SyncAndExecuteAsync(Action action)
         {
-            await scriptPlayer.Complete(() => UniTaskify(action));
+            await scriptPlayer.SynchronizeAndDoAsync(() => UniTaskify(action));
 
             UniTask UniTaskify(Action task)
             {
