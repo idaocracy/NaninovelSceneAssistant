@@ -270,7 +270,7 @@ namespace NaninovelSceneAssistant
 
             if (scriptPlayer.PlayedScript != null)
             {
-                if (GUILayout.Button(documentIcon))
+                if (GUILayout.Button(documentIcon, GUILayout.Height(20), GUILayout.Width(25)))
                 {
                     EditorGUIUtility.PingObject(scriptPlayer.PlayedScript);
                     Selection.activeObject = scriptPlayer.PlayedScript;
