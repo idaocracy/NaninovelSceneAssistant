@@ -169,6 +169,8 @@ namespace NaninovelSceneAssistant
 
 		public void StringVariableField(StringVariableData var)
         {
+			EditorGUILayout.LabelField(var.Name, GUILayout.Width(148));
+
 			EditorGUI.BeginChangeCheck();
 			var.Value = EditorGUILayout.DelayedTextField(var.Value);
 			if (EditorGUI.EndChangeCheck())
@@ -190,56 +192,6 @@ namespace NaninovelSceneAssistant
 
 			numberTypeIndex = EditorGUILayout.Popup(numberTypeIndex, numberTypes, GUILayout.Width(26));
 		}
-
-		//public void VariableField(VariableData var)
-		//{
-		//	EditorGUILayout.BeginHorizontal();
-
-		//	EditorStyles.label.normal.textColor = var.Changed ? Color.yellow : Color.white;
-
-		//	if (var.Value.Type == CustomVariableValueType.Numeric)
-		//	{
-		//		EditorGUI.BeginChangeCheck();
-		//		if (numberTypeIndex == 0)
-		//			var.Value = new CustomVariableValue(EditorGUILayout.FloatField(var.Name, var.Value.Number, GUILayout.MinWidth(20)));
-		//		else var.Value = new CustomVariableValue(EditorGUILayout.IntField(var.Name, (int)var.Value.Number, GUILayout.MinWidth(20)).ToString());
-		//		if (EditorGUI.EndChangeCheck())
-		//		{
-		//			var.Changed = true;
-		//		}
-
-		//		numberTypeIndex = EditorGUILayout.Popup(numberTypeIndex, numberTypes, GUILayout.Width(26));
-		//	}
-		//	else if (var.Value.Type == CustomVariableValueType.Boolean)
-		//	{
-		//		EditorGUILayout.LabelField(var.Name, GUILayout.Width(148));
-
-		//		EditorGUI.BeginChangeCheck();
-		//		var.Value = new CustomVariableValue(EditorGUILayout.Toggle("", var.Value.Boolean).ToString());
-		//		if (EditorGUI.EndChangeCheck())
-		//		{
-		//			var.Changed = true;
-		//		}
-		//	}
-		//	else
-		//	{
-
-		//	}
-			
-
-		//	if (var.Changed)
-		//	{
-		//		// if (GUILayout.Button(resetIcon, GUILayout.Width(25), GUILayout.Height(18)))
-		//		// {
-		//		// 	var.Value = var.State;
-		//		// 	var.Changed = false;
-		//		// }
-		//	}
-
-		//	EditorGUILayout.EndHorizontal();
-
-		//	EditorStyles.label.normal.textColor = Color.white;
-		//}
 
 		public void UnlockableField(UnlockableData unlockable)
 		{
