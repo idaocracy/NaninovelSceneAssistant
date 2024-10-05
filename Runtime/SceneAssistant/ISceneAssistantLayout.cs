@@ -25,7 +25,9 @@ namespace NaninovelSceneAssistant {
 
 	public interface ICustomVariableLayout 
 	{
-		void VariableField(VariableData variable);
+		void StringVariableField(StringVariableData variable);
+		void BooleanVariableField(BooleanVariableData variable);
+		void NumericVariableField(NumericVariableData variable);
 	}
 
 	public interface IUnlockableLayout 

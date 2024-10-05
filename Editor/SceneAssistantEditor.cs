@@ -551,7 +551,7 @@ namespace NaninovelSceneAssistant
             GUILayout.EndHorizontal();
         }
 
-        protected virtual void DrawCustomVariables(SortedList<string, VariableData> variables)
+        protected virtual void DrawCustomVariables(SortedList<string, IVariableData> variables)
         {
             if (variables == null && variables.Count == 0) return;
             GUILayout.Space(5);
@@ -572,7 +572,7 @@ namespace NaninovelSceneAssistant
 
             void DrawVariables(string[] filters)
             {
-                foreach (VariableData variable in sceneAssistantManager.VariableDataList.Values)
+                foreach (IVariableData variable in sceneAssistantManager.VariableDataList.Values.ToList())
                 {
                     if(filters.Length > 0 && !CheckScriptRegex(variable.Name, filters)) continue;
                     if (!string.IsNullOrEmpty(search) && variable.Name.IndexOf(search, StringComparison.OrdinalIgnoreCase) < 0) continue;
@@ -616,6 +616,8 @@ namespace NaninovelSceneAssistant
             GUILayout.Space(5);
 
             DrawSearchField();
+
+            // todo 1.20
 
             GUILayout.Space(5);
             if(sceneAssistantManager.ScriptFilterMenus.Count > 1)

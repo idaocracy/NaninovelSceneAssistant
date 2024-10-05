@@ -4,43 +4,28 @@ using System;
 
 namespace NaninovelSceneAssistant
 {
-    public class VariableData : IDisposable
+
+    public interface IVariableData
+    {
+        string Name { get; }
+
+        void DisplayField(ICustomVariableLayout layout);
+    }
+
+    public abstract class VariableData<T> : IDisposable, IVariableData where T : IConvertible
     {
         public string Name { get; }
-        public string Value { get => getValue(); set { if (SceneAssistantManager.IsAvailable) setValue(value); } }
+        public abstract T Value { get; set; }
         public bool Changed { get; set; }
-        //public string State { get; set; }
-
-        private readonly Func<string> getValue;
-        private readonly Action<string> setValue;
 
         protected SceneAssistantManager SceneAssistantManager => Engine.GetService<SceneAssistantManager>();
+        protected ICustomVariableManager CustomVariableManager => Engine.GetService<ICustomVariableManager>();
+
 
         public VariableData(string name)
         {
             Name = name;
-
-            var customVariableManager = Engine.GetService<ICustomVariableManager>();
-
-            // 1.20 workaround
-            getValue = () => Naninovel.ExpressionEvaluator.Evaluate<string>(Name);
-            setValue = (value) => new SetCustomVariable { Expression = Name + "=" + (IsStringValue(value) ? "\"" + value + "\"" : value) }.Execute().Forget();
-
-            // 1.19 legacy
-            //getValue = () => customVariableManager.GetVariableValue(Name);
-            //setValue = (value) => customVariableManager.SetVariableValue(Name, value);
-
-            //State = Value;
-
             SceneAssistantManager.OnSceneAssistantReset += HandleReset;
-
-            bool IsStringValue(string value)
-            {
-                if (float.TryParse(value, out _)) return false;
-                else if (int.TryParse(value, out _)) return false;
-                else if (bool.TryParse(value, out _)) return false;
-                else return true;
-            }
         }
 
         private void HandleReset()
@@ -49,10 +34,34 @@ namespace NaninovelSceneAssistant
             Changed = false;
         }
 
-        public void DisplayField(ICustomVariableLayout layout) => layout.VariableField(this);
+        public abstract void DisplayField(ICustomVariableLayout layout);
         public void Dispose()
         {
             SceneAssistantManager.OnSceneAssistantReset -= HandleReset;
         }
+    }
+
+    public class NumericVariableData : VariableData<float>
+    {
+        public NumericVariableData(string name) : base(name) { }
+        public override float Value { get => CustomVariableManager.GetVariableValue(Name).Number; set => CustomVariableManager.SetVariableValue(Name, new CustomVariableValue(value)); }
+        public override void DisplayField(ICustomVariableLayout layout) => layout.NumericVariableField(this);
+
+    }
+
+    public class BooleanVariableData : VariableData<bool>
+    {
+        public BooleanVariableData(string name) : base(name) { }
+        public override bool Value { get => CustomVariableManager.GetVariableValue(Name).Boolean; set => CustomVariableManager.SetVariableValue(Name, new CustomVariableValue(value)); }
+        public override void DisplayField(ICustomVariableLayout layout) => layout.BooleanVariableField(this);
+
+    }
+
+    public class StringVariableData : VariableData<string>
+    {
+        public StringVariableData(string name) : base(name) { }
+        public override string Value { get => CustomVariableManager.GetVariableValue(Name).String; set => CustomVariableManager.SetVariableValue(Name, new CustomVariableValue(value)); }
+        public override void DisplayField(ICustomVariableLayout layout) => layout.StringVariableField(this);
+
     }
 }
