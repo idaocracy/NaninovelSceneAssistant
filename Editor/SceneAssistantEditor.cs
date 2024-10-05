@@ -270,7 +270,7 @@ namespace NaninovelSceneAssistant
 
             if (scriptPlayer.PlayedScript != null)
             {
-                if (GUILayout.Button(documentIcon))
+                if (GUILayout.Button(documentIcon, GUILayout.Height(20), GUILayout.Width(25)))
                 {
                     EditorGUIUtility.PingObject(scriptPlayer.PlayedScript);
                     Selection.activeObject = scriptPlayer.PlayedScript;
@@ -290,11 +290,11 @@ namespace NaninovelSceneAssistant
             }
         }
 
-        public async void RollbackAsync() => await stateManager.Rollback(s => s.PlayerRollbackAllowed);
+        public async void RollbackAsync() => await stateManager.RollbackAsync(s => s.PlayerRollbackAllowed);
 
         public async void SyncAndExecuteAsync(Action action)
         {
-            await scriptPlayer.Complete(() => UniTaskify(action));
+            await scriptPlayer.SynchronizeAndDoAsync(() => UniTaskify(action));
 
             UniTask UniTaskify(Action task)
             {
