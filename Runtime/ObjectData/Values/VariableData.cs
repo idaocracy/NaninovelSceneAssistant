@@ -1,5 +1,4 @@
 ﻿using Naninovel;
-using Naninovel.Commands;
 using System;
 
 namespace NaninovelSceneAssistant
@@ -43,7 +42,10 @@ namespace NaninovelSceneAssistant
 
     public class NumericVariableData : VariableData<float>
     {
-        public NumericVariableData(string name) : base(name) { }
+        public NumericVariableData(string name) : base(name)
+        {
+            Value = CustomVariableManager.GetVariableValue(name).Number;
+        }
         public override float Value { get => CustomVariableManager.GetVariableValue(Name).Number; set => CustomVariableManager.SetVariableValue(Name, new CustomVariableValue(value)); }
         public override void DisplayField(ICustomVariableLayout layout) => layout.NumericVariableField(this);
 
@@ -51,7 +53,11 @@ namespace NaninovelSceneAssistant
 
     public class BooleanVariableData : VariableData<bool>
     {
-        public BooleanVariableData(string name) : base(name) { }
+        public BooleanVariableData(string name) : base(name)
+        {
+            Value = CustomVariableManager.GetVariableValue(name).Boolean;
+        }
+
         public override bool Value { get => CustomVariableManager.GetVariableValue(Name).Boolean; set => CustomVariableManager.SetVariableValue(Name, new CustomVariableValue(value)); }
         public override void DisplayField(ICustomVariableLayout layout) => layout.BooleanVariableField(this);
 
@@ -59,7 +65,11 @@ namespace NaninovelSceneAssistant
 
     public class StringVariableData : VariableData<string>
     {
-        public StringVariableData(string name) : base(name) { }
+        public StringVariableData(string name) : base(name)
+        {
+            Value = CustomVariableManager.GetVariableValue(name).String;
+        }
+
         public override string Value { get => CustomVariableManager.GetVariableValue(Name).String; set => CustomVariableManager.SetVariableValue(Name, new CustomVariableValue(value)); }
         public override void DisplayField(ICustomVariableLayout layout) => layout.StringVariableField(this);
 
