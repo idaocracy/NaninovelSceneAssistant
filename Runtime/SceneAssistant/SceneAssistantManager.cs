@@ -39,7 +39,7 @@ namespace NaninovelSceneAssistant
 
 		public Action OnSceneAssistantCleared;
 		public Action OnSceneAssistantReset;
-		public virtual UniTask InitializeServiceAsync() => UniTask.CompletedTask;
+		public virtual UniTask InitializeService() => UniTask.CompletedTask;
 		public virtual void ResetService()
 		{
 			if(Initialized) ClearSceneAssistant();
@@ -81,8 +81,6 @@ namespace NaninovelSceneAssistant
 
             await LocateScriptsAsync();
             InitializeScriptFilterMenus();
-
-
             Initialized = true;
         }
 

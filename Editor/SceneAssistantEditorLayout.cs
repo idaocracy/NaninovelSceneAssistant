@@ -252,7 +252,7 @@ namespace NaninovelSceneAssistant
 					await stateManager.ResetState(
 						async () => await scriptPlayer.LoadAndPlay(script));
 				if (!string.IsNullOrEmpty(label))
-					await scriptPlayer.RewindAsync(scriptPlayer.PlayedScript.GetLineIndexForLabel(label));
+					await scriptPlayer.Rewind(scriptPlayer.PlayedScript.GetLineIndexForLabel(label));
 			}
 		}
 

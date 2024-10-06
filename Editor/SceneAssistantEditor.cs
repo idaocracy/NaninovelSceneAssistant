@@ -55,15 +55,16 @@ namespace NaninovelSceneAssistant
         [MenuItem("Naninovel/Scene Assistant", false, 360)]
         public static void ShowWindow() => sceneAssistantEditor = GetWindow<SceneAssistantEditor>("Naninovel Scene Assistant");
 
-        [InitializeOnEnterPlayMode]
-        private static void DetectEngineInitialization()
-        {
-            if (HasOpenInstances<SceneAssistantEditor>()) Engine.OnInitializationFinished += SetupAndInitializeSceneAssistant;
-        }
 
-        private void Awake()
+        private void OnEnable()
         {
             if (Engine.Initialized) SetupAndInitializeSceneAssistant();
+            else Engine.OnInitializationFinished += SetupAndInitializeSceneAssistant;
+        }
+
+        private void OnDisable()
+        {
+            Engine.OnInitializationFinished -= SetupAndInitializeSceneAssistant;
         }
 
         private static void SetupAndInitializeSceneAssistant()
@@ -76,12 +77,12 @@ namespace NaninovelSceneAssistant
             scriptsConfiguration = Engine.GetConfiguration<ScriptsConfiguration>();
             documentIcon = EditorGUIUtility.IconContent("UnityEditor.ConsoleWindow@2x");
             resetIcon = EditorGUIUtility.IconContent("d_Refresh@2x");
-            
+
             if (sceneAssistantManager.Initialized) return;
             sceneAssistantManager.InitializeSceneAssistant();
             sceneAssistantManager.OnSceneAssistantCleared += HandleSceneAssistantCleared;
             sceneAssistantManager.OnSceneAssistantReset += HandleSceneAssistantReset;
-            
+
             scriptFoldouts = new bool[sceneAssistantManager.ScriptDataList.Count];
             defaultRollbackValue = inputManager.GetRollback().Enabled;
 
@@ -290,11 +291,11 @@ namespace NaninovelSceneAssistant
             }
         }
 
-        public async void RollbackAsync() => await stateManager.RollbackAsync(s => s.PlayerRollbackAllowed);
+        public async void RollbackAsync() => await stateManager.Rollback(s => s.PlayerRollbackAllowed);
 
         public async void SyncAndExecuteAsync(Action action)
         {
-            await scriptPlayer.SynchronizeAndDoAsync(() => UniTaskify(action));
+            await scriptPlayer.Complete(() => UniTaskify(action));
 
             UniTask UniTaskify(Action task)
             {
