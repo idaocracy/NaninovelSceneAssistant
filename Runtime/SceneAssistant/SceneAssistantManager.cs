@@ -1,4 +1,4 @@
-﻿using Naninovel;
+using Naninovel;
 using Naninovel.UI;
 using Naninovel.Commands;
 using System;
@@ -50,7 +50,10 @@ namespace NaninovelSceneAssistant
 		}
 		public virtual void GetServices()
 		{
-			actorServices = Engine.FindAllServices<IActorManager>();
+			var list = new List<IActorManager>();
+			Engine.FindAllServices(list);
+			actorServices = list;
+
 			spawnManager = Engine.GetService<ISpawnManager>();
 			scriptPlayer = Engine.GetService<IScriptPlayer>();
 			variableManager = Engine.GetService<ICustomVariableManager>();
@@ -70,12 +73,12 @@ namespace NaninovelSceneAssistant
             stateManager.OnResetFinished += UpdateDataLists;
             stateManager.OnRollbackFinished += UpdateDataLists;
 
-			foreach (var variable in variableManager.GetAllVariables()) AddCustomVariable(variable.Name, variable.Value);
+			foreach (var variable in variableManager.Variables) AddCustomVariable(variable.Name, variable.Value);
 				variableManager.OnVariableUpdated += HandleOnVariableUpdated;
             InitializeVariableFilterMenus();
 
-            foreach (var unlockable in unlockableManager.GetAllItems())
-                UnlockableDataList.Add(unlockable.Key, new UnlockableData(unlockable.Key));
+            foreach (var unlockable in unlockableManager.ItemIds)
+                UnlockableDataList.Add(unlockable, new UnlockableData(unlockable));
             unlockableManager.OnItemUpdated += HandleOnUnlockableUpdated;
             InitializeUnlockableFilterMenus();
 
@@ -99,7 +102,7 @@ namespace NaninovelSceneAssistant
 		{
 			foreach (var variableData in VariableDataList.ToList())
 			{
-				if (variableManager.GetAllVariables().All(v => v.Name != variableData.Key))
+				if (variableManager.Variables.All(v => v.Name != variableData.Key))
 					VariableDataList.Remove(variableData.Key);
 			}
 		}
@@ -306,7 +309,7 @@ namespace NaninovelSceneAssistant
 		{
 			foreach (var actorService in actorServices)
 			{
-				foreach (var actor in actorService.GetAllActors())
+				foreach (var actor in actorService.Actors)
 				{
 					if (actor is ICharacterActor character && character.Visible) ObjectList.Add(character.Id, new CharacterData(character.Id));
 					if (actor is IBackgroundActor background && background.Visible) ObjectList.Add(background.Id, new BackgroundData(background.Id));
@@ -317,7 +320,7 @@ namespace NaninovelSceneAssistant
 		}
 		protected virtual void ResetSpawnList()
 		{
-			foreach (var spawn in spawnManager.GetAllSpawned()) ObjectList.Add(spawn.Path, new SpawnData(spawn.Path));
+			foreach (var spawn in spawnManager.Spawned) ObjectList.Add(spawn.Path, new SpawnData(spawn.Path));
 		}
 		private void ResetObjectTypeList()
 		{
