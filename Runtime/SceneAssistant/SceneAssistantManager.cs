@@ -73,11 +73,11 @@ namespace NaninovelSceneAssistant
             stateManager.OnResetFinished += UpdateDataLists;
             stateManager.OnRollbackFinished += UpdateDataLists;
 
-			foreach (var variable in variableManager.Variables) AddCustomVariable(variable.Name, variable.Value);
+			foreach (var variable in variableManager.Variables.ToList()) AddCustomVariable(variable.Name, variable.Value);
 				variableManager.OnVariableUpdated += HandleOnVariableUpdated;
             InitializeVariableFilterMenus();
 
-            foreach (var unlockable in unlockableManager.ItemIds)
+            foreach (var unlockable in unlockableManager.ItemIds.ToList())
                 UnlockableDataList.Add(unlockable, new UnlockableData(unlockable));
             unlockableManager.OnItemUpdated += HandleOnUnlockableUpdated;
             InitializeUnlockableFilterMenus();
