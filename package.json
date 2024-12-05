@@ -1,6 +1,6 @@
 {
   "name": "com.idaocracy.naninovelsceneassistant",
-  "version": "2.6.1",
+  "version": "2.7.0",
   "displayName": "Naninovel Scene Assistant",
   "description": "Various utility tools for Naninovel:\n\nScene assistant: Transform Naninovel objects in real time and easily copy over their values over to scenario scripts. \nCustom variable debug menu: Track custom variable values and change them on the go. Includes the option to search and filter by variable name.\nUnlockable debug menu: Track custom variable values and change them on the go. Includes the option to search and filter by unlockable name.\nScripts debug menu: Preload and play scripts with the click of a button. Includes the option to search and filter by name.",
   "unity": "2019.4",
