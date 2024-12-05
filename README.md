@@ -9,7 +9,7 @@ https://ko-fi.com/idaot
 Try the WebGL demo of the UI version of Scene Assistant here: https://idaocracy.github.io/NaninovelSceneAssistantWebGLDemo/ <br/>
 The Vignette and ColorGradingLDR objects displayed in the demo can be obtained from my NaninovelPostProcess extension: https://github.com/idaocracy/NaninovelPostProcess 
 
-### Installation (v2.0+)
+### Installation 
 1. In Unity's Package Manager, click the plus sign and navigate to *Add package from git URL...*. If you don't have git installed, install it and restart the computer.
 2. Type in https://github.com/idaocracy/NaninovelSceneAssistant.git and it should install automatically. 
 3. You are done! You can now access the scene assistant from the Naninovel menu.
