@@ -12,7 +12,7 @@ namespace NaninovelSceneAssistant {
 		string GetCommandLine( bool inlined = false, bool paramsOnly = false);
 		List<string> GetAllCommands(Dictionary<string, INaninovelObjectData> objectList, Dictionary<Type, bool> objectTypeList,  bool inlined = false, bool selected = false);
 		List<ICommandParameterData> CommandParameters { get; }
-		SortedList<string, VariableData> CustomVariables { get; }
+		//SortedList<string, VariableData> CustomVariables { get; }
 	}
 	
 	public abstract class NaninovelObjectData<TService, TConfig> : INaninovelObjectData, IDisposable 
@@ -29,7 +29,7 @@ namespace NaninovelSceneAssistant {
 		public abstract string Id { get; }
 		public abstract GameObject GameObject { get; }
 		public virtual List<ICommandParameterData> CommandParameters { get; protected set; } = new List<ICommandParameterData>();
-		public virtual SortedList<string, VariableData> CustomVariables { get; protected set; } = new SortedList<string, VariableData>();
+		//public virtual SortedList<string, VariableData> CustomVariables { get; protected set; } = new SortedList<string, VariableData>();
 		protected abstract string CommandNameAndId { get; }
 		protected abstract void AddCommandParameters();
 		protected CameraConfiguration CameraConfiguration => Engine.GetConfiguration<CameraConfiguration>();

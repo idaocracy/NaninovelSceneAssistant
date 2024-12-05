@@ -1,4 +1,4 @@
-﻿using Naninovel;
+using Naninovel;
 using Naninovel.UI;
 using Naninovel.Commands;
 using System;
@@ -25,7 +25,7 @@ namespace NaninovelSceneAssistant
 
 		public Dictionary<string, INaninovelObjectData> ObjectList { get; protected set; } = new Dictionary<string, INaninovelObjectData>();
 		public Dictionary<Type, bool> ObjectTypeList { get; protected set; } = new Dictionary<Type, bool>();
-		public SortedList<string, VariableData> VariableDataList { get; protected set; } = new SortedList<string, VariableData> { };
+		public SortedList<string, IVariableData> VariableDataList { get; protected set; } = new SortedList<string, IVariableData> { };
 		public SortedList<string, UnlockableData> UnlockableDataList { get; protected set; } = new SortedList<string, UnlockableData> { };
 		public SortedList<string, ScriptData> ScriptDataList { get; protected set; } = new SortedList<string, ScriptData>();
 		public List<IUIData> ModalUIDataList { get; protected set; } = new List<IUIData>();
@@ -39,7 +39,7 @@ namespace NaninovelSceneAssistant
 
 		public Action OnSceneAssistantCleared;
 		public Action OnSceneAssistantReset;
-		public virtual UniTask InitializeServiceAsync() => UniTask.CompletedTask;
+		public virtual UniTask InitializeService() => UniTask.CompletedTask;
 		public virtual void ResetService()
 		{
 			if(Initialized) ClearSceneAssistant();
@@ -50,7 +50,10 @@ namespace NaninovelSceneAssistant
 		}
 		public virtual void GetServices()
 		{
-			actorServices = Engine.FindAllServices<IActorManager>();
+			var list = new List<IActorManager>();
+			Engine.FindAllServices(list);
+			actorServices = list;
+
 			spawnManager = Engine.GetService<ISpawnManager>();
 			scriptPlayer = Engine.GetService<IScriptPlayer>();
 			variableManager = Engine.GetService<ICustomVariableManager>();
@@ -59,42 +62,47 @@ namespace NaninovelSceneAssistant
 			uiManager = Engine.GetService<IUIManager>();
 		}
 		public virtual async void InitializeSceneAssistant()
-		{
-			if(Initialized) return;
-			GetServices();
-			ResetSceneAssistant();
+        {
+            if (Initialized) return;
+            GetServices();
+            ResetSceneAssistant();
+            scriptPlayer.OnCommandExecutionStart += ClearSceneAssistantOnCommandStart;
+            scriptPlayer.OnCommandExecutionFinish += ResetSceneAssistantOnCommandFinish;
 
-			scriptPlayer.OnCommandExecutionStart += ClearSceneAssistantOnCommandStart;
-			scriptPlayer.OnCommandExecutionFinish += ResetSceneAssistantOnCommandFinish;
-			
-			stateManager.OnGameLoadFinished += HandleGameLoadFinished;
-			stateManager.OnResetFinished += UpdateDataLists;
-			stateManager.OnRollbackFinished += UpdateDataLists;
-			
-			foreach (var variable in variableManager.GetAllVariables()) 
-				VariableDataList.Add(variable.Name, new VariableData(variable.Name));
-			variableManager.OnVariableUpdated += HandleOnVariableUpdated;
-			InitializeVariableFilterMenus();
+            stateManager.OnGameLoadFinished += HandleGameLoadFinished;
+            stateManager.OnResetFinished += UpdateDataLists;
+            stateManager.OnRollbackFinished += UpdateDataLists;
 
-			foreach (var unlockable in unlockableManager.GetAllItems()) 
-				UnlockableDataList.Add(unlockable.Key, new UnlockableData(unlockable.Key));
-			unlockableManager.OnItemUpdated += HandleOnUnlockableUpdated;
-			InitializeUnlockableFilterMenus();
-			
-			await LocateScriptsAsync();
-			InitializeScriptFilterMenus();
+			foreach (var variable in variableManager.Variables.ToList()) AddCustomVariable(variable.Name, variable.Value);
+				variableManager.OnVariableUpdated += HandleOnVariableUpdated;
+            InitializeVariableFilterMenus();
 
+            foreach (var unlockable in unlockableManager.ItemIds.ToList())
+                UnlockableDataList.Add(unlockable, new UnlockableData(unlockable));
+            unlockableManager.OnItemUpdated += HandleOnUnlockableUpdated;
+            InitializeUnlockableFilterMenus();
 
-			Initialized = true;
+            await LocateScriptsAsync();
+            InitializeScriptFilterMenus();
+            Initialized = true;
+        }
+
+        private void AddCustomVariable(string name, CustomVariableValue variable)
+        {
+			if (VariableDataList.Keys.Contains(name)) return;
+
+			if(variable.Type == CustomVariableValueType.Boolean) VariableDataList.Add(name, new BooleanVariableData(name));
+			else if(variable.Type == CustomVariableValueType.Numeric) VariableDataList.Add(name, new NumericVariableData(name));
+			else VariableDataList.Add(name, new StringVariableData(name));
 		}
 
-		private void HandleGameLoadFinished(GameSaveLoadArgs args) => UpdateDataLists();
+        private void HandleGameLoadFinished(GameSaveLoadArgs args) => UpdateDataLists();
 
 		private void UpdateDataLists()
 		{
 			foreach (var variableData in VariableDataList.ToList())
 			{
-				if (variableManager.GetAllVariables().All(v => v.Name != variableData.Key))
+				if (variableManager.Variables.All(v => v.Name != variableData.Key))
 					VariableDataList.Remove(variableData.Key);
 			}
 		}
@@ -137,18 +145,17 @@ namespace NaninovelSceneAssistant
 		
 		private void HandleOnVariableUpdated(CustomVariableUpdatedArgs args)
 		{
-			if(!VariableDataList.ContainsKey(args.Name)) VariableDataList.Add(args.Name, new VariableData(args.Name));
+			if(!VariableDataList.ContainsKey(args.Name)) AddCustomVariable(args.Name, (CustomVariableValue)args.Value);
 			else
 			{
-				var variable = VariableDataList.FirstOrDefault(v => v.Key == args.Name);
-				var argsValue = Naninovel.ExpressionEvaluator.Evaluate<string>(args.Name);
-				if (variable.Value.Value != argsValue) variable.Value.Value = argsValue;
+				var variable = VariableDataList.Remove(args.Name);
+				if(args.Value != null) AddCustomVariable(args.Name, (CustomVariableValue)args.Value);
 			}
 		}
 
 		private void HandleOnUnlockableUpdated(UnlockableItemUpdatedArgs args)
 		{
-			if(!UnlockableDataList.ContainsKey(args.Id)) VariableDataList.Add(args.Id, new VariableData(args.Id));
+			if(!UnlockableDataList.ContainsKey(args.Id)) UnlockableDataList.Add(args.Id, new UnlockableData(args.Id));
 			else
 			{
 				var unlockable = UnlockableDataList.FirstOrDefault(u => u.Key == args.Id);
@@ -158,17 +165,13 @@ namespace NaninovelSceneAssistant
 		
 		private async UniTask LocateScriptsAsync()
 		{
-			var resourceProviderManager = Engine.GetService<IResourceProviderManager>();
-			var scriptsConfiguration = Engine.GetConfiguration<ScriptsConfiguration>();
+			var scriptManager = Engine.GetService<IScriptManager>();
+			var scripts = scriptManager.ScriptLoader.LoadAll().Result;
 
-			foreach (var provider in resourceProviderManager.GetProviders(scriptsConfiguration.Loader.ProviderTypes))
+			foreach (var resource in scripts)
 			{
-				var paths = await provider.LoadResourcesAsync<Script>(scriptsConfiguration.Loader.PathPrefix);
-				foreach (var resource in paths)
-				{
-					var scriptName = resource.Path.Split("/".ToCharArray()).Last();
-					ScriptDataList.Add(scriptName, new ScriptData(resource));
-				}
+				//var scriptName = resource.Path.Split("/".ToCharArray()).Last();
+				ScriptDataList.Add(resource.Object.Path, new ScriptData(resource));
 			}
 			
 			await UniTask.CompletedTask;
@@ -306,7 +309,7 @@ namespace NaninovelSceneAssistant
 		{
 			foreach (var actorService in actorServices)
 			{
-				foreach (var actor in actorService.GetAllActors())
+				foreach (var actor in actorService.Actors)
 				{
 					if (actor is ICharacterActor character && character.Visible) ObjectList.Add(character.Id, new CharacterData(character.Id));
 					if (actor is IBackgroundActor background && background.Visible) ObjectList.Add(background.Id, new BackgroundData(background.Id));
@@ -317,7 +320,7 @@ namespace NaninovelSceneAssistant
 		}
 		protected virtual void ResetSpawnList()
 		{
-			foreach (var spawn in spawnManager.GetAllSpawned()) ObjectList.Add(spawn.Path, new SpawnData(spawn.Path));
+			foreach (var spawn in spawnManager.Spawned) ObjectList.Add(spawn.Path, new SpawnData(spawn.Path));
 		}
 		private void ResetObjectTypeList()
 		{

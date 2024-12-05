@@ -154,62 +154,43 @@ namespace NaninovelSceneAssistant
 			EditorGUILayout.EndHorizontal();
 		}
 
-		public void VariableField(VariableData var)
-		{
-			EditorGUILayout.BeginHorizontal();
 
-			EditorStyles.label.normal.textColor = var.Changed ? Color.yellow : Color.white;
+		public void BooleanVariableField(BooleanVariableData var)
+        {
+			EditorGUILayout.LabelField(var.Name, GUILayout.Width(148));
 
-			if (float.TryParse(var.Value, out var floatValue))
+			EditorGUI.BeginChangeCheck();
+			var.Value = EditorGUILayout.Toggle("", var.Value);
+			if (EditorGUI.EndChangeCheck())
 			{
-				EditorGUI.BeginChangeCheck();
-				if (numberTypeIndex == 0)
-					var.Value = EditorGUILayout.FloatField(var.Name, floatValue, GUILayout.MinWidth(20)).ToString();
-				else var.Value = EditorGUILayout.IntField(var.Name, (int)floatValue, GUILayout.MinWidth(20)).ToString();
-				if (EditorGUI.EndChangeCheck())
-				{
-					var.Changed = true;
-				}
-
-				numberTypeIndex = EditorGUILayout.Popup(numberTypeIndex, numberTypes, GUILayout.Width(26));
+				var.Changed = true;
 			}
-			else
+		}
+
+		public void StringVariableField(StringVariableData var)
+        {
+			EditorGUILayout.LabelField(var.Name, GUILayout.Width(148));
+
+			EditorGUI.BeginChangeCheck();
+			var.Value = EditorGUILayout.DelayedTextField(var.Value);
+			if (EditorGUI.EndChangeCheck())
 			{
-				EditorGUILayout.LabelField(var.Name, GUILayout.Width(148));
+				var.Changed = true;
+			}
+		}
 
-				if (bool.TryParse(var.Value, out var boolValue))
-				{
-					EditorGUI.BeginChangeCheck();
-					var.Value = EditorGUILayout.Toggle("", boolValue).ToString();
-
-					if (EditorGUI.EndChangeCheck())
-					{
-						var.Changed = true;
-					}
-				}
-				else
-				{
-					EditorGUI.BeginChangeCheck();
-					var.Value = EditorGUILayout.DelayedTextField(var.Value);
-					if (EditorGUI.EndChangeCheck())
-					{
-						var.Changed = true;
-					}
-				}
+		public void NumericVariableField(NumericVariableData var)
+        {
+			EditorGUI.BeginChangeCheck();
+			if (numberTypeIndex == 0)
+				var.Value = EditorGUILayout.FloatField(var.Name, var.Value, GUILayout.MinWidth(20));
+			else var.Value = EditorGUILayout.IntField(var.Name, (int)var.Value, GUILayout.MinWidth(20));
+			if (EditorGUI.EndChangeCheck())
+			{
+				var.Changed = true;
 			}
 
-			if (var.Changed)
-			{
-				// if (GUILayout.Button(resetIcon, GUILayout.Width(25), GUILayout.Height(18)))
-				// {
-				// 	var.Value = var.State;
-				// 	var.Changed = false;
-				// }
-			}
-
-			EditorGUILayout.EndHorizontal();
-
-			EditorStyles.label.normal.textColor = Color.white;
+			numberTypeIndex = EditorGUILayout.Popup(numberTypeIndex, numberTypes, GUILayout.Width(26));
 		}
 
 		public void UnlockableField(UnlockableData unlockable)
@@ -227,10 +208,10 @@ namespace NaninovelSceneAssistant
 			GUILayout.BeginHorizontal();
 			if (GUILayout.Button(" \u25B6",
 				    GetButtonStyle(Color.green,
-					    scriptPlayer.PlayedScript != null && scriptPlayer.PlayedScript.name == scriptName),
+					    scriptPlayer.PlayedScript != null && scriptPlayer.PlayedScript.Path == scriptName),
 				    GUILayout.Width(20), GUILayout.Height(18)))
 				PlayScriptAsync(scriptName);
-			
+
 			var foldoutIndex = sceneAssistantManager.ScriptDataList.Keys.IndexOf(scriptName);
 			scriptFoldouts[foldoutIndex] = EditorGUILayout.Foldout(scriptFoldouts[foldoutIndex], scriptName);
 			GUILayout.EndHorizontal();
@@ -266,10 +247,12 @@ namespace NaninovelSceneAssistant
 
 			async void PlayScriptAsync(string script, string label = null)
 			{
-				Engine.GetService<IUIManager>()?.GetUI<ITitleUI>()?.Hide();
-				await stateManager.ResetStateAsync(async () => await scriptPlayer.PreloadAndPlayAsync(script));
+				Engine.GetService<IUIManager>()?.GetUI<ITitleUI>()?.Hide(); 
+				using (await LoadingScreen.Show())
+					await stateManager.ResetState(
+						async () => await scriptPlayer.LoadAndPlay(script));
 				if (!string.IsNullOrEmpty(label))
-					await scriptPlayer.RewindAsync(scriptPlayer.PlayedScript.GetLineIndexForLabel(label));
+					await scriptPlayer.Rewind(scriptPlayer.PlayedScript.GetLineIndexForLabel(label));
 			}
 		}
 

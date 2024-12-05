@@ -32,7 +32,7 @@ namespace NaninovelSceneAssistant
 		private async void PlayScriptAsync()
 		{
 			Engine.GetService<IUIManager>()?.GetUI<ITitleUI>()?.Hide();
-			await stateManager.ResetStateAsync(() => scriptPlayer.PreloadAndPlayAsync(ScriptName));
+			await stateManager.ResetState(() => scriptPlayer.LoadAndPlay(ScriptName));
 		}
 	}
 }

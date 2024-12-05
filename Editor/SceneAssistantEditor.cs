@@ -55,15 +55,16 @@ namespace NaninovelSceneAssistant
         [MenuItem("Naninovel/Scene Assistant", false, 360)]
         public static void ShowWindow() => sceneAssistantEditor = GetWindow<SceneAssistantEditor>("Naninovel Scene Assistant");
 
-        [InitializeOnEnterPlayMode]
-        private static void DetectEngineInitialization()
-        {
-            if (HasOpenInstances<SceneAssistantEditor>()) Engine.OnInitializationFinished += SetupAndInitializeSceneAssistant;
-        }
 
-        private void Awake()
+        private void OnEnable()
         {
             if (Engine.Initialized) SetupAndInitializeSceneAssistant();
+            else Engine.OnInitializationFinished += SetupAndInitializeSceneAssistant;
+        }
+
+        private void OnDisable()
+        {
+            Engine.OnInitializationFinished -= SetupAndInitializeSceneAssistant;
         }
 
         private static void SetupAndInitializeSceneAssistant()
@@ -76,12 +77,12 @@ namespace NaninovelSceneAssistant
             scriptsConfiguration = Engine.GetConfiguration<ScriptsConfiguration>();
             documentIcon = EditorGUIUtility.IconContent("UnityEditor.ConsoleWindow@2x");
             resetIcon = EditorGUIUtility.IconContent("d_Refresh@2x");
-            
+
             if (sceneAssistantManager.Initialized) return;
             sceneAssistantManager.InitializeSceneAssistant();
             sceneAssistantManager.OnSceneAssistantCleared += HandleSceneAssistantCleared;
             sceneAssistantManager.OnSceneAssistantReset += HandleSceneAssistantReset;
-            
+
             scriptFoldouts = new bool[sceneAssistantManager.ScriptDataList.Count];
             defaultRollbackValue = inputManager.GetRollback().Enabled;
 
@@ -290,11 +291,11 @@ namespace NaninovelSceneAssistant
             }
         }
 
-        public async void RollbackAsync() => await stateManager.RollbackAsync(s => s.PlayerRollbackAllowed);
+        public async void RollbackAsync() => await stateManager.Rollback(s => s.PlayerRollbackAllowed);
 
         public async void SyncAndExecuteAsync(Action action)
         {
-            await scriptPlayer.SynchronizeAndDoAsync(() => UniTaskify(action));
+            await scriptPlayer.Complete(() => UniTaskify(action));
 
             UniTask UniTaskify(Action task)
             {
@@ -551,7 +552,7 @@ namespace NaninovelSceneAssistant
             GUILayout.EndHorizontal();
         }
 
-        protected virtual void DrawCustomVariables(SortedList<string, VariableData> variables)
+        protected virtual void DrawCustomVariables(SortedList<string, IVariableData> variables)
         {
             if (variables == null && variables.Count == 0) return;
             GUILayout.Space(5);
@@ -572,7 +573,7 @@ namespace NaninovelSceneAssistant
 
             void DrawVariables(string[] filters)
             {
-                foreach (VariableData variable in sceneAssistantManager.VariableDataList.Values)
+                foreach (IVariableData variable in sceneAssistantManager.VariableDataList.Values.ToList())
                 {
                     if(filters.Length > 0 && !CheckScriptRegex(variable.Name, filters)) continue;
                     if (!string.IsNullOrEmpty(search) && variable.Name.IndexOf(search, StringComparison.OrdinalIgnoreCase) < 0) continue;
@@ -616,6 +617,8 @@ namespace NaninovelSceneAssistant
             GUILayout.Space(5);
 
             DrawSearchField();
+
+            // todo 1.20
 
             GUILayout.Space(5);
             if(sceneAssistantManager.ScriptFilterMenus.Count > 1)
