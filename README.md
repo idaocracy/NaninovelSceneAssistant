@@ -11,11 +11,7 @@ The Vignette and ColorGradingLDR objects displayed in the demo can be obtained f
 
 ### Installation (v2.0+)
 1. In Unity's Package Manager, click the plus sign and navigate to *Add package from git URL...*. If you don't have git installed, install it and restart the computer.
-2. Type in https://github.com/idaocracy/NaninovelSceneAssistant.git and it should install automatically. **For 1.20 users, type in https://github.com/idaocracy/NaninovelSceneAssistant.git#1.20 instead (you can skip the other steps).**
-3. In Naninovel's Engine configuration, unfold the Type Assemblies dropdown and add these two assembly definitions:
-- **Idaocracy.NaninovelSceneAssistant.Runtime**
-- **Idaocracy.NaninovelSceneAssistant.Editor**
-4. Reimport the Naninovel folder for Naninovel to recognise the extension (right click on the Naninovel folder -> Reimport)
+2. Type in https://github.com/idaocracy/NaninovelSceneAssistant.git and it should install automatically. 
 3. You are done! You can now access the scene assistant from the Naninovel menu.
 
 ### UI setup
