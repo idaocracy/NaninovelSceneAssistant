@@ -1,9 +1,8 @@
-﻿using Naninovel;
+using Naninovel;
 using System;
 
-public class VariableData : IDisposable
+namespace NaninovelSceneAssistant
 {
-
     public interface IVariableData
     {
         string Name { get; }
