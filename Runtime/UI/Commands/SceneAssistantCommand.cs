@@ -2,7 +2,7 @@ using Naninovel;
 
 namespace NaninovelSceneAssistant 
 {
-	[CommandAlias("sceneAssistant")]
+	[Alias("sceneAssistant")]
 	public class SceneAssistantCommand : Command
 	{
 		public override UniTask Execute (AsyncToken asyncToken = default)
