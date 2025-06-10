@@ -109,6 +109,7 @@ namespace NaninovelSceneAssistant
 
 		private void InitializeVariableFilterMenus()
 		{
+			VariableFilterMenus.Clear();
 			VariableFilterMenus.Add("All", Array.Empty<string>());
 
 			if (Configuration.CreateCharactersVariableFilterMenu)
@@ -123,7 +124,8 @@ namespace NaninovelSceneAssistant
         
 		private void InitializeScriptFilterMenus()
 		{
-			ScriptFilterMenus.Add("All", string.Empty);
+            ScriptFilterMenus.Clear();
+            ScriptFilterMenus.Add("All", string.Empty);
 			if (Configuration.CreateChapterFilterMenu) ScriptFilterMenus.Add("Chapters", Configuration.ChapterVariableFilterTemplate);
 			foreach (var menu in Configuration.ScriptFilterMenus)
 				if(!string.IsNullOrEmpty(menu)) ScriptFilterMenus.Add(FormatFilterMenuItem(menu), menu);
@@ -131,7 +133,8 @@ namespace NaninovelSceneAssistant
 
 		private void InitializeUnlockableFilterMenus()
 		{
-			UnlockableFilterMenus.Add("All", string.Empty);
+            UnlockableFilterMenus.Clear();
+            UnlockableFilterMenus.Add("All", string.Empty);
 			if (Configuration.CreateCGFilterMenu) UnlockableFilterMenus.Add("CG", "CG/");
 			foreach (var menu in Configuration.UnlockableFilterMenus)
 				if(!string.IsNullOrEmpty(menu)) UnlockableFilterMenus.Add(FormatFilterMenuItem(menu), menu);
