@@ -1,3 +1,10 @@
+v 2.7.1 
+- Added Render Rectangle option for render texture actors. 
+- Layered actors now support composition values.
+
+v 2.7.0
+- Update to 1.20
+
 v 2.6.0 April 2024
 - Added UI tab to ease the access to UIs and their visibility functions
 

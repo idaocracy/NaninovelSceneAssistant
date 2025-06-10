@@ -34,6 +34,7 @@ namespace NaninovelSceneAssistant
         private static int varFilterIndex;
         private static int unlockableFilterIndex;
         private static int scriptFilterIndex;
+        private static Rect renderRect { get; set; }
         private static string clipboardString;
         private static string search;
         private static string poseName;
@@ -199,6 +200,7 @@ namespace NaninovelSceneAssistant
             EditorGUILayout.Space(5);
             DrawCommandParameterOptions();
             DrawActorPoseOptions();
+            DrawRenderTextureOptions();
             DrawCommandTextArea();
 
             GUILayout.EndVertical();
@@ -515,6 +517,29 @@ namespace NaninovelSceneAssistant
                 GUILayout.EndHorizontal();
 
                 EditorGUILayout.Space(5);
+            }
+        }
+
+        protected virtual void DrawRenderTextureOptions()
+        {
+            if (sceneAssistantManager.IsAvailable && (CurrentObject is IOrthoActorData orthoData) && orthoData.IsRenderTexture)
+            {
+                GUILayout.BeginHorizontal();
+                GUILayout.FlexibleSpace();
+                EditorGUILayout.LabelField("Render Rectangle", EditorStyles.centeredGreyMiniLabel, GUILayout.Width(160));
+                GUILayout.FlexibleSpace();
+                GUILayout.EndHorizontal();
+
+                renderRect = orthoData.GetRenderRectangle();
+
+                GUILayout.BeginHorizontal();
+                EditorGUI.BeginChangeCheck();
+                renderRect = EditorGUILayout.RectField(renderRect);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    orthoData.SetRenderRectangle(renderRect);
+                }
+                GUILayout.EndHorizontal();
             }
         }
 
