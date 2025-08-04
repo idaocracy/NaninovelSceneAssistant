@@ -27,13 +27,7 @@ namespace NaninovelSceneAssistant
 		}
 		protected async void SyncAndExecuteAsync(Action action)
 		{
-			await ScriptPlayer.Complete(() => UniTaskify(action));
-
-			UniTask UniTaskify(Action task)
-			{
-				task();
-				return UniTask.CompletedTask;
-			}
+			await ScriptPlayer.Complete();
 		}
 
 		protected void SetColor(bool enabled)

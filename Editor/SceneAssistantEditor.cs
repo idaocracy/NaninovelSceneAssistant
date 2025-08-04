@@ -297,13 +297,7 @@ namespace NaninovelSceneAssistant
 
         public async void SyncAndExecuteAsync(Action action)
         {
-            await scriptPlayer.Complete(() => UniTaskify(action));
-
-            UniTask UniTaskify(Action task)
-            {
-                task();
-                return UniTask.CompletedTask;
-            }
+            await scriptPlayer.Complete();
         }
 
         protected virtual void DrawCommandOptions()

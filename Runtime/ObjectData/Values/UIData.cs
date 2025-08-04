@@ -68,7 +68,7 @@ namespace NaninovelSceneAssistant
 
         protected override async UniTask ChangeVisibilityAsync(bool visible)
         {
-            UI.PresentationMode = SaveLoadUIPresentationMode.Save;
+            UI.ShowSave();
             await base.ChangeVisibilityAsync(visible);
         }
     }
@@ -82,7 +82,7 @@ namespace NaninovelSceneAssistant
 
         protected override async UniTask ChangeVisibilityAsync(bool visible)
         {
-            UI.PresentationMode = SaveLoadUIPresentationMode.Load;
+            UI.ShowLoad();
             await base.ChangeVisibilityAsync(visible);
         }
     }
@@ -96,7 +96,7 @@ namespace NaninovelSceneAssistant
 
         protected override async UniTask ChangeVisibilityAsync(bool visible)
         {
-            UI.PresentationMode = SaveLoadUIPresentationMode.QuickLoad;
+            UI.ShowLoad();
             await base.ChangeVisibilityAsync(visible);
         }
     }
