@@ -7,11 +7,12 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using System.Threading.Tasks;
 
 namespace NaninovelSceneAssistant
 {
     [Serializable]
-    public partial class SceneAssistantEditor : EditorWindow
+    public partial class SceneAssistantEditor : EditorWindow, IHasCustomMenu
     {
         private static SceneAssistantEditor sceneAssistantEditor;
         public static string[] Tabs { get; protected set; } = new string[] { "Objects", "Variables", "Unlockables", "Scripts", "UI"};
@@ -56,7 +57,6 @@ namespace NaninovelSceneAssistant
         [MenuItem("Naninovel/Scene Assistant", false, 360)]
         public static void ShowWindow() => sceneAssistantEditor = GetWindow<SceneAssistantEditor>("Naninovel Scene Assistant");
 
-
         private void OnEnable()
         {
             if (Engine.Initialized) SetupAndInitializeSceneAssistant();
@@ -66,6 +66,24 @@ namespace NaninovelSceneAssistant
         private void OnDisable()
         {
             Engine.OnInitializationFinished -= SetupAndInitializeSceneAssistant;
+        }
+
+        void IHasCustomMenu.AddItemsToMenu(GenericMenu menu)
+        {
+            GUIContent content = new GUIContent("Reset Scene Assistant");
+            menu.AddItem(content, false, ResetSceneAssistant);
+        }
+
+        private void ResetSceneAssistant()
+        {
+            if (sceneAssistantManager != null && sceneAssistantManager.Initialized)
+            {
+                sceneAssistantManager.DestroySceneAssistant();
+                sceneAssistantManager.OnSceneAssistantCleared -= HandleSceneAssistantCleared;
+                sceneAssistantManager.OnSceneAssistantReset -= HandleSceneAssistantReset;
+            }
+
+            SetupAndInitializeSceneAssistant();
         }
 
         private static void SetupAndInitializeSceneAssistant()
