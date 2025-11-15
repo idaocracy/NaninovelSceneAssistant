@@ -103,7 +103,7 @@ namespace NaninovelSceneAssistant
             sceneAssistantManager.OnSceneAssistantReset += HandleSceneAssistantReset;
 
             scriptFoldouts = new bool[sceneAssistantManager.ScriptDataList.Count];
-            defaultRollbackValue = inputManager.GetRollback().Enabled;
+            defaultRollbackValue = inputManager.GetRollback().Muted;
 
             int temp = EditorPrefs.GetInt("NaniAssistantTab", -1);
             if (temp > -1)
@@ -247,9 +247,9 @@ namespace NaninovelSceneAssistant
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
 
-            if (DrawScriptPlayerButton("\u25B6", Color.green, scriptPlayer.Playing))
+            if (DrawScriptPlayerButton("\u25B6", Color.green, scriptPlayer.MainTrack.Playing))
             {
-                if(!scriptPlayer.Playing)
+                if(!scriptPlayer.MainTrack.Playing)
                 {
                     Type type = typeof(IScriptPlayer);
                     MethodInfo methodInfo = type.GetMethod("Resume");
@@ -258,19 +258,19 @@ namespace NaninovelSceneAssistant
                 }
 
                 inputManager.GetContinue().Activate(1);
-                inputManager.GetRollback().Enabled = defaultRollbackValue;
+                inputManager.GetRollback().Muted = defaultRollbackValue;
             }
 
-            if (DrawScriptPlayerButton("\u2161", Color.yellow, scriptPlayer.Playing && scriptPlayer.WaitingForInput))
+            if (DrawScriptPlayerButton("\u2161", Color.yellow, scriptPlayer.MainTrack.Playing && scriptPlayer.AwaitingInput))
             {
-                SyncAndExecuteAsync(() => scriptPlayer.SetWaitingForInputEnabled(true));
+                SyncAndExecuteAsync(() => scriptPlayer.MainTrack.SetAwaitInput(true));
             }
 
-            if (DrawScriptPlayerButton("\uFFED", Color.red, !scriptPlayer.Playing, 18))
+            if (DrawScriptPlayerButton("\uFFED", Color.red, !scriptPlayer.MainTrack.Playing, 18))
             {
-                SyncAndExecuteAsync(scriptPlayer.Stop);
-                if (disableRollback) inputManager.GetRollback().Enabled = false;
-                if (scriptPlayer.WaitingForInput) scriptPlayer.SetWaitingForInputEnabled(false);
+                SyncAndExecuteAsync(scriptPlayer.MainTrack.Stop);
+                if (disableRollback) inputManager.GetRollback().Muted = true;
+                if (scriptPlayer.AwaitingInput) scriptPlayer.MainTrack.SetAwaitInput(false);
             }
 
             if (stateManager.Configuration.EnableStateRollback)
@@ -278,7 +278,7 @@ namespace NaninovelSceneAssistant
                 if (GUILayout.Button("\u25AE" + " \u25C0", new GUIStyle(GUI.skin.button) { fontSize = 7, fontStyle = FontStyle.Bold }, GUILayout.Height(20), GUILayout.Width(25)))
                 {
                     inputManager.GetRollback().Activate(1);
-                    SyncAndExecuteAsync(() => scriptPlayer.SetWaitingForInputEnabled(true));
+                    SyncAndExecuteAsync(() => scriptPlayer.MainTrack.SetAwaitInput(true));
                 }
             }
 
@@ -286,15 +286,15 @@ namespace NaninovelSceneAssistant
             {
                 foreach (var obj in sceneAssistantManager.ObjectList.Values) obj.CommandParameters.ForEach(p => p.ResetState());
                 inputManager.GetContinue().Activate(1);
-                SyncAndExecuteAsync(() => scriptPlayer.SetWaitingForInputEnabled(true));
+                SyncAndExecuteAsync(() => scriptPlayer.MainTrack.SetAwaitInput(true));
             }
 
-            if (scriptPlayer.PlayedScript != null)
+            if (scriptPlayer.MainTrack.PlayedScript != null)
             {
                 if (GUILayout.Button(documentIcon, GUILayout.Height(20), GUILayout.Width(25)))
                 {
-                    EditorGUIUtility.PingObject(scriptPlayer.PlayedScript);
-                    Selection.activeObject = scriptPlayer.PlayedScript;
+                    EditorGUIUtility.PingObject(scriptPlayer.MainTrack.PlayedScript);
+                    Selection.activeObject = scriptPlayer.MainTrack.PlayedScript;
                 }
             }
             
@@ -315,7 +315,7 @@ namespace NaninovelSceneAssistant
 
         public async void SyncAndExecuteAsync(Action action)
         {
-            await scriptPlayer.Complete();
+            await scriptPlayer.MainTrack.Complete();
         }
 
         protected virtual void DrawCommandOptions()
@@ -332,17 +332,17 @@ namespace NaninovelSceneAssistant
 
         private void DrawVisualEditorOptions()
         {
-            if (!scriptsConfiguration.EnableVisualEditor || scriptPlayer.PlayedScript == null) return;
+            if (!scriptsConfiguration.EnableVisualEditor || scriptPlayer.MainTrack.PlayedScript == null) return;
 
             GUILayout.BeginVertical();
 
             EditorGUILayout.LabelField("Visual editor", EditorStyles.centeredGreyMiniLabel, GUILayout.Width(160));
-            if (VisualEditors.Length == 0 || Selection.activeObject != scriptPlayer.PlayedScript)
+            if (VisualEditors.Length == 0 || Selection.activeObject != scriptPlayer.MainTrack.PlayedScript)
             {
                 if (GUILayout.Button("Open Visual Editor", GUILayout.Width(145)))
                 {
-                    EditorGUIUtility.PingObject(scriptPlayer.PlayedScript);
-                    Selection.activeObject = scriptPlayer.PlayedScript;
+                    EditorGUIUtility.PingObject(scriptPlayer.MainTrack.PlayedScript);
+                    Selection.activeObject = scriptPlayer.MainTrack.PlayedScript;
                 }
             }
             else
@@ -377,8 +377,8 @@ namespace NaninovelSceneAssistant
 
             foreach (var str in contents)
             {
-                var command = CommandLineView.CreateDefault(scriptPlayer.PlayedIndex, str.Remove("@"), new VisualElement(), true);
-                VisualEditors[0].VisualEditor.InsertLine(command, scriptPlayer.PlayedIndex);
+                var command = CommandLineView.CreateDefault(scriptPlayer.MainTrack.PlayedIndex, str.Remove("@"), new VisualElement(), true);
+                VisualEditors[0].VisualEditor.InsertLine(command, scriptPlayer.MainTrack.PlayedIndex);
             }
 
             return content;
@@ -389,10 +389,10 @@ namespace NaninovelSceneAssistant
             Type type = typeof(GenericTextLineView);
 
             Type[] updatedConstructorParameterTypes = new Type[] { typeof(int), typeof(int), typeof(string), typeof(VisualElement) };
-            object[] updatedConstructorArguments = new object[] { scriptPlayer.PlayedIndex, 0, content, new VisualElement() };
+            object[] updatedConstructorArguments = new object[] { scriptPlayer.MainTrack.PlayedIndex, 0, content, new VisualElement() };
 
             Type[] legacyConstructorParameterTypes = new Type[] { typeof(int), typeof(string), typeof(VisualElement) };
-            object[] legacyConstructorArguments = new object[] { scriptPlayer.PlayedIndex, content, new VisualElement() };
+            object[] legacyConstructorArguments = new object[] { scriptPlayer.MainTrack.PlayedIndex, content, new VisualElement() };
 
 
             ConstructorInfo constructor;
@@ -409,7 +409,7 @@ namespace NaninovelSceneAssistant
                 instance = (GenericTextLineView)constructor.Invoke(legacyConstructorArguments);
             }
             
-            VisualEditors[0].VisualEditor.InsertLine(instance, scriptPlayer.PlayedIndex);
+            VisualEditors[0].VisualEditor.InsertLine(instance, scriptPlayer.MainTrack.PlayedIndex);
 
             return content;
         }

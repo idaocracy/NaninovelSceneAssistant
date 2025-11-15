@@ -24,7 +24,7 @@ namespace  NaninovelSceneAssistant
             Value = value;
 
             getLabels = () => Value.Lines
-                .OfType<LabelScriptLine>()
+                .OfType<LabelLine>()
                 .Where(l => !string.IsNullOrWhiteSpace(l.LabelText))
                 .Select(l => l.LabelText.Trim()).ToList();
         }

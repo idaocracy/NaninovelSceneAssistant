@@ -208,7 +208,7 @@ namespace NaninovelSceneAssistant
 			GUILayout.BeginHorizontal();
 			if (GUILayout.Button(" \u25B6",
 				    GetButtonStyle(Color.green,
-					    scriptPlayer.PlayedScript != null && scriptPlayer.PlayedScript.Path == scriptName),
+					    scriptPlayer.MainTrack.PlayedScript != null && scriptPlayer.MainTrack.PlayedScript.Path == scriptName),
 				    GUILayout.Width(20), GUILayout.Height(18)))
 				PlayScriptAsync(scriptName);
 
@@ -250,9 +250,9 @@ namespace NaninovelSceneAssistant
 				Engine.GetService<IUIManager>()?.GetUI<ITitleUI>()?.Hide(); 
 				using (await LoadingScreen.Show())
 					await stateManager.ResetState(
-						async () => await scriptPlayer.LoadAndPlay(script));
+						async () => await scriptPlayer.MainTrack.LoadAndPlay(script));
 				if (!string.IsNullOrEmpty(label))
-					await scriptPlayer.Rewind(scriptPlayer.PlayedScript.GetLineIndexForLabel(label));
+					await scriptPlayer.MainTrack.Rewind(scriptPlayer.MainTrack.PlayedScript.GetLineIndexForLabel(label));
 			}
 		}
 

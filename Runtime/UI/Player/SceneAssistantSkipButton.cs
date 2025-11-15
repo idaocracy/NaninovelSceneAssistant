@@ -8,7 +8,7 @@ namespace NaninovelSceneAssistant
         {
             base.OnButtonClick();
             InputManager.GetContinue().Activate(1);
-            SyncAndExecuteAsync(() => ScriptPlayer.SetWaitingForInputEnabled(true));
+            SyncAndExecuteAsync(() => ScriptPlayer.MainTrack.SetAwaitInput(true));
         }
     }
 }

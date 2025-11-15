@@ -66,8 +66,8 @@ namespace NaninovelSceneAssistant
             if (Initialized) return;
             GetServices();
             ResetSceneAssistant();
-            scriptPlayer.OnCommandExecutionStart += ClearSceneAssistantOnCommandStart;
-            scriptPlayer.OnCommandExecutionFinish += ResetSceneAssistantOnCommandFinish;
+            scriptPlayer.OnExecute += ClearSceneAssistantOnCommandStart;
+            scriptPlayer.OnExecuted += ResetSceneAssistantOnCommandFinish;
 
             stateManager.OnGameLoadFinished += HandleGameLoadFinished;
             stateManager.OnResetFinished += UpdateDataLists;
@@ -115,7 +115,9 @@ namespace NaninovelSceneAssistant
 			if (Configuration.CreateCharactersVariableFilterMenu)
 			{
 				var actorMap = Engine.GetService<ICharacterManager>().Configuration.ActorMetadataMap;
-				VariableFilterMenus.Add("Characters", actorMap.GetAllIds().Select(id => id).ToArray());
+				List<string> ids = new List<string>();
+                actorMap.CollectAllIds(ids);
+				VariableFilterMenus.Add("Characters", ids.ToArray());
 			}
 			
 			foreach (var menu in Configuration.CustomVariableFilterMenus) 
@@ -187,8 +189,8 @@ namespace NaninovelSceneAssistant
 			stateManager.OnResetFinished -= UpdateDataLists;
 			stateManager.OnRollbackFinished -= UpdateDataLists;
 			
-			scriptPlayer.OnCommandExecutionStart -= ClearSceneAssistantOnCommandStart;
-			scriptPlayer.OnCommandExecutionFinish -= ResetSceneAssistantOnCommandFinish;
+			scriptPlayer.OnExecute -= ClearSceneAssistantOnCommandStart;
+			scriptPlayer.OnExecuted -= ResetSceneAssistantOnCommandFinish;
 			
 			variableManager.OnVariableUpdated -= HandleOnVariableUpdated;
 			unlockableManager.OnItemUpdated -= HandleOnUnlockableUpdated;
@@ -203,29 +205,26 @@ namespace NaninovelSceneAssistant
 			UnlockableFilterMenus.Clear();
 			ScriptFilterMenus.Clear();
 			
-			if (scriptPlayer.PlayedScript != null && !scriptPlayer.Playing)
+			if (scriptPlayer.MainTrack.PlayedScript != null && !scriptPlayer.MainTrack.Playing)
 			{
-				scriptPlayer.SetWaitingForInputEnabled(true);
+				scriptPlayer.MainTrack.SetAwaitInput(true);
 
-				if (!scriptPlayer.Playing)
+				if (!scriptPlayer.MainTrack.Playing)
 				{
-					Type type = typeof(IScriptPlayer);
-					MethodInfo methodInfo = type.GetMethod("Resume");
-					if (methodInfo != null) methodInfo.Invoke(scriptPlayer, new object[] { null });
-					else type.GetMethod("Play").Invoke(scriptPlayer, new object[] { null });
+					scriptPlayer.MainTrack.Resume();
 				}
 			}
 			
 			Initialized = false;
 		}
 		
-		private void ClearSceneAssistantOnCommandStart(Command command) 
+		private void ClearSceneAssistantOnCommandStart(IScriptTrack track) 
 		{
 			ClearSceneAssistant();
-			if(command is Stop) ResetSceneAssistant();
+			if(track.PlayedCommand is Stop) ResetSceneAssistant();
 		}
 		
-		private void ResetSceneAssistantOnCommandFinish(Command command) => ResetSceneAssistant();
+		private void ResetSceneAssistantOnCommandFinish(IScriptTrack command) => ResetSceneAssistant();
 
 		public virtual void ClearSceneAssistant()
 		{

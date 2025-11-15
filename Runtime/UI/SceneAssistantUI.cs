@@ -63,9 +63,9 @@ namespace NaninovelSceneAssistant
 
 		protected void CheckIndex()
 		{	
-			if(scriptPlayer.Playing) 
+			if(scriptPlayer.MainTrack.Playing) 
 			{
-				if(!scriptPlayer.Playlist.IsIndexValid(scriptPlayer.PlayedIndex+1))
+				if(!scriptPlayer.MainTrack.Playlist.IsIndexValid(scriptPlayer.MainTrack.PlayedIndex+1))
 				{
 					scriptPlayerInfoBox.text = "End of script";
 				}
@@ -86,7 +86,7 @@ namespace NaninovelSceneAssistant
 
 			if (visible)
 			{
-				defaultRollbackValue = inputManager.GetRollback().Enabled;
+				defaultRollbackValue = inputManager.GetRollback().Muted;
 			}
 			else
 			{
@@ -94,15 +94,15 @@ namespace NaninovelSceneAssistant
 				{
 					currentMenu.DestroyMenu();
 					sceneAssistantManager.DestroySceneAssistant();
-					inputManager.GetRollback().Enabled = defaultRollbackValue;
+					inputManager.GetRollback().Muted = defaultRollbackValue;
 				}
 			}
 		}
 
 		private void SetRollbackEnabled(bool toggle)
 		{
-			if(toggle) inputManager.GetRollback().Enabled = false;
-			else inputManager.GetRollback().Enabled = defaultRollbackValue;
+			if(toggle) inputManager.GetRollback().Muted = false;
+			else inputManager.GetRollback().Muted = defaultRollbackValue;
 		}
 
 		public void ChangeTab(SceneAssistantTab sceneAssistantTab)

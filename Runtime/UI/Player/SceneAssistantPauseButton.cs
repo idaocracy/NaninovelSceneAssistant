@@ -1,25 +1,27 @@
-﻿namespace NaninovelSceneAssistant
+﻿using Naninovel;
+
+namespace NaninovelSceneAssistant
 {
     public class SceneAssistantPauseButton : SceneAssistantScriptPlayerButton
     {
         protected override void OnEnable()
         {
             base.OnEnable();
-            ScriptPlayer.OnWaitingForInput += HandleWaitingForInput;
+            ScriptPlayer.OnAwaitInput += HandleWaitingForInput;
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
-            ScriptPlayer.OnWaitingForInput -= HandleWaitingForInput;
+            ScriptPlayer.OnAwaitInput -= HandleWaitingForInput;
         }
 
-        private void HandleWaitingForInput(bool enabled) => SetColor(enabled);
+        private void HandleWaitingForInput(IScriptTrack track) => SetColor(track.AwaitingInput);
 
         protected override void OnButtonClick()
         {
             base.OnButtonClick();
-            SyncAndExecuteAsync(() => ScriptPlayer.SetWaitingForInputEnabled(true));
+            SyncAndExecuteAsync(() => ScriptPlayer.MainTrack.SetAwaitInput(true));
         }
     }
 }

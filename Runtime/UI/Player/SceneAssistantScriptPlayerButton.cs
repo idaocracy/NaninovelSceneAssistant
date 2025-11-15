@@ -27,7 +27,7 @@ namespace NaninovelSceneAssistant
 		}
 		protected async void SyncAndExecuteAsync(Action action)
 		{
-			await ScriptPlayer.Complete();
+			await ScriptPlayer.MainTrack.Complete();
 		}
 
 		protected void SetColor(bool enabled)

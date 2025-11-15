@@ -104,7 +104,7 @@ namespace NaninovelSceneAssistant
 
                 var map = behaviour.GetCompositionMap();
                 var keys = map.Keys.ToArray();
-                var defaultAppearance = string.IsNullOrEmpty(behaviour.DefaultAppearance) ? behaviour.Composition : behaviour.DefaultAppearance;
+                var defaultAppearance = string.IsNullOrEmpty(behaviour.DefaultAppearance) ? behaviour.GetComposition() : behaviour.DefaultAppearance;
                 string composition = string.Empty;
 
                 if (keys.Length > 0)
@@ -161,8 +161,8 @@ namespace NaninovelSceneAssistant
 		{
 			if (appearances != null && appearances.Length > 0)
 			{
-				if (appearances.Any(t => t.EqualsFast(Id))) return appearances.First(t => t.EqualsFast(Id));
-				if (appearances.Any(t => t.EqualsFast("Default"))) return appearances.First(t => t.EqualsFast("Default"));
+				if (appearances.Any(t => t.Equals(Id))) return appearances.First(t => t.Equals(Id));
+				if (appearances.Any(t => t.Equals("Default"))) return appearances.First(t => t.Equals("Default"));
 			}
 			return appearances.FirstOrDefault();
 		}

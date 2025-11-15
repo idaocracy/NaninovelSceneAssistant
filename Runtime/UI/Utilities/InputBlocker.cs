@@ -15,7 +15,7 @@ public class InputBlocker : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 		isInput = GetComponent<TMP_InputField>() != null;
 	}
 
-	public void ToggleInputProcessing(bool value) => inputManager.ProcessInput = value;
+	public void ToggleInputProcessing(bool value) => inputManager.Enabled = value;
 
 	public void OnPointerEnter(PointerEventData eventData) => ToggleInputProcessing(false);
 	public void OnPointerExit(PointerEventData eventData) 

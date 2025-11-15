@@ -20,11 +20,11 @@ namespace NaninovelSceneAssistant
 			ScriptPlayer.OnStop -= SetActiveColor;
 		}
 
-		private void SetActiveColor(Script script) 
+		private void SetActiveColor(IScriptTrack script) 
 		{
 			SetColor(true);
 		} 
-		private void SetDefaultColor(Script script) 
+		private void SetDefaultColor(IScriptTrack script) 
 		{
 			SetColor(false);
 		} 
@@ -32,8 +32,8 @@ namespace NaninovelSceneAssistant
 		protected override void OnButtonClick()
 		{
 			base.OnButtonClick();
-			SyncAndExecuteAsync(ScriptPlayer.Stop);
-			ScriptPlayer.SetWaitingForInputEnabled(false);
+			SyncAndExecuteAsync(ScriptPlayer.MainTrack.Stop);
+			ScriptPlayer.MainTrack.SetAwaitInput(false);
 		}
 	}
 }

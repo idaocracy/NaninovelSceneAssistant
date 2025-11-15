@@ -26,7 +26,7 @@ namespace NaninovelSceneAssistant
 		{
 			base.OnButtonClick();
 
-			if (!ScriptPlayer.Playing)
+			if (!ScriptPlayer.MainTrack.Playing)
 			{
 				Type type = typeof(IScriptPlayer);
 				MethodInfo methodInfo = type.GetMethod("Resume");
@@ -36,8 +36,8 @@ namespace NaninovelSceneAssistant
 			InputManager.GetContinue().Activate(1);
 		}
 
-		private void SetActiveColor(Script script) => SetColor(true);
+		private void SetActiveColor(IScriptTrack script) => SetColor(true);
 		
-		private void SetDefaultColor(Script script) => SetColor(false);
+		private void SetDefaultColor(IScriptTrack script) => SetColor(false);
 	}
 }
