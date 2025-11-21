@@ -89,11 +89,12 @@ namespace NaninovelSceneAssistant
 
         private void AddCustomVariable(string name, CustomVariableValue variable)
         {
-			if (VariableDataList.Keys.Contains(name)) return;
-
-			if(variable.Type == CustomVariableValueType.Boolean) VariableDataList.Add(name, new BooleanVariableData(name));
-			else if(variable.Type == CustomVariableValueType.Numeric) VariableDataList.Add(name, new NumericVariableData(name));
-			else VariableDataList.Add(name, new StringVariableData(name));
+		    if (variable.Type == CustomVariableValueType.Boolean)
+		        VariableDataList.TryAdd(name, new BooleanVariableData(name));
+		    else if(variable.Type == CustomVariableValueType.Numeric)
+		        VariableDataList.TryAdd(name, new NumericVariableData(name));
+		    else
+		        VariableDataList.TryAdd(name, new StringVariableData(name));
 		}
 
         private void HandleGameLoadFinished(GameSaveLoadArgs args) => UpdateDataLists();
