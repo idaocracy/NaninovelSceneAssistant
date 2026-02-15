@@ -14,12 +14,12 @@ namespace NaninovelSceneAssistant
 		}
 
 		protected const string SpawnName = "Spawn", SpawnCommandName = "spawn";
-		protected SpawnedObject Spawned => Engine.GetService<SpawnManager>().GetSpawned(Id);
+		protected SpawnedObject Spawned => Engine.GetService<SpawnManager>().IsSpawned(Id) ? Engine.GetService<SpawnManager>().GetSpawned(Id) : null;
 
 		public override string Id => id;
 		public static string TypeId => SpawnName;
-		protected Transform Transform => Spawned.Transform;
-		public override GameObject GameObject => Spawned.GameObject;
+		protected Transform Transform => Spawned?.Transform;
+		public override GameObject GameObject => Spawned?.GameObject;
 		protected ISceneAssistantSpawn SpawnSceneAssistant => GameObject.GetComponent<ISceneAssistantSpawn>() ?? null;
 		protected override string CommandNameAndId => $"{SpawnCommandName} {Id}";
 		protected bool IsTransformable => SpawnSceneAssistant?.IsTransformable ?? true;

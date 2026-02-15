@@ -11,7 +11,7 @@ namespace NaninovelSceneAssistant
     public interface IUIData
     {
         string Name { get; }
-        Func<bool, UniTask> ChangeVisibility { get; }
+        Func<bool, Awaitable> ChangeVisibility { get; }
         void DisplayField(IUILayout layout);
         GameObject GameObject { get; }
         string ModalGroup { get; }
@@ -22,7 +22,7 @@ namespace NaninovelSceneAssistant
     {
         public virtual string Name { get; set; }
         public string ModalGroup { get; }
-        public Func<bool, UniTask> ChangeVisibility { get; }
+        public Func<bool, Awaitable> ChangeVisibility { get; }
         public bool Visible => UI.Visible;
         public GameObject GameObject => UI.gameObject;
         protected TUI UI { get; }
@@ -40,9 +40,10 @@ namespace NaninovelSceneAssistant
             sceneAssistantManager = Engine.GetService<SceneAssistantManager>();
         }
 
-        protected virtual async UniTask ChangeVisibilityAsync(bool visible)
+        protected virtual async Awaitable ChangeVisibilityAsync(bool visible)
         {
-            await UI.ChangeVisibility(visible, null).ContinueWith(ClearAndResetUIData);
+            await UI.ChangeVisibility(visible, null);
+            ClearAndResetUIData();
         }
 
         protected virtual void ClearAndResetUIData()
@@ -66,7 +67,7 @@ namespace NaninovelSceneAssistant
             Name = "SaveLoadUI (Save)";
         }
 
-        protected override async UniTask ChangeVisibilityAsync(bool visible)
+        protected override async Awaitable ChangeVisibilityAsync(bool visible)
         {
             UI.ShowSave();
             await base.ChangeVisibilityAsync(visible);
@@ -80,7 +81,7 @@ namespace NaninovelSceneAssistant
             Name = "SaveLoadUI (Load)";
         }
 
-        protected override async UniTask ChangeVisibilityAsync(bool visible)
+        protected override async Awaitable ChangeVisibilityAsync(bool visible)
         {
             UI.ShowLoad();
             await base.ChangeVisibilityAsync(visible);
@@ -94,7 +95,7 @@ namespace NaninovelSceneAssistant
             Name = "SaveLoadUI (QuickLoad)";
         }
 
-        protected override async UniTask ChangeVisibilityAsync(bool visible)
+        protected override async Awaitable ChangeVisibilityAsync(bool visible)
         {
             UI.ShowLoad();
             await base.ChangeVisibilityAsync(visible);
@@ -106,7 +107,7 @@ namespace NaninovelSceneAssistant
     {
         public ToastUIData(ToastUI ui) : base(ui) {}
 
-        protected override async UniTask ChangeVisibilityAsync(bool visible)
+        protected override async Awaitable ChangeVisibilityAsync(bool visible)
         {
             UI.Show("Sample text");
             await base.ChangeVisibilityAsync(visible);

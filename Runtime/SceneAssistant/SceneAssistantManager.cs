@@ -39,7 +39,7 @@ namespace NaninovelSceneAssistant
 
 		public Action OnSceneAssistantCleared;
 		public Action OnSceneAssistantReset;
-		public virtual UniTask InitializeService() => UniTask.CompletedTask;
+		public virtual Awaitable InitializeService() => Async.Completed;
 		public virtual void ResetService()
 		{
 			if(Initialized) ClearSceneAssistant();
@@ -67,7 +67,7 @@ namespace NaninovelSceneAssistant
             GetServices();
             ResetSceneAssistant();
             scriptPlayer.OnExecute += ClearSceneAssistantOnCommandStart;
-            scriptPlayer.OnExecuted += ResetSceneAssistantOnCommandFinish;
+            scriptPlayer.OnExecute += ResetSceneAssistantOnCommandFinish;
 
             stateManager.OnGameLoadFinished += HandleGameLoadFinished;
             stateManager.OnResetFinished += UpdateDataLists;
@@ -117,7 +117,7 @@ namespace NaninovelSceneAssistant
 			{
 				var actorMap = Engine.GetService<ICharacterManager>().Configuration.ActorMetadataMap;
 				List<string> ids = new List<string>();
-                actorMap.CollectAllIds(ids);
+                actorMap.CollectIds(ids);
 				VariableFilterMenus.Add("Characters", ids.ToArray());
 			}
 			
@@ -169,10 +169,10 @@ namespace NaninovelSceneAssistant
 			}
 		}
 		
-		private async UniTask LocateScriptsAsync()
+		private async Awaitable LocateScriptsAsync()
 		{
 			var scriptManager = Engine.GetService<IScriptManager>();
-			var scripts = scriptManager.ScriptLoader.LoadAll().Result;
+			var scripts = await scriptManager.ScriptLoader.LoadAll();
 
 			foreach (var resource in scripts)
 			{
@@ -180,7 +180,7 @@ namespace NaninovelSceneAssistant
 				ScriptDataList.Add(resource.Object.Path, new ScriptData(resource));
 			}
 			
-			await UniTask.CompletedTask;
+			await Async.Completed;
 		}
 		public virtual void DestroySceneAssistant()
 		{
@@ -191,7 +191,8 @@ namespace NaninovelSceneAssistant
 			stateManager.OnRollbackFinished -= UpdateDataLists;
 			
 			scriptPlayer.OnExecute -= ClearSceneAssistantOnCommandStart;
-			scriptPlayer.OnExecuted -= ResetSceneAssistantOnCommandFinish;
+
+			scriptPlayer.OnExecute -= ResetSceneAssistantOnCommandFinish;
 			
 			variableManager.OnVariableUpdated -= HandleOnVariableUpdated;
 			unlockableManager.OnItemUpdated -= HandleOnUnlockableUpdated;
@@ -263,7 +264,7 @@ namespace NaninovelSceneAssistant
 
 		public virtual void ResetUIDataList()
 		{
-			var uiTransform = Engine.RootObject.transform.Find("UI").transform;
+			var uiTransform = Engine.Root.transform.Find("UI").transform;
 			for(int i = 0; i < uiTransform.childCount; i++)
 			{
 				if(uiTransform.GetChild(i).TryGetComponent<CustomUI>(out var ui)) AddUIData(UIDataList, ui);
@@ -280,7 +281,7 @@ namespace NaninovelSceneAssistant
 
 			UIDataList = UIDataList.OrderBy(u => u.GameObject.GetComponent<Canvas>().sortingOrder).Reverse().ToList();
 
-			var modalUiTransform = Engine.RootObject.transform.Find("ModalUI").transform;
+			var modalUiTransform = Engine.Root.transform.Find("ModalUI").transform;
 			for (int i = 0; i < modalUiTransform.childCount; i++)
 			{
 				if (modalUiTransform.GetChild(i).TryGetComponent<CustomUI>(out var ui)) AddUIData(ModalUIDataList, ui);
@@ -312,7 +313,10 @@ namespace NaninovelSceneAssistant
 		{
 			foreach (var actorService in actorServices)
 			{
-				foreach (var actor in actorService.Actors)
+				var actors = new List<IActor>();
+                actorService.CollectActors(actors);
+
+                foreach (var actor in actors)
 				{
 					if (actor is ICharacterActor character && character.Visible) ObjectList.Add(character.Id, new CharacterData(character.Id));
 					if (actor is IBackgroundActor background && background.Visible) ObjectList.Add(background.Id, new BackgroundData(background.Id));
@@ -323,7 +327,14 @@ namespace NaninovelSceneAssistant
 		}
 		protected virtual void ResetSpawnList()
 		{
-			foreach (var spawn in spawnManager.Spawned) ObjectList.Add(spawn.Path, new SpawnData(spawn.Path));
+			var spawns = new List<SpawnedObject>();
+			spawnManager.CollectSpawned(spawns);
+
+			foreach (var spawn in spawns)
+			{
+               if(spawnManager.IsSpawned(spawn.Path))
+					ObjectList.Add(spawn.Path, new SpawnData(spawn.Path));
+			}
 		}
 		private void ResetObjectTypeList()
 		{

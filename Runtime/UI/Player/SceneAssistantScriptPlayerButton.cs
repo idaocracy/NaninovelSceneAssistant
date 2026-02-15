@@ -28,7 +28,8 @@ namespace NaninovelSceneAssistant
 		protected async void SyncAndExecuteAsync(Action action)
 		{
 			await ScriptPlayer.MainTrack.Complete();
-		}
+			action.Invoke();
+        }
 
 		protected void SetColor(bool enabled)
 		{

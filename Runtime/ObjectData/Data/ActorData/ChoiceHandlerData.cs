@@ -34,7 +34,10 @@ namespace NaninovelSceneAssistant
 		{
 			ChoiceButtons = new Dictionary<Choice, ChoiceHandlerButton>();
 
-			foreach(var choiceState in Actor.Choices)
+			var choices = new List<Choice>();
+            Actor.CollectChoices(choices);
+
+            foreach (var choiceState in choices)
 			{
 				ChoiceButtons.Add(choiceState, GameObject.GetComponentsInChildren<ChoiceHandlerButton>().FirstOrDefault(c => c.Choice == choiceState));
 			}

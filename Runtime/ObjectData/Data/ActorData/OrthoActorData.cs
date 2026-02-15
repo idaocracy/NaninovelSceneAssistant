@@ -40,25 +40,31 @@ namespace NaninovelSceneAssistant
         public bool IsRenderTexture => Metadata.RenderTexture != null;
 
         protected override float? DefaultZOffset => Config.ZOffset;
-		protected virtual async UniTask<string[]> GetOrthoAppearanceList()
+		protected virtual string[] GetOrthoAppearanceList()
 		{
 			var resourceProviderManager = Engine.GetService<IResourceProviderManager>();
-			var providers = resourceProviderManager.GetProviders(Metadata.Loader.ProviderTypes);
+			var providers = resourceProviderManager.CollectProviders(Metadata.Loader.ProviderTypes);
 
 			// In case you are extending the data class and want to add a dropdown list for appearances, you'll need to be explicit with typing, 
 			// as otherwise the dropdown list won't appear in build. await LocateResourcesAtPathAsync<UnityEngine.Object>() will work for all types in the editor.
-			if (Actor is SpriteCharacter || Actor is SpriteBackground) return await LocateResourcesAtPathAsync<Texture2D>();
-			else if (Actor is VideoCharacter || Actor is VideoBackground) return await LocateResourcesAtPathAsync<VideoClip>();
+			if (Actor is SpriteCharacter || Actor is SpriteBackground) return LocateResourcesAtPath();
+			else if (Actor is VideoCharacter || Actor is VideoBackground) return LocateResourcesAtPath();
 #if SPRITE_DICING_AVAILABLE
 			else if (Actor is DicedSpriteCharacter || Actor is DicedSpriteBackground) return GetAtlasSprites();
 #endif
-			else return await LocateResourcesAtPathAsync<UnityEngine.Object>();
+			else return LocateResourcesAtPath();
 
-			async UniTask<string[]> LocateResourcesAtPathAsync<T>() where T : UnityEngine.Object
+			string[] LocateResourcesAtPath()
 			{
 				var actorPath = Metadata.Loader.PathPrefix + "/" + Id;
-				var resourcePaths = await providers.LocateResourcesAsync<T>(actorPath);
-				var appearances = new List<string>();
+				var resourcePaths = new List<string>();
+                foreach (var provider in providers)
+				{
+					var paths = new List<string>();
+                    provider.CollectPaths(paths, actorPath);
+					resourcePaths.Concat(paths);
+                }
+                var appearances = new List<string>();
 
 				foreach (var path in resourcePaths)
 				{
@@ -72,15 +78,17 @@ namespace NaninovelSceneAssistant
 			string[] GetAtlasSprites()
 			{
 				var actorPath = Metadata.Loader.PathPrefix + "/" + Id;
-				var resourcePath = providers.GetLoadedResourceOrNull<DicedSpriteAtlas>(actorPath);
-				var resourcePaths = resourcePath.Object.Sprites;
-				var appearances = new List<string>();
-				
-				foreach (var path in resourcePaths)
+                var appearances = new List<string>();
+
+                foreach (var provider in providers)
 				{
-					var appearance = path.name;
-					appearances.Add(appearance);
-				} 
+                    var obj = (DicedSpriteAtlas)provider.GetLoaded(actorPath);
+					var resourcePaths = obj.Sprites;
+                    foreach (var sprite in resourcePaths)
+					{
+						appearances.Add(sprite.name);
+                    }
+                }
 
 				return appearances.ToArray();
 			} 
@@ -89,10 +97,14 @@ namespace NaninovelSceneAssistant
 
 		protected override void GetAppearanceData()
 		{
-			var appearances = GetOrthoAppearanceList().Result;
+			var appearances = GetOrthoAppearanceList();
 
             if (GameObject.transform.childCount > 0 && GameObject.transform.GetChild(0).TryGetComponent<LayeredActorBehaviour>(out var behaviour))
-				GetLayeredAppearanceData(behaviour);
+			{
+				if(behaviour.GetType() == typeof(PlaceholderBackgroundBehaviour) || behaviour.GetType() == typeof(PlaceholderCharacterBehaviour))
+					GetFreeformAppearanceData();
+                else GetLayeredAppearanceData(behaviour);
+            }
             else if (appearances.Length > 0)
 				GetAppearanceListData(appearances);
             else GetFreeformAppearanceData();
