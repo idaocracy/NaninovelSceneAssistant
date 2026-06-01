@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System;
+using Naninovel;
+using UnityEngine;
 
 namespace NaninovelSceneAssistant
 {
@@ -22,6 +24,13 @@ namespace NaninovelSceneAssistant
         public override string GetCommandValue(bool paramOnly = false) => CommandParameterDataExtensions.GetListValue(this, paramOnly);
         public override void DrawLayout(ISceneAssistantLayout layout) => getLayout(layout, this);
         public override void ResetDefault() => Values.ForEach(c => c.ResetDefault());
-        public override void ResetState() => Values.ForEach(c => c.ResetState());
+        public override async Awaitable ResetState()
+        {
+            foreach (var value in Values)
+            {
+                await Async.NextFrame();
+                await value.ResetState();
+            }
+        }
     }
 }
