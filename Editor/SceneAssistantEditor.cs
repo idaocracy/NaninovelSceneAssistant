@@ -368,11 +368,7 @@ namespace NaninovelSceneAssistant
             var index = scriptPlayer.MainTrack.PlayedIndex;
             // combine script with scenario root to get full path
             var fullPath = Path.Combine(PackagePath.ScenarioRoot, $"{script.Path}.nani");
-            Debug.Log(fullPath);
-            Debug.Log(AssetDatabase.GetAssetPath(script));
-
             var scriptContents = File.ReadAllText(fullPath);
-
             var scriptLines = scriptContents.Split('\n');
 
             List<string> updatedScriptLines = new List<string>(scriptLines);
@@ -380,7 +376,6 @@ namespace NaninovelSceneAssistant
             scriptContents = string.Join("\n", updatedScriptLines);
 
             File.WriteAllText(fullPath, scriptContents);
-            AssetDatabase.Refresh();
 
             return content;
         }
