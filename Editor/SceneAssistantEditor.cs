@@ -105,7 +105,7 @@ namespace NaninovelSceneAssistant
             sceneAssistantManager.OnSceneAssistantReset += HandleSceneAssistantReset;
 
             scriptFoldouts = new bool[sceneAssistantManager.ScriptDataList.Count];
-            defaultRollbackValue = inputManager.GetRollback().Muted;
+            defaultRollbackValue = inputManager.GetRollback()?.Muted ?? false;
 
             int temp = EditorPrefs.GetInt("NaniAssistantTab", -1);
             if (temp > -1)
