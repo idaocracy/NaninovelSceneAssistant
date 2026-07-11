@@ -260,7 +260,7 @@ namespace NaninovelSceneAssistant
                 }
 
                 inputManager.GetContinue().Activate(1);
-                inputManager.GetRollback().Muted = defaultRollbackValue;
+                if (inputManager.GetRollback() != null) inputManager.GetRollback().Muted = defaultRollbackValue;
             }
 
             if (DrawScriptPlayerButton("\u2161", Color.yellow, scriptPlayer.MainTrack.Playing && scriptPlayer.AwaitingInput))
@@ -271,7 +271,7 @@ namespace NaninovelSceneAssistant
             if (DrawScriptPlayerButton("\uFFED", Color.red, !scriptPlayer.MainTrack.Playing, 18))
             {
                 SyncAndExecuteAsync(scriptPlayer.MainTrack.Stop);
-                if (disableRollback) inputManager.GetRollback().Muted = true;
+                if (disableRollback && inputManager.GetRollback() != null) inputManager.GetRollback().Muted = true;
                 if (scriptPlayer.AwaitingInput) scriptPlayer.MainTrack.SetAwaitInput(false);
             }
 
@@ -279,7 +279,7 @@ namespace NaninovelSceneAssistant
             {
                 if (GUILayout.Button("\u25AE" + " \u25C0", new GUIStyle(GUI.skin.button) { fontSize = 7, fontStyle = FontStyle.Bold }, GUILayout.Height(20), GUILayout.Width(25)))
                 {
-                    inputManager.GetRollback().Activate(1);
+                    if (inputManager.GetRollback() != null) inputManager.GetRollback().Activate(1);
                     SyncAndExecuteAsync(() => scriptPlayer.MainTrack.SetAwaitInput(true));
                 }
             }
@@ -311,8 +311,6 @@ namespace NaninovelSceneAssistant
                 else return false;
             }
         }
-
-        public async void RollbackAsync() => await stateManager.Rollback(s => s.PlayerRollbackAllowed);
 
         public async void SyncAndExecuteAsync(Action action)
         {
